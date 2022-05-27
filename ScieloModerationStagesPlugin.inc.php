@@ -23,9 +23,9 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
         if (!Config::getVar('general', 'installed') || defined('RUNNING_UPGRADE'))
             return true;
         
-        /*if ($success && $this->getEnabled($mainContextId)) {
-			Hooks calls
-        }*/
+        if ($success && $this->getEnabled($mainContextId)) {
+			HookRegistry::register('submissionsubmitstep4form::execute', array($this, 'setSubmissionFirstModerationStage'));
+        }
         
         return $success;
     }
@@ -37,4 +37,12 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 	public function getDescription() {
 		return __('plugins.generic.scieloModerationStages.description');
 	}
+
+	public function setSubmissionFirstModerationStage($hookName, $params) {
+		//Chamar as duas funcoes abaixo
+	}
+	
+	//function colocar submissao num estagio
+
+	//function 	registrar no histórico de atividades que a submissao foi pro estagio tal
 }
