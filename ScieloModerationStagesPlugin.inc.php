@@ -17,6 +17,10 @@ import('lib.pkp.classes.plugins.GenericPlugin');
 import('classes.log.SubmissionEventLogEntry');
 import('lib.pkp.classes.log.SubmissionLog');
 
+define('SCIELO_MODERATION_STAGE_FORMAT', 1);
+define('SCIELO_MODERATION_STAGE_CONTENT', 2);
+define('SCIELO_MODERATION_STAGE_AREA', 3);
+
 class ScieloModerationStagesPlugin extends GenericPlugin {
 
 	public function register($category, $path, $mainContextId = NULL) {
@@ -58,13 +62,23 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
         return false;
 	}
 
+	public function getModerationStageName($stage) {
+		$stageMap = [
+			'SCIELO_MODERATION_STAGE_FORMAT' => 'plugins.generic.scieloModerationStages.stages.formatStage',
+			'SCIELO_MODERATION_STAGE_CONTENT' => 'plugins.generic.scieloModerationStages.stages.contentStage',
+			'SCIELO_MODERATION_STAGE_AREA' => 'plugins.generic.scieloModerationStages.stages.areaStage',
+		];
+
+		return __($stageMap[$stage]);
+	}
+
 	public function setSubmissionFirstModerationStage($hookName, $params) {
 		$submission = $params[0]->submission;
-		$submission->setData('currentModerationStage', 1);
+		$submission->setData('currentModerationStage', SCIELO_MODERATION_STAGE_FORMAT);
 		$submission->setData('lastModerationStageChange', Core::getCurrentDate());
 
 		$request = Application::get()->getRequest();
-		$moderationStageName = __('plugins.generic.scieloModerationStages.stages.formatStage');
+		$moderationStageName = $this->getModerationStageName(SCIELO_MODERATION_STAGE_FORMAT);
 		SubmissionLog::logEvent($request, $submission, SUBMISSION_LOG_METADATA_UPDATE, 'plugins.generic.scieloModerationStages.log.submissionSentToModerationStage', ['moderationStageName' => $moderationStageName]);
 	}
 	

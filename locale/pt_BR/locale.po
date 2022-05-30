@@ -16,3 +16,15 @@ msgstr "Estágios de Moderação SciELO"
 
 msgid "plugins.generic.pluginUpdateNotification.description"
 msgstr "Este plugin adiciona os estágios de moderação definidos pela SciELO ao OPS"
+
+msgid "plugins.generic.scieloModerationStages.log.submissionSentToModerationStage"
+msgstr "A submissão foi enviada para o estágio de {$moderationStageName}"
+
+msgid "plugins.generic.scieloModerationStages.stages.formatStage"
+msgstr "Pré-Moderação de Formato"
+
+msgid "plugins.generic.scieloModerationStages.stages.contentStage"
+msgstr "Pré-Moderação de Conteúdo"
+
+msgid "plugins.generic.scieloModerationStages.stages.areaStage"
+msgstr "Moderação de Área"
