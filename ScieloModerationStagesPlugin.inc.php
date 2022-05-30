@@ -14,6 +14,8 @@
  */
 
 import('lib.pkp.classes.plugins.GenericPlugin');
+import('classes.log.SubmissionEventLogEntry');
+import('lib.pkp.classes.log.SubmissionLog');
 
 class ScieloModerationStagesPlugin extends GenericPlugin {
 
@@ -24,6 +26,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
             return true;
         
         if ($success && $this->getEnabled($mainContextId)) {
+			HookRegistry::register('Schema::get::submission', array($this, 'addOurFieldsToSubmissionSchema'));
 			HookRegistry::register('submissionsubmitstep4form::execute', array($this, 'setSubmissionFirstModerationStage'));
         }
         
@@ -38,11 +41,31 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 		return __('plugins.generic.scieloModerationStages.description');
 	}
 
+	public function addOurFieldsToSubmissionSchema($hookName, $params) {
+		$schema =& $params[0];
+
+        $schema->properties->{'currentModerationStage'} = (object) [
+            'type' => 'string',
+            'apiSummary' => true,
+            'validation' => ['nullable'],
+        ];
+        $schema->properties->{'lastModerationStageChange'} = (object) [
+            'type' => 'string',
+            'apiSummary' => true,
+            'validation' => ['nullable'],
+        ];
+
+        return false;
+	}
+
 	public function setSubmissionFirstModerationStage($hookName, $params) {
-		//Chamar as duas funcoes abaixo
+		$submission = $params[0]->submission;
+		$submission->setData('currentModerationStage', 1);
+		$submission->setData('lastModerationStageChange', Core::getCurrentDate());
+
+		$request = Application::get()->getRequest();
+		$moderationStageName = __('plugins.generic.scieloModerationStages.stages.formatStage');
+		SubmissionLog::logEvent($request, $submission, SUBMISSION_LOG_METADATA_UPDATE, 'plugins.generic.scieloModerationStages.log.submissionSentToModerationStage', ['moderationStageName' => $moderationStageName]);
 	}
 	
-	//function colocar submissao num estagio
-
-	//function 	registrar no histórico de atividades que a submissao foi pro estagio tal
 }
