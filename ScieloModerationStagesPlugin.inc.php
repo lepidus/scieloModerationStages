@@ -64,9 +64,9 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 
 	public function getModerationStageName($stage) {
 		$stageMap = [
-			'SCIELO_MODERATION_STAGE_FORMAT' => 'plugins.generic.scieloModerationStages.stages.formatStage',
-			'SCIELO_MODERATION_STAGE_CONTENT' => 'plugins.generic.scieloModerationStages.stages.contentStage',
-			'SCIELO_MODERATION_STAGE_AREA' => 'plugins.generic.scieloModerationStages.stages.areaStage',
+			SCIELO_MODERATION_STAGE_FORMAT => 'plugins.generic.scieloModerationStages.stages.formatStage',
+			SCIELO_MODERATION_STAGE_CONTENT => 'plugins.generic.scieloModerationStages.stages.contentStage',
+			SCIELO_MODERATION_STAGE_AREA => 'plugins.generic.scieloModerationStages.stages.areaStage',
 		];
 
 		return __($stageMap[$stage]);
