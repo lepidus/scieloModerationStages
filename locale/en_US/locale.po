@@ -28,3 +28,9 @@ msgstr "Content Pre-Moderation"
 
 msgid "plugins.generic.scieloModerationStages.stages.areaStage"
 msgstr "Area Moderation"
+
+msgid "plugins.generic.scieloModerationStages.checkboxTitle"
+msgstr "SciELO Moderation Stage"
+
+msgid "plugins.generic.scieloModerationStages.checkboxSendNextStage"
+msgstr "This submission is in the {$currentStage} stage, do you want to send it to the {$nextStage} stage?"

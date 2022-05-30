@@ -32,6 +32,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
         if ($success && $this->getEnabled($mainContextId)) {
 			HookRegistry::register('Schema::get::submission', array($this, 'addOurFieldsToSubmissionSchema'));
 			HookRegistry::register('submissionsubmitstep4form::execute', array($this, 'setSubmissionFirstModerationStage'));
+			HookRegistry::register('addparticipantform::display', array($this, 'addFieldsAssignForm'));
         }
         
         return $success;
@@ -72,6 +73,15 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 		return __($stageMap[$stage]);
 	}
 
+	public function getNextModerationStage($stage) {
+		$nextStageMap = [
+			SCIELO_MODERATION_STAGE_FORMAT => SCIELO_MODERATION_STAGE_CONTENT,
+			SCIELO_MODERATION_STAGE_CONTENT => SCIELO_MODERATION_STAGE_AREA,
+		];
+
+		return $nextStageMap[$stage];
+	}
+
 	public function setSubmissionFirstModerationStage($hookName, $params) {
 		$submission = $params[0]->submission;
 		$submission->setData('currentModerationStage', SCIELO_MODERATION_STAGE_FORMAT);
@@ -82,4 +92,32 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 		SubmissionLog::logEvent($request, $submission, SUBMISSION_LOG_METADATA_UPDATE, 'plugins.generic.scieloModerationStages.log.submissionSentToModerationStage', ['moderationStageName' => $moderationStageName]);
 	}
 	
+	public function addFieldsAssignForm($hookName, $params) {
+        $request = PKPApplication::get()->getRequest();
+        $templateMgr = TemplateManager::getManager($request);
+
+		$submission = $params[0]->getSubmission();
+		$currentStage = $submission->getData('currentModerationStage');
+		$nextStage = $this->getNextModerationStage($currentStage);
+
+        $templateMgr->assign('currentStage', $this->getModerationStageName($currentStage));
+		$templateMgr->assign('nextStage', $this->getModerationStageName($nextStage));
+		
+		$templateMgr->registerFilter("output", array($this, 'addCheckboxesToAssignForm'));
+        return false;
+    }
+
+	public function addCheckboxesToAssignForm($output, $templateMgr) {
+		if (preg_match('/<div[^>]+class="section formButtons/', $output, $matches, PREG_OFFSET_CAPTURE)) {
+            $match = $matches[0][0];
+            $posMatch = $matches[0][1];
+            
+			$sentNextStageOutput = $templateMgr->fetch($this->getTemplateResource('sentNextStage.tpl'));
+
+            $output = substr_replace($output, $sentNextStageOutput, $posMatch, 0);
+            $templateMgr->unregisterFilter('output', array($this, 'addCheckboxesToAssignForm'));
+        }
+        return $output;
+	}
+
 }

@@ -62,7 +62,7 @@ describe("SciELO Moderation Stages Plugin - Option to sent submission to next mo
         cy.get("#active-button").click();
         cy.get(".listPanel__itemActions:visible > a.pkpButton").first().click();
         cy.get("a").contains("Assign").click();
-        cy.get("span").contains("This submission is in the Format Pre-Moderation stage, do you want to send it to the Content Pre-Moderation stage?");
+        cy.contains("This submission is in the Format Pre-Moderation stage, do you want to send it to the Content Pre-Moderation stage?");
         cy.get('input[name="sendNextStage"][value="0"]');
         cy.get('input[name="sendNextStage"][value="1"]');
     });

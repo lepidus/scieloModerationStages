@@ -28,3 +28,9 @@ msgstr "Moderación Previa del Contenido"
 
 msgid "plugins.generic.scieloModerationStages.stages.areaStage"
 msgstr "Moderación del Área"
+
+msgid "plugins.generic.scieloModerationStages.checkboxTitle"
+msgstr "Etapa de Moderación SciELO"
+
+msgid "plugins.generic.scieloModerationStages.checkboxSendNextStage"
+msgstr "Este envío se encuentra en la etapa de {$currentStage}, ¿le gustaría enviarlo a la etapa de {$nextStage}?"
