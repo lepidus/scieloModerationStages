@@ -98,13 +98,16 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
         $templateMgr = TemplateManager::getManager($request);
 
 		$submission = $params[0]->getSubmission();
-		$currentStage = $submission->getData('currentModerationStage');
-		$nextStage = $this->getNextModerationStage($currentStage);
 
-        $templateMgr->assign('currentStage', $this->getModerationStageName($currentStage));
-		$templateMgr->assign('nextStage', $this->getModerationStageName($nextStage));
-		
-		$templateMgr->registerFilter("output", array($this, 'addCheckboxesToAssignForm'));
+		if($submission->getData('status') != STATUS_DECLINED) {
+			$currentStage = $submission->getData('currentModerationStage');
+			$nextStage = $this->getNextModerationStage($currentStage);
+	
+			$templateMgr->assign('currentStage', $this->getModerationStageName($currentStage));
+			$templateMgr->assign('nextStage', $this->getModerationStageName($nextStage));
+			
+			$templateMgr->registerFilter("output", array($this, 'addCheckboxesToAssignForm'));
+		}
         return false;
     }
 

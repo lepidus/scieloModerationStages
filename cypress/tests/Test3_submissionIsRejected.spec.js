@@ -45,18 +45,17 @@ function submissionStep4() {
     cy.get('.pkp_modal_confirmation > .footer > .ok').click();
 }
 
-function checkOptionSendNextStageIsPresent() {
+function rejectSubmission() {
+    cy.get("#editorialActions > li > a").contains("Decline").click();
+    cy.get("#sendReviews > .formButtons > .submitFormButton").click();
+}
+
+function checkOptionSendNextStageIsNotPresent() {
+    cy.get("a").contains("Assign").click();
     cy.contains("This submission is in the Format Pre-Moderation stage, do you want to send it to the Content Pre-Moderation stage?");
-    cy.get('input[name="sendNextStage"][value="1"]').parent().contains("Yes");
-    cy.get('input[name="sendNextStage"][value="0"]').parent().contains("No");
 }
 
-function checkSubmissionHasBeenSentToNextModerationStage() {
-    cy.get('.pkpButton').contains('Activity Log').click();
-    cy.get('.gridCellContainer > span').should('contain', 'The submission has been sent to the Content Pre-Moderation stage');
-}
-
-describe("SciELO Moderation Stages Plugin - Option to sent submission to next moderation stage", function() {
+describe("SciELO Moderation Stages Plugin - Option to sent submission to next moderation stage when submission is rejected", function() {
     it("Author user submits", function() {
         cy.visit(Cypress.env('baseUrl') + 'index.php/scielo/submissions');
         loginAuthorUser();
@@ -68,14 +67,16 @@ describe("SciELO Moderation Stages Plugin - Option to sent submission to next mo
         submissionStep4();
         userLogout();
     });
-    it("Check option to sent submission to next moderation stage in user assign modal", function() {
+    it("Check option to sent submission to next moderation stage does not show when submision is rejected", function() {
         loginAdminUser();
         cy.get("#active-button").click();
         cy.get(".listPanel__itemActions:visible > a.pkpButton").first().click();
-        cy.get("a").contains("Assign").click();
-        checkOptionSendNextStageIsPresent();
-        cy.get("#user_1").click();
-        cy.get("#addParticipantForm > .formButtons > .submitFormButton").click();
-        checkSubmissionHasBeenSentToNextModerationStage();
+        
+        rejectSubmission();
+        
+        cy.visit(Cypress.env('baseUrl') + 'index.php/scielo/submissions');
+        cy.get("#archive-button").click();
+        cy.get(".listPanel__itemActions:visible > a.pkpButton").first().click();
+        checkOptionSendNextStageIsNotPresent();
     });
 });
