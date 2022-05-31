@@ -33,6 +33,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 			HookRegistry::register('Schema::get::submission', array($this, 'addOurFieldsToSubmissionSchema'));
 			HookRegistry::register('submissionsubmitstep4form::execute', array($this, 'setSubmissionFirstModerationStage'));
 			HookRegistry::register('addparticipantform::display', array($this, 'addFieldsAssignForm'));
+			HookRegistry::register('addparticipantform::execute', array($this, 'sendSubmissionToNextModerationStage'));
         }
         
         return $success;
@@ -118,6 +119,26 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
             $templateMgr->unregisterFilter('output', array($this, 'addCheckboxesToAssignForm'));
         }
         return $output;
+	}
+
+	public function sendSubmissionToNextModerationStage($hookName, $params) {
+		$request = PKPApplication::get()->getRequest();
+		$form = $params[0];
+		$requestVars = $request->getUserVars();
+		
+		if($requestVars['sendNextStage']) {
+			$submission = $form->getSubmission();
+			$currentStage = $submission->getData('currentModerationStage');
+			$nextStage = $this->getNextModerationStage($currentStage);
+	
+			$submissionDao = DAORegistry::getDAO('SubmissionDAO');
+			$submission->setData('currentModerationStage', $nextStage);
+			$submission->setData('lastModerationStageChange', Core::getCurrentDate());
+			$submissionDao->updateObject($submission);
+	
+			$moderationStageName = $this->getModerationStageName($nextStage);
+			SubmissionLog::logEvent($request, $submission, SUBMISSION_LOG_METADATA_UPDATE, 'plugins.generic.scieloModerationStages.log.submissionSentToModerationStage', ['moderationStageName' => $moderationStageName]);
+		}
 	}
 
 }
