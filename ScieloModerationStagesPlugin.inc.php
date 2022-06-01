@@ -99,7 +99,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 
 		$submission = $params[0]->getSubmission();
 
-		if($submission->getData('status') != STATUS_DECLINED) {
+		if($submission->getData('status') != STATUS_DECLINED && $submission->getData('status') != STATUS_PUBLISHED) {
 			$currentStage = $submission->getData('currentModerationStage');
 			$nextStage = $this->getNextModerationStage($currentStage);
 	
