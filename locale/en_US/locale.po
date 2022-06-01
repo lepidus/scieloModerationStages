@@ -11,10 +11,10 @@ msgstr ""
 "PO-Revision-Date: 2022-05-27T08:00:00+02:00\n"
 "Language: English\n"
 
-msgid "plugins.generic.pluginUpdateNotification.displayName"
+msgid "plugins.generic.scieloModerationStages.displayName"
 msgstr "SciELO Moderation Stages"
 
-msgid "plugins.generic.pluginUpdateNotification.description"
+msgid "plugins.generic.scieloModerationStages.description"
 msgstr "This plugin adds the stages of moderation defined by SciELO to OPS"
 
 msgid "plugins.generic.scieloModerationStages.log.submissionSentToModerationStage"
