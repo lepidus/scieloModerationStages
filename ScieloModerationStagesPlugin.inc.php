@@ -102,7 +102,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 		if($submission->getData('status') != STATUS_DECLINED && $submission->getData('status') != STATUS_PUBLISHED) {
 			$currentStage = $submission->getData('currentModerationStage');
 			
-			if($currentStage != SCIELO_MODERATION_STAGE_AREA) {
+			if(!is_null($currentStage) && $currentStage != SCIELO_MODERATION_STAGE_AREA) {
 				$nextStage = $this->getNextModerationStage($currentStage);
 		
 				$templateMgr->assign('currentStage', $this->getModerationStageName($currentStage));
