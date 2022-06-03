@@ -14,31 +14,26 @@
  */
 
 import('lib.pkp.classes.plugins.GenericPlugin');
-import('classes.log.SubmissionEventLogEntry');
-import('lib.pkp.classes.log.SubmissionLog');
-
-define('SCIELO_MODERATION_STAGE_FORMAT', 1);
-define('SCIELO_MODERATION_STAGE_CONTENT', 2);
-define('SCIELO_MODERATION_STAGE_AREA', 3);
+import('plugins.generic.scieloModerationStages.classes.ModerationStage');
+import('plugins.generic.scieloModerationStages.classes.ModerationStageRegister');
 
 class ScieloModerationStagesPlugin extends GenericPlugin {
-
 	public function register($category, $path, $mainContextId = NULL) {
 		$success = parent::register($category, $path, $mainContextId);
-        
-        if (!Config::getVar('general', 'installed') || defined('RUNNING_UPGRADE'))
-            return true;
-        
-        if ($success && $this->getEnabled($mainContextId)) {
+
+		if (!Config::getVar('general', 'installed') || defined('RUNNING_UPGRADE'))
+			return true;
+
+		if ($success && $this->getEnabled($mainContextId)) {
 			HookRegistry::register('Schema::get::submission', array($this, 'addOurFieldsToSubmissionSchema'));
 			HookRegistry::register('submissionsubmitstep4form::execute', array($this, 'setSubmissionFirstModerationStage'));
 			HookRegistry::register('addparticipantform::display', array($this, 'addFieldsAssignForm'));
 			HookRegistry::register('addparticipantform::execute', array($this, 'sendSubmissionToNextModerationStage'));
-        }
-        
-        return $success;
-    }
-	
+		}
+				
+		return $success;
+	}
+
 	public function getDisplayName() {
 		return __('plugins.generic.scieloModerationStages.displayName');
 	}
@@ -64,33 +59,12 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
         return false;
 	}
 
-	public function getModerationStageName($stage) {
-		$stageMap = [
-			SCIELO_MODERATION_STAGE_FORMAT => 'plugins.generic.scieloModerationStages.stages.formatStage',
-			SCIELO_MODERATION_STAGE_CONTENT => 'plugins.generic.scieloModerationStages.stages.contentStage',
-			SCIELO_MODERATION_STAGE_AREA => 'plugins.generic.scieloModerationStages.stages.areaStage',
-		];
-
-		return __($stageMap[$stage]);
-	}
-
-	public function getNextModerationStage($stage) {
-		$nextStageMap = [
-			SCIELO_MODERATION_STAGE_FORMAT => SCIELO_MODERATION_STAGE_CONTENT,
-			SCIELO_MODERATION_STAGE_CONTENT => SCIELO_MODERATION_STAGE_AREA,
-		];
-
-		return $nextStageMap[$stage];
-	}
-
 	public function setSubmissionFirstModerationStage($hookName, $params) {
 		$submission = $params[0]->submission;
-		$submission->setData('currentModerationStage', SCIELO_MODERATION_STAGE_FORMAT);
-		$submission->setData('lastModerationStageChange', Core::getCurrentDate());
-
-		$request = Application::get()->getRequest();
-		$moderationStageName = $this->getModerationStageName(SCIELO_MODERATION_STAGE_FORMAT);
-		SubmissionLog::logEvent($request, $submission, SUBMISSION_LOG_METADATA_UPDATE, 'plugins.generic.scieloModerationStages.log.submissionSentToModerationStage', ['moderationStageName' => $moderationStageName]);
+		$moderationStage = new ModerationStage($submission);
+		$moderationStage->setToFirstStage();
+		$moderationStageRegister = new ModerationStageRegister();
+		$moderationStageRegister->registerModerationStage($moderationStage);
 	}
 	
 	public function addFieldsAssignForm($hookName, $params) {
@@ -98,25 +72,23 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
         $templateMgr = TemplateManager::getManager($request);
 
 		$submission = $params[0]->getSubmission();
+		$moderationStage = new ModerationStage($submission);
 
-		if($submission->getData('status') != STATUS_DECLINED && $submission->getData('status') != STATUS_PUBLISHED) {
-			$currentStage = $submission->getData('currentModerationStage');
+		if($moderationStage->canAdvanceStage()) {
+			$currentStageName = $moderationStage->getCurrentStageName();
+			$nextStageName = $moderationStage->getNextStageName();
+
+			$templateMgr->assign('currentStage', $currentStageName);
+			$templateMgr->assign('nextStage', $nextStageName);
 			
-			if(!is_null($currentStage) && $currentStage != SCIELO_MODERATION_STAGE_AREA) {
-				$nextStage = $this->getNextModerationStage($currentStage);
-		
-				$templateMgr->assign('currentStage', $this->getModerationStageName($currentStage));
-				$templateMgr->assign('nextStage', $this->getModerationStageName($nextStage));
-				
-				$templateMgr->registerFilter("output", array($this, 'addCheckboxesToAssignForm'));
-			}
+			$templateMgr->registerFilter("output", array($this, 'addCheckboxesToAssignForm'));
 		}
+
         return false;
     }
 
 	public function addCheckboxesToAssignForm($output, $templateMgr) {
 		if (preg_match('/<div[^>]+class="section formButtons/', $output, $matches, PREG_OFFSET_CAPTURE)) {
-            $match = $matches[0][0];
             $posMatch = $matches[0][1];
             
 			$sentNextStageOutput = $templateMgr->fetch($this->getTemplateResource('sentNextStage.tpl'));
@@ -134,16 +106,10 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 		
 		if($requestVars['sendNextStage']) {
 			$submission = $form->getSubmission();
-			$currentStage = $submission->getData('currentModerationStage');
-			$nextStage = $this->getNextModerationStage($currentStage);
-	
-			$submissionDao = DAORegistry::getDAO('SubmissionDAO');
-			$submission->setData('currentModerationStage', $nextStage);
-			$submission->setData('lastModerationStageChange', Core::getCurrentDate());
-			$submissionDao->updateObject($submission);
-	
-			$moderationStageName = $this->getModerationStageName($nextStage);
-			SubmissionLog::logEvent($request, $submission, SUBMISSION_LOG_METADATA_UPDATE, 'plugins.generic.scieloModerationStages.log.submissionSentToModerationStage', ['moderationStageName' => $moderationStageName]);
+			$moderationStage = new ModerationStage($submission);
+			$moderationStage->sendNextStage();
+			$moderationStageRegister = new ModerationStageRegister();
+			$moderationStageRegister->registerModerationStage($moderationStage);
 		}
 	}
 
