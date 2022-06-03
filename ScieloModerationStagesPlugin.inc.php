@@ -64,7 +64,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 		$moderationStage = new ModerationStage($submission);
 		$moderationStage->setToFirstStage();
 		$moderationStageRegister = new ModerationStageRegister();
-		$moderationStageRegister->registerModerationStage($moderationStage);
+		$moderationStageRegister->registerModerationStageOnSubmissionLog($moderationStage);
 	}
 	
 	public function addFieldsAssignForm($hookName, $params) {
@@ -109,7 +109,8 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 			$moderationStage = new ModerationStage($submission);
 			$moderationStage->sendNextStage();
 			$moderationStageRegister = new ModerationStageRegister();
-			$moderationStageRegister->registerModerationStage($moderationStage);
+			$moderationStageRegister->registerModerationStageOnDatabase($moderationStage);
+			$moderationStageRegister->registerModerationStageOnSubmissionLog($moderationStage);
 		}
 	}
 
