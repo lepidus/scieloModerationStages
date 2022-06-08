@@ -49,6 +49,8 @@ function checkOptionSendNextStageIsPresent() {
     cy.contains("This submission is in the Format Pre-Moderation stage, do you want to send it to the Content Pre-Moderation stage?");
     cy.get('input[name="sendNextStage"][value="1"]').parent().contains("Yes");
     cy.get('input[name="sendNextStage"][value="0"]').parent().contains("No");
+    cy.get('input[name="sendNextStage"][value="1"]').should('not.be.checked');
+    cy.get('input[name="sendNextStage"][value="0"]').should('not.be.checked');
 }
 
 function checkSubmissionHasBeenSentToNextModerationStage() {
@@ -74,8 +76,10 @@ describe("SciELO Moderation Stages Plugin - Option to sent submission to next mo
         cy.get(".listPanel__itemActions:visible > a.pkpButton").first().click();
         cy.get("a").contains("Assign").click();
         checkOptionSendNextStageIsPresent();
-        cy.get("#user_1").click();
+        cy.get('tr[id^="component-grid-users-userselect-userselectgrid-row"] > .first_column > input').first().click();
+        cy.get('input[name="sendNextStage"][value="1"]').click();
         cy.get("#addParticipantForm > .formButtons > .submitFormButton").click();
+        cy.wait(3000);
         checkSubmissionHasBeenSentToNextModerationStage();
     });
 });

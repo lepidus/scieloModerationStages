@@ -47,7 +47,8 @@ function submissionStep4() {
 
 function sendSubmissionToNextStage() {
     cy.get("a").contains("Assign").click();
-    cy.get('tr[id^="component-grid-users-userselect-userselectgrid-row"]').first().click();
+    cy.get('tr[id^="component-grid-users-userselect-userselectgrid-row"] > .first_column > input').first().click();
+    cy.get('input[name="sendNextStage"][value="1"]').click();
     cy.get("#addParticipantForm > .formButtons > .submitFormButton").click();
     cy.wait(3000);
 }
