@@ -37,6 +37,14 @@ class ModerationStageTest extends TestCase {
         $this->assertEquals($expectedStageName, $this->moderationStage->getCurrentStageName());
     }
 
+    public function testSubmissionDataNextStage(): void {
+        $this->moderationStage->sendNextStage();
+
+        $this->assertEquals(SCIELO_MODERATION_STAGE_CONTENT, $this->submission->getData('currentModerationStage'));
+        $this->assertEquals(Core::getCurrentDate(), $this->submission->getData('lastModerationStageChange'));
+        $this->assertEquals(Core::getCurrentDate(), $this->submission->getData('contentStageEntryDate'));
+    }
+
     public function testPutOnFirstStage(): void {
         $submission = new Submission();
         $moderationStage = new ModerationStage($submission);
