@@ -55,6 +55,21 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
             'apiSummary' => true,
             'validation' => ['nullable'],
         ];
+		$schema->properties->{'formatStageEntryDate'} = (object) [
+            'type' => 'string',
+            'apiSummary' => true,
+            'validation' => ['nullable'],
+        ];
+		$schema->properties->{'contentStageEntryDate'} = (object) [
+            'type' => 'string',
+            'apiSummary' => true,
+            'validation' => ['nullable'],
+        ];
+		$schema->properties->{'areaStageEntryDate'} = (object) [
+            'type' => 'string',
+            'apiSummary' => true,
+            'validation' => ['nullable'],
+        ];
 
         return false;
 	}
