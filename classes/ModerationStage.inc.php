@@ -30,6 +30,16 @@ class ModerationStage {
 		return $nextStageMap[$stage];
 	}
 
+    private function getModerationStageEntryConfig($stage) {
+        $stageMap = [
+            SCIELO_MODERATION_STAGE_FORMAT => 'formatStageEntryDate',
+            SCIELO_MODERATION_STAGE_CONTENT => 'contentStageEntryDate',
+            SCIELO_MODERATION_STAGE_AREA => 'areaStageEntryDate',
+        ];
+
+        return $stageMap[$stage];
+    }
+
     public function getCurrentStageName(): string {
         $currentStage = $this->submission->getData('currentModerationStage');
 
@@ -66,7 +76,10 @@ class ModerationStage {
 	}
 
     private function setSubmissionToStage($stage) {
+        $moderationStageEntryConfig = $this->getModerationStageEntryConfig($stage);
+        
         $this->submission->setData('currentModerationStage', $stage);
         $this->submission->setData('lastModerationStageChange', Core::getCurrentDate());
+        $this->submission->setData($moderationStageEntryConfig, Core::getCurrentDate());
     }
 }
