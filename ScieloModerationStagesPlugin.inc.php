@@ -29,6 +29,8 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 			HookRegistry::register('submissionsubmitstep4form::execute', array($this, 'setSubmissionFirstModerationStage'));
 			HookRegistry::register('addparticipantform::display', array($this, 'addFieldsAssignForm'));
 			HookRegistry::register('addparticipantform::execute', array($this, 'sendSubmissionToNextModerationStage'));
+		
+			HookRegistry::register('Template::Workflow::Publication', array($this, 'addToWorkflowTabs'));
 		}
 				
 		return $success;
@@ -113,6 +115,35 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
         }
         return $output;
 	}
+
+	public function addToWorkflowTabs($hookName, $params) {
+		$smarty =& $params[1];
+		$output =& $params[2];
+        $submission = $smarty->get_template_vars('submission');
+
+		$smarty->assign('userIsAuthor', $this->userIsAuthor($submission));
+		$output .= sprintf(
+			'<tab id="scieloModerationStages" label="%s">%s</tab>',
+			__('plugins.generic.scieloModerationStages.displayNameWorkflow'),
+			$smarty->fetch($this->getTemplateResource('moderationStageMenu.tpl'))
+		);
+	}
+
+	private function userIsAuthor($submission){
+        $currentUser = \Application::get()->getRequest()->getUser();
+        $currentUserAssignedRoles = array();
+        if ($currentUser) {
+            $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
+            $stageAssignmentsResult = $stageAssignmentDao->getBySubmissionAndUserIdAndStageId($submission->getId(), $currentUser->getId(), $submission->getData('stageId'));
+            $userGroupDao = DAORegistry::getDAO('UserGroupDAO');
+            while ($stageAssignment = $stageAssignmentsResult->next()) {
+                $userGroup = $userGroupDao->getById($stageAssignment->getUserGroupId(), $submission->getData('contextId'));
+                $currentUserAssignedRoles[] = (int) $userGroup->getRoleId();
+            }
+        }
+
+        return $currentUserAssignedRoles[0] == ROLE_ID_AUTHOR;
+    }
 
 	public function sendSubmissionToNextModerationStage($hookName, $params) {
 		$request = PKPApplication::get()->getRequest();

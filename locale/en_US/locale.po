@@ -14,6 +14,9 @@ msgstr ""
 msgid "plugins.generic.scieloModerationStages.displayName"
 msgstr "SciELO Moderation Stages"
 
+msgid "plugins.generic.scieloModerationStages.displayNameWorkflow"
+msgstr "Moderation Stages"
+
 msgid "plugins.generic.scieloModerationStages.description"
 msgstr "This plugin adds the stages of moderation defined by SciELO to OPS"
 
