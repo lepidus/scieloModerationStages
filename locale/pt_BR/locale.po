@@ -37,3 +37,6 @@ msgstr "Estágio de Moderação SciELO"
 
 msgid "plugins.generic.scieloModerationStages.checkboxSendNextStage"
 msgstr "Esta submissão está no estágio de {$currentStage}, deseja a enviar para o estágio de {$nextStage}?"
+
+msgid "plugins.generic.scieloModerationStages.menuDates.fieldDescription"
+msgstr "A submissão entrou nesse estágio de moderação na seguinte data"

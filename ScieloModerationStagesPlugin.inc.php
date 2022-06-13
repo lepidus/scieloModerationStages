@@ -121,6 +121,10 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 		$output =& $params[2];
         $submission = $smarty->get_template_vars('submission');
 
+		$moderationStage = new ModerationStage($submission);
+		$stageDates = $moderationStage->getStageEntryDates();
+
+		$smarty->assign($stageDates);
 		$smarty->assign('userIsAuthor', $this->userIsAuthor($submission));
 		$output .= sprintf(
 			'<tab id="scieloModerationStages" label="%s">%s</tab>',
