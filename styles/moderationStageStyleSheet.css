@@ -1,0 +1,29 @@
+.pkp_form {
+  padding: 0.875rem 0;
+}
+
+.stageDateField {
+  padding: 0.875rem 0.3125rem;
+  width: 100%;
+}
+
+.stageDateField .label {
+  display: block;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.stageDateField input[type='date'] {
+  padding: 0 0.5rem;
+  width: 17%;
+  height: 2.1875rem;
+  border: 1px solid #ddd;
+  border-radius: 0.1875rem;
+  font-size: 0.875rem;
+  line-height: 1.75rem;
+  cursor: pointer;
+}
+
+.formButtons {
+  text-align: right;
+}

@@ -32,6 +32,19 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 		
 			HookRegistry::register('Template::Workflow::Publication', array($this, 'addToWorkflowTabs'));
 		}
+		  
+		$templateManager = TemplateManager::getManager();
+		$request = Application::get()->getRequest();
+		$url = $request->getBaseUrl() . '/' . $this->getStyleSheet();
+
+		$templateManager->addStyleSheet(
+			'scieloModerationStage',
+			$url,
+			array(
+				'priority' => STYLE_SEQUENCE_CORE,
+				'contexts' => 'backend',
+			),
+		);
 				
 		return $success;
 	}
@@ -131,6 +144,10 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 			__('plugins.generic.scieloModerationStages.displayNameWorkflow'),
 			$smarty->fetch($this->getTemplateResource('moderationStageMenu.tpl'))
 		);
+	}
+
+	function getStyleSheet() {
+		return $this->getPluginPath() . '/styles/moderationStageStyleSheet.css';
 	}
 
 	private function userIsAuthor($submission){
