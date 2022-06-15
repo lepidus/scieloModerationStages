@@ -31,6 +31,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 			HookRegistry::register('addparticipantform::execute', array($this, 'sendSubmissionToNextModerationStage'));
 		
 			HookRegistry::register('Template::Workflow::Publication', array($this, 'addToWorkflowTabs'));
+			HookRegistry::register('Template::Workflow', array($this, 'addCurrentStageStatus'));
 			HookRegistry::register('LoadComponentHandler', array($this, 'setupScieloModerationStagesHandler'));
 		}
 		
@@ -141,6 +142,29 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 			__('plugins.generic.scieloModerationStages.displayNameWorkflow'),
 			$smarty->fetch($this->getTemplateResource('moderationStageMenu.tpl'))
 		);
+	}
+
+	public function addCurrentStageStatus($hookName, $params) {
+		$templateMgr =& $params[1];
+        $submission = $templateMgr->get_template_vars('submission');
+		$moderationStage = new ModerationStage($submission);
+		
+		$templateMgr->assign('currentStageName', $moderationStage->getCurrentStageName());
+		$templateMgr->registerFilter("output", array($this, 'addCurrentStageStatusFilter'));
+
+		return false;
+	}
+
+	public function addCurrentStageStatusFilter($output, $templateMgr) {
+		if (preg_match('/<span[^>]+class="pkpPublication__relation">/', $output, $matches, PREG_OFFSET_CAPTURE)) {
+            $posMatch = $matches[0][1];
+            
+			$currentStageStatus = $templateMgr->fetch($this->getTemplateResource('currentStageStatus.tpl'));
+
+            $output = substr_replace($output, $currentStageStatus, $posMatch, 0);
+            $templateMgr->unregisterFilter('output', array($this, 'addCurrentStageStatusFilter'));
+        }
+        return $output;
 	}
 
 	function getStyleSheet() {

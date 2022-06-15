@@ -40,3 +40,6 @@ msgstr "Este envío se encuentra en la etapa de {$currentStage}, ¿le gustaría 
 
 msgid "plugins.generic.scieloModerationStages.menuDates.fieldDescription"
 msgstr "Lo envío entró en esta etapa de moderación en la siguiente fecha"
+
+msgid "plugins.generic.scieloModerationStages.currentStageStatusLabel"
+msgstr "Etapa de Moderación"

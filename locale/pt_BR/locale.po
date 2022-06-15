@@ -40,3 +40,6 @@ msgstr "Esta submissão está no estágio de {$currentStage}, deseja a enviar pa
 
 msgid "plugins.generic.scieloModerationStages.menuDates.fieldDescription"
 msgstr "A submissão entrou nesse estágio de moderação na seguinte data"
+
+msgid "plugins.generic.scieloModerationStages.currentStageStatusLabel"
+msgstr "Estágio de Moderação:"
