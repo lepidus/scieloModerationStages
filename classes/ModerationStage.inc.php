@@ -47,7 +47,7 @@ class ModerationStage {
             $stageEntryDates['formatStageEntryDate'] = substr($this->submission->getData('formatStageEntryDate'), 0, 10);
 
         if($this->submission->getData('contentStageEntryDate'))
-            $stageEntryDates['contentStageEntryDate'] = substr($this->submission->getData('formatStageEntryDate'), 0, 10);
+            $stageEntryDates['contentStageEntryDate'] = substr($this->submission->getData('contentStageEntryDate'), 0, 10);
 
         if($this->submission->getData('areaStageEntryDate'))
             $stageEntryDates['areaStageEntryDate'] = substr($this->submission->getData('areaStageEntryDate'), 0, 10);

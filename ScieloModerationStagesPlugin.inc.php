@@ -31,6 +31,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 			HookRegistry::register('addparticipantform::execute', array($this, 'sendSubmissionToNextModerationStage'));
 		
 			HookRegistry::register('Template::Workflow::Publication', array($this, 'addToWorkflowTabs'));
+			HookRegistry::register('LoadComponentHandler', array($this, 'setupScieloModerationStagesHandler'));
 		}
 		
 		return $success;
@@ -43,6 +44,14 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 	public function getDescription() {
 		return __('plugins.generic.scieloModerationStages.description');
 	}
+
+	public function setupScieloModerationStagesHandler($hookName, $params) {
+		$component =& $params[0];
+		if ($component == 'plugins.generic.scieloModerationStages.controllers.ScieloModerationStagesHandler') {
+			return true;
+		}
+		return false;
+    }
 
 	public function addOurFieldsToSubmissionSchema($hookName, $params) {
 		$schema =& $params[0];
@@ -125,6 +134,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 		$stageDates = $moderationStage->getStageEntryDates();
 
 		$smarty->assign($stageDates);
+		$smarty->assign('submissionId', $submission->getId());
 		$smarty->assign('userIsAuthor', $this->userIsAuthor($submission));
 		$output .= sprintf(
 			'<tab id="scieloModerationStages" label="%s">%s</tab>',
