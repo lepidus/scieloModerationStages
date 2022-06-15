@@ -14,6 +14,9 @@ msgstr ""
 msgid "plugins.generic.scieloModerationStages.displayName"
 msgstr "SciELO Moderation Stages"
 
+msgid "plugins.generic.scieloModerationStages.displayNameWorkflow"
+msgstr "Moderation Stages"
+
 msgid "plugins.generic.scieloModerationStages.description"
 msgstr "This plugin adds the stages of moderation defined by SciELO to OPS"
 
@@ -34,3 +37,6 @@ msgstr "SciELO Moderation Stage"
 
 msgid "plugins.generic.scieloModerationStages.checkboxSendNextStage"
 msgstr "This submission is in the {$currentStage} stage, do you want to send it to the {$nextStage} stage?"
+
+msgid "plugins.generic.scieloModerationStages.menuDates.fieldDescription"
+msgstr "The submission has entered in this moderation stage in the following data"

@@ -40,6 +40,21 @@ class ModerationStage {
         return $stageMap[$stage];
     }
 
+    public function getStageEntryDates(): array {
+        $stageEntryDates = array();
+        
+        if($this->submission->getData('formatStageEntryDate'))
+            $stageEntryDates['formatStageEntryDate'] = substr($this->submission->getData('formatStageEntryDate'), 0, 10);
+
+        if($this->submission->getData('contentStageEntryDate'))
+            $stageEntryDates['contentStageEntryDate'] = substr($this->submission->getData('contentStageEntryDate'), 0, 10);
+
+        if($this->submission->getData('areaStageEntryDate'))
+            $stageEntryDates['areaStageEntryDate'] = substr($this->submission->getData('areaStageEntryDate'), 0, 10);
+
+        return $stageEntryDates;
+    }
+
     public function getCurrentStageName(): string {
         $currentStage = $this->submission->getData('currentModerationStage');
 

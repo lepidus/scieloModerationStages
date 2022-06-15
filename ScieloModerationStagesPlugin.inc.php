@@ -29,8 +29,11 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 			HookRegistry::register('submissionsubmitstep4form::execute', array($this, 'setSubmissionFirstModerationStage'));
 			HookRegistry::register('addparticipantform::display', array($this, 'addFieldsAssignForm'));
 			HookRegistry::register('addparticipantform::execute', array($this, 'sendSubmissionToNextModerationStage'));
+		
+			HookRegistry::register('Template::Workflow::Publication', array($this, 'addToWorkflowTabs'));
+			HookRegistry::register('LoadComponentHandler', array($this, 'setupScieloModerationStagesHandler'));
 		}
-				
+		
 		return $success;
 	}
 
@@ -41,6 +44,14 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 	public function getDescription() {
 		return __('plugins.generic.scieloModerationStages.description');
 	}
+
+	public function setupScieloModerationStagesHandler($hookName, $params) {
+		$component =& $params[0];
+		if ($component == 'plugins.generic.scieloModerationStages.controllers.ScieloModerationStagesHandler') {
+			return true;
+		}
+		return false;
+    }
 
 	public function addOurFieldsToSubmissionSchema($hookName, $params) {
 		$schema =& $params[0];
@@ -113,6 +124,44 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
         }
         return $output;
 	}
+
+	public function addToWorkflowTabs($hookName, $params) {
+		$smarty =& $params[1];
+		$output =& $params[2];
+        $submission = $smarty->get_template_vars('submission');
+
+		$moderationStage = new ModerationStage($submission);
+		$stageDates = $moderationStage->getStageEntryDates();
+
+		$smarty->assign($stageDates);
+		$smarty->assign('submissionId', $submission->getId());
+		$smarty->assign('userIsAuthor', $this->userIsAuthor($submission));
+		$output .= sprintf(
+			'<tab id="scieloModerationStages" label="%s">%s</tab>',
+			__('plugins.generic.scieloModerationStages.displayNameWorkflow'),
+			$smarty->fetch($this->getTemplateResource('moderationStageMenu.tpl'))
+		);
+	}
+
+	function getStyleSheet() {
+		return $this->getPluginPath() . '/styles/moderationStageStyleSheet.css';
+	}
+
+	private function userIsAuthor($submission){
+        $currentUser = \Application::get()->getRequest()->getUser();
+        $currentUserAssignedRoles = array();
+        if ($currentUser) {
+            $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
+            $stageAssignmentsResult = $stageAssignmentDao->getBySubmissionAndUserIdAndStageId($submission->getId(), $currentUser->getId(), $submission->getData('stageId'));
+            $userGroupDao = DAORegistry::getDAO('UserGroupDAO');
+            while ($stageAssignment = $stageAssignmentsResult->next()) {
+                $userGroup = $userGroupDao->getById($stageAssignment->getUserGroupId(), $submission->getData('contextId'));
+                $currentUserAssignedRoles[] = (int) $userGroup->getRoleId();
+            }
+        }
+
+        return $currentUserAssignedRoles[0] == ROLE_ID_AUTHOR;
+    }
 
 	public function sendSubmissionToNextModerationStage($hookName, $params) {
 		$request = PKPApplication::get()->getRequest();

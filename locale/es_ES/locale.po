@@ -14,6 +14,9 @@ msgstr ""
 msgid "plugins.generic.scieloModerationStages.displayName"
 msgstr "Etapas de Moderación SciELO"
 
+msgid "plugins.generic.scieloModerationStages.displayNameWorkflow"
+msgstr "Etapas de Moderación"
+
 msgid "plugins.generic.scieloModerationStages.description"
 msgstr "Este módulo agrega las etapas de moderación definidas por SciELO a OPS"
 
@@ -34,3 +37,6 @@ msgstr "Etapa de Moderación SciELO"
 
 msgid "plugins.generic.scieloModerationStages.checkboxSendNextStage"
 msgstr "Este envío se encuentra en la etapa de {$currentStage}, ¿le gustaría enviarlo a la etapa de {$nextStage}?"
+
+msgid "plugins.generic.scieloModerationStages.menuDates.fieldDescription"
+msgstr "Lo envío entró en esta etapa de moderación en la siguiente fecha"
