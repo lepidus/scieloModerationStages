@@ -32,20 +32,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 		
 			HookRegistry::register('Template::Workflow::Publication', array($this, 'addToWorkflowTabs'));
 		}
-		  
-		$templateManager = TemplateManager::getManager();
-		$request = Application::get()->getRequest();
-		$url = $request->getBaseUrl() . '/' . $this->getStyleSheet();
-
-		$templateManager->addStyleSheet(
-			'scieloModerationStage',
-			$url,
-			array(
-				'priority' => STYLE_SEQUENCE_CORE,
-				'contexts' => 'backend',
-			),
-		);
-				
+		
 		return $success;
 	}
 

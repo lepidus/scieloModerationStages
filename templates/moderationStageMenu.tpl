@@ -5,6 +5,8 @@
   *
   *}
 
+<link rel="stylesheet" type="text/css" href="/plugins/generic/scieloModerationStages/styles/moderationStageStyleSheet.css">
+
 <form class="pkp_form" id="moderationStageEntriesForm" action="{url router=$smarty.const.ROUTE_COMPONENT component="plugins.generic.scieloModerationStages.controllers.ScieloScreeningHandler" op="updateStageEntryDates" escape=false}" method="post">
     {if $formatStageEntryDate}
         <div id="formatStageEntryDate" class="stageDateField">
