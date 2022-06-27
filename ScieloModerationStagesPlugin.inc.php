@@ -147,10 +147,13 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 	public function addCurrentStageStatus($hookName, $params) {
 		$templateMgr =& $params[1];
         $submission = $templateMgr->get_template_vars('submission');
-		$moderationStage = new ModerationStage($submission);
 		
-		$templateMgr->assign('currentStageName', $moderationStage->getCurrentStageName());
-		$templateMgr->registerFilter("output", array($this, 'addCurrentStageStatusFilter'));
+		if(!is_null($submission->getData('currentModerationStage'))) {
+			$moderationStage = new ModerationStage($submission);
+		
+			$templateMgr->assign('currentStageName', $moderationStage->getCurrentStageName());
+			$templateMgr->registerFilter("output", array($this, 'addCurrentStageStatusFilter'));
+		}
 
 		return false;
 	}
