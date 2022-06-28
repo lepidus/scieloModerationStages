@@ -159,7 +159,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 	}
 
 	public function addCurrentStageStatusFilter($output, $templateMgr) {
-		if (preg_match('/<span[^>]+class="pkpPublication__relation">/', $output, $matches, PREG_OFFSET_CAPTURE)) {
+		if (preg_match('/<span[^>]+v-if="publicationList.length/', $output, $matches, PREG_OFFSET_CAPTURE)) {
             $posMatch = $matches[0][1];
             
 			$currentStageStatus = $templateMgr->fetch($this->getTemplateResource('currentStageStatus.tpl'));
