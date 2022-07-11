@@ -9,16 +9,26 @@ function createStageExhibitorNode() {
     return node;
 }
 
-function putBazinga() {
+function addStageExhibitor() {
     var submissionSubtitle = document.getElementsByClassName('listPanel__itemSubtitle');
     for (let subtitle of submissionSubtitle) {
-        var exhibitorNode = createStageExhibitorNode();
-        subtitle.appendChild(exhibitorNode);
+        const hasExhibitor = subtitle.parentNode.getElementsByClassName('listPanel__itemModerationStage').length > 0;
+        
+        if(!hasExhibitor) {
+            var exhibitorNode = createStageExhibitorNode();
+            subtitle.appendChild(exhibitorNode);
+        }
     }
 }
 
-function setToExecute() {
-    setTimeout(putBazinga, 3000);
+function setStageToBeAddedAfterRequestsFinish() {
+    var origOpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function() {
+        this.addEventListener('load', function() {
+            setTimeout(addStageExhibitor, 500);
+        });
+        origOpen.apply(this, arguments);
+    };
 }
 
-$(document).ready(setToExecute);
+$(document).ready(setStageToBeAddedAfterRequestsFinish);
