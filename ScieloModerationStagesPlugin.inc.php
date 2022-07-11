@@ -33,9 +33,21 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 			HookRegistry::register('Template::Workflow::Publication', array($this, 'addToWorkflowTabs'));
 			HookRegistry::register('Template::Workflow', array($this, 'addCurrentStageStatus'));
 			HookRegistry::register('LoadComponentHandler', array($this, 'setupScieloModerationStagesHandler'));
+
+			HookRegistry::register('TemplateManager::display', array($this, 'addJs'));
 		}
 		
 		return $success;
+	}
+
+	public function addJs($hookName, $params) {
+		if($params[1] == 'dashboard/index.tpl') {
+			$templateMgr = $params[0];
+			$request = Application::get()->getRequest();
+			$url = $request->getBaseUrl() . '/' . $this->getPluginPath() . '/js/load.js';
+			$templateMgr->addJavascript('blabla', $url, ['contexts' => 'backend']);
+		}
+		return false;
 	}
 
 	public function getDisplayName() {
