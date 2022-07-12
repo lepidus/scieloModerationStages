@@ -2,10 +2,10 @@ function insertAfter(newNode, referenceNode) {
     referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
 }
 
-function createStageExhibitorNode() {
+function createStageExhibitorNode(moderationStageName) {
     var node = document.createElement('div');
     node.classList.add('listPanel__itemModerationStage');
-    node.textContent = "Bolinha";
+    node.textContent = moderationStageName;
     return node;
 }
 
@@ -26,9 +26,11 @@ function addStageExhibitor() {
                     submissionId: submissionId,
                 },
                 function (result){
-                    console.log(result);
-                    var exhibitorNode = createStageExhibitorNode();
-                    subtitle.appendChild(exhibitorNode);
+                    result = JSON.parse(result);
+                    if(result['moderationStageName'] != '') {
+                        var exhibitorNode = createStageExhibitorNode(result['moderationStageName']);
+                        subtitle.appendChild(exhibitorNode);
+                    }
                 }
             );
         }
