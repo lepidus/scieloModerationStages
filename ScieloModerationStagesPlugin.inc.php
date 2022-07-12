@@ -35,9 +35,19 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 			HookRegistry::register('LoadComponentHandler', array($this, 'setupScieloModerationStagesHandler'));
 
 			HookRegistry::register('TemplateManager::display', array($this, 'addJs'));
+			$this->addHandlerURLToJavaScript();
 		}
 		
 		return $success;
+	}
+
+	function addHandlerURLToJavaScript(){ 
+		$request = Application::get()->getRequest();
+		$templateMgr = TemplateManager::getManager($request);
+		$handlerUrl = $request->getDispatcher()->url($request, ROUTE_COMPONENT) . 'plugins/generic/scielo-moderation-stages/controllers/scielo-moderation-stages/';
+		$data = ['moderationStagesHandlerUrl' => $handlerUrl]; 
+		
+		$templateMgr->addJavaScript('ModerationStagesHandler', 'app = ' . json_encode($data) . ';', ['contexts' => 'backend', 'inline' => true]); 
 	}
 
 	public function addJs($hookName, $params) {

@@ -21,4 +21,9 @@ class ScieloModerationStagesHandler extends Handler {
         return http_response_code(200);
     }
 
+    public function getSubmissionModerationStage($args, $request) {
+        $submissionId = $args['submissionId'];
+        return json_encode('response');
+    }
+
 }
