@@ -34,10 +34,10 @@ class ScieloModerationStagesHandler extends Handler {
                 SCIELO_MODERATION_STAGE_AREA => 'plugins.generic.scieloModerationStages.stages.areaStage',
             ];
 
-            return json_encode(['moderationStageName' => __($stageMap[$moderationStage])]);
+            return json_encode(['submissionId' => $submissionId, 'moderationStageName' => __($stageMap[$moderationStage])]);
         }
 
-        return json_encode(['moderationStageName' => '']);
+        return json_encode(['submissionId' => $submissionId, 'moderationStageName' => '']);
     }
 
 }

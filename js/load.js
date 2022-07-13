@@ -2,11 +2,24 @@ function insertAfter(newNode, referenceNode) {
     referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
 }
 
-function createStageExhibitorNode(moderationStageName) {
+function createStageExhibitorNode(submissionId) {
     var node = document.createElement('div');
     node.classList.add('listPanel__itemModerationStage');
-    node.textContent = moderationStageName;
+    node.classList.add('submissionModerationStage--' + submissionId);
+    node.classList.add('withoutStageYet');
     return node;
+}
+
+function updateStageExhibitorNodes(response) {
+    response = JSON.parse(response);
+    if(response['moderationStageName'] != '') {
+        const submissionId = response['submissionId'];
+        var exhibitorNodes = document.getElementsByClassName('submissionModerationStage--' + submissionId);
+        for(let exhibitorNode of exhibitorNodes) {
+            exhibitorNode.textContent = response['moderationStageName'];
+            exhibitorNode.classList.remove('withoutStageYet');
+        }
+    }
 }
 
 function getSubmissionIdFromDiv(parentDiv) {
@@ -25,14 +38,11 @@ function addStageExhibitor() {
                 {
                     submissionId: submissionId,
                 },
-                function (result){
-                    result = JSON.parse(result);
-                    if(result['moderationStageName'] != '') {
-                        var exhibitorNode = createStageExhibitorNode(result['moderationStageName']);
-                        subtitle.appendChild(exhibitorNode);
-                    }
-                }
+                updateStageExhibitorNodes
             );
+
+            var exhibitorNode = createStageExhibitorNode(submissionId);
+            insertAfter(exhibitorNode, subtitle);
         }
     }
 }

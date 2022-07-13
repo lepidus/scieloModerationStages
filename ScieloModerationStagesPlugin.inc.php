@@ -34,7 +34,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 			HookRegistry::register('Template::Workflow', array($this, 'addCurrentStageStatus'));
 			HookRegistry::register('LoadComponentHandler', array($this, 'setupScieloModerationStagesHandler'));
 
-			HookRegistry::register('TemplateManager::display', array($this, 'addJs'));
+			HookRegistry::register('TemplateManager::display', array($this, 'addJavaScriptAndStylesheet'));
 			$this->addHandlerURLToJavaScript();
 		}
 		
@@ -50,12 +50,16 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 		$templateMgr->addJavaScript('ModerationStagesHandler', 'app = ' . json_encode($data) . ';', ['contexts' => 'backend', 'inline' => true]); 
 	}
 
-	public function addJs($hookName, $params) {
+	public function addJavaScriptAndStylesheet($hookName, $params) {
 		if($params[1] == 'dashboard/index.tpl') {
 			$templateMgr = $params[0];
 			$request = Application::get()->getRequest();
-			$url = $request->getBaseUrl() . '/' . $this->getPluginPath() . '/js/load.js';
-			$templateMgr->addJavascript('blabla', $url, ['contexts' => 'backend']);
+			
+			$jsUrl = $request->getBaseUrl() . '/' . $this->getPluginPath() . '/js/load.js';
+			$styleUrl = $request->getBaseUrl() . '/' . $this->getPluginPath() . '/styles/stageExhibitor.css';
+			
+			$templateMgr->addJavascript('ModerationStagesPlugin', $jsUrl, ['contexts' => 'backend']);
+			$templateMgr->addStyleSheet('ModerationStagesExhibitor', $styleUrl, ['contexts' => 'backend']);
 		}
 		return false;
 	}
