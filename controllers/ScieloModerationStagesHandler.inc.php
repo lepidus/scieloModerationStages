@@ -1,6 +1,7 @@
 <?php
 
 import('classes.handler.Handler');
+import ('plugins.reports.scieloModerationStagesReport.classes.ModerationStageDAO');
 
 class ScieloModerationStagesHandler extends Handler {
 
@@ -19,6 +20,24 @@ class ScieloModerationStagesHandler extends Handler {
 
         $submissionDao->updateObject($submission);
         return http_response_code(200);
+    }
+
+    public function getSubmissionModerationStage($args, $request) {
+        $submissionId = $args['submissionId'];
+        $moderationStageDAO = new ModerationStageDAO();
+
+        $moderationStage = $moderationStageDAO->getSubmissionModerationStage($submissionId);
+        if(!is_null($moderationStage)) {
+            $stageMap = [
+                SCIELO_MODERATION_STAGE_FORMAT => 'plugins.generic.scieloModerationStages.stages.formatStage',
+                SCIELO_MODERATION_STAGE_CONTENT => 'plugins.generic.scieloModerationStages.stages.contentStage',
+                SCIELO_MODERATION_STAGE_AREA => 'plugins.generic.scieloModerationStages.stages.areaStage',
+            ];
+
+            return json_encode(['submissionId' => $submissionId, 'moderationStageName' => __($stageMap[$moderationStage])]);
+        }
+
+        return json_encode(['submissionId' => $submissionId, 'moderationStageName' => '']);
     }
 
 }
