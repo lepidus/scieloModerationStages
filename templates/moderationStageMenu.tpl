@@ -45,8 +45,6 @@
         {rdelim}
 
         async function makeSubmit(e){ldelim}
-            console.log("blabbla" + $('#formatStageEntryDate').val());
-            
             $.post(
                 "{$updateStageEntryDates}",
                 {ldelim}
