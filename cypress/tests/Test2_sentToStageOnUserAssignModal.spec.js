@@ -50,7 +50,7 @@ function checkOptionSendNextStageIsPresent() {
     cy.get('input[name="sendNextStage"][value="1"]').parent().contains("Yes");
     cy.get('input[name="sendNextStage"][value="0"]').parent().contains("No");
     cy.get('input[name="sendNextStage"][value="1"]').should('not.be.checked');
-    cy.get('input[name="sendNextStage"][value="0"]').should('not.be.checked');
+    cy.get('input[name="sendNextStage"][value="0"]').should('be.checked');
 }
 
 function checkSubmissionHasBeenSentToNextModerationStage() {
