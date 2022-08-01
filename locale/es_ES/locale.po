@@ -38,6 +38,9 @@ msgstr "Etapa de Moderación SciELO"
 msgid "plugins.generic.scieloModerationStages.checkboxSendNextStage"
 msgstr "Este envío se encuentra en la etapa de {$currentStage}, ¿le gustaría enviarlo a la etapa de {$nextStage}?"
 
+msgid "plugins.generic.scieloModerationStages.sendNextStageField"
+msgstr "Enviar a la siguiente etapa de moderación"
+
 msgid "plugins.generic.scieloModerationStages.menuDates.fieldDescription"
 msgstr "Lo envío entró en esta etapa de moderación en la siguiente fecha"
 

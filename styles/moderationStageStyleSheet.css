@@ -2,7 +2,7 @@
   padding: 0.875rem 0;
 }
 
-.stageDateField {
+.stageDateField, #sendNextStageDiv {
   padding: 0.875rem 0.3125rem;
   width: 100%;
 }

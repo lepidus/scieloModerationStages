@@ -79,6 +79,10 @@ class ModerationStage {
         return true;
     }
 
+    public function submissionStageExists(): bool {
+        return !is_null($this->submission->getData('currentModerationStage'));
+    }
+
     public function setToFirstStage() {
         $this->setSubmissionToStage(SCIELO_MODERATION_STAGE_FORMAT);
     }

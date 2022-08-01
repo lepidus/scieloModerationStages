@@ -5,7 +5,7 @@ import ('plugins.reports.scieloModerationStagesReport.classes.ModerationStageDAO
 
 class ScieloModerationStagesHandler extends Handler {
 
-    public function updateStageEntryDates($args, $request){
+    public function updateSubmissionStageData($args, $request){
         $submissionDao = DAORegistry::getDAO('SubmissionDAO');
         $submission = $submissionDao->getById($args['submissionId']);
         
@@ -17,6 +17,14 @@ class ScieloModerationStagesHandler extends Handler {
 
         if(isset($args['areaStageEntryDate']))
             $submission->setData('areaStageEntryDate', $args['areaStageEntryDate']);
+
+        if(isset($args['sendNextStage']) && $args['sendNextStage'] == 1) {
+            $moderationStage = new ModerationStage($submission);
+			$moderationStage->sendNextStage();
+			$moderationStageRegister = new ModerationStageRegister();
+			$moderationStageRegister->registerModerationStageOnDatabase($moderationStage);
+			$moderationStageRegister->registerModerationStageOnSubmissionLog($moderationStage);
+        }
 
         $submissionDao->updateObject($submission);
         return http_response_code(200);

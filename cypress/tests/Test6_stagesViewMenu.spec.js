@@ -45,6 +45,14 @@ function submissionStep4() {
     cy.get('.pkp_modal_confirmation > .footer > .ok').click();
 }
 
+function checkOptionSendNextStageIsPresent() {
+    cy.contains("This submission is in the Format Pre-Moderation stage, do you want to send it to the Content Pre-Moderation stage?");
+    cy.get('input[name="sendNextStage"][value="1"]').parent().contains("Yes");
+    cy.get('input[name="sendNextStage"][value="0"]').parent().contains("No");
+    cy.get('input[name="sendNextStage"][value="1"]').should('not.be.checked');
+    cy.get('input[name="sendNextStage"][value="0"]').should('be.checked');
+}
+
 describe("SciELO Moderation Stages Plugin - Menu for view/edit moderation stage entry dates", function() {
     it("Author user submits", function() {
         cy.visit(Cypress.env('baseUrl') + 'index.php/scielo/submissions');
@@ -65,5 +73,6 @@ describe("SciELO Moderation Stages Plugin - Menu for view/edit moderation stage 
         cy.get("#publication-button").click();
         cy.get(".pkpTabs__buttons > #scieloModerationStages").click();
         cy.get('.pkpFormFieldLabel:visible').contains('Format Pre-Moderation');
+        checkOptionSendNextStageIsPresent();
     });
 });
