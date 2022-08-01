@@ -6,7 +6,7 @@
   *}
 
 <link rel="stylesheet" type="text/css" href="/plugins/generic/scieloModerationStages/styles/moderationStageStyleSheet.css">
-{capture assign=updateStageEntryDates}{url router=$smarty.const.ROUTE_COMPONENT component="plugins.generic.scieloModerationStages.controllers.ScieloModerationStagesHandler" op="updateStageEntryDates" escape=false}{/capture}
+{capture assign=updateStageEntryDates}{url router=$smarty.const.ROUTE_COMPONENT component="plugins.generic.scieloModerationStages.controllers.ScieloModerationStagesHandler" op="updateSubmissionStageData" escape=false}{/capture}
 
 <div class="pkp_form" id="moderationStageEntriesForm">
     {if $formatStageEntryDate}
@@ -31,6 +31,17 @@
         </div>
     {/if}
 
+    {if $canAdvanceStage}
+        <div id="sendNextStageDiv">
+            <label class="label">{translate key="plugins.generic.scieloModerationStages.sendNextStageField"}</label>
+            <label class="description">{translate key="plugins.generic.scieloModerationStages.checkboxSendNextStage" currentStage=$currentStage nextStage=$nextStage}</label>
+            <input type="radio" id="checkboxSendNextStageYes" name="sendNextStage" value="1" {if $userIsAuthor}disabled{/if}/>
+            {translate key="common.yes"}<br>
+            <input type="radio" id="checkboxSendNextStageNo" name="sendNextStage" value="0" {if $userIsAuthor}disabled{/if} checked="checked"/>
+            {translate key="common.no"}<br>
+        </div>
+    {/if}
+
     {if not $userIsAuthor}
         <div class="formButtons">
             <button id="moderationStageSubmit" type="button" class="pkp_button submitFormButton">{translate key="common.save"}</button>
@@ -49,6 +60,7 @@
                 "{$updateStageEntryDates}",
                 {ldelim}
                     submissionId: {$submissionId},
+                    {if $canAdvanceStage} sendNextStage: $('input[name=sendNextStage]:checked').val(), {/if}
                     {if $formatStageEntryDate} formatStageEntryDate: $('#formatStageEntryDate').val(), {/if}
                     {if $contentStageEntryDate} contentStageEntryDate: $('#contentStageEntryDate').val(), {/if}
                     {if $areaStageEntryDate} areaStageEntryDate: $('#areaStageEntryDate').val(), {/if}

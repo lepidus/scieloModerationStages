@@ -153,21 +153,33 @@ class ScieloModerationStagesPlugin extends GenericPlugin {
 	}
 
 	public function addToWorkflowTabs($hookName, $params) {
-		$smarty =& $params[1];
+		$templateMgr =& $params[1];
 		$output =& $params[2];
-        $submission = $smarty->get_template_vars('submission');
+        $submission = $templateMgr->get_template_vars('submission');
 
 		$moderationStage = new ModerationStage($submission);
-		$stageDates = $moderationStage->getStageEntryDates();
+		if($moderationStage->submissionStageExists()) {
+			$stageDates = $moderationStage->getStageEntryDates();
 
-		$smarty->assign($stageDates);
-		$smarty->assign('submissionId', $submission->getId());
-		$smarty->assign('userIsAuthor', $this->userIsAuthor($submission));
-		$output .= sprintf(
-			'<tab id="scieloModerationStages" label="%s">%s</tab>',
-			__('plugins.generic.scieloModerationStages.displayNameWorkflow'),
-			$smarty->fetch($this->getTemplateResource('moderationStageMenu.tpl'))
-		);
+			$templateMgr->assign($stageDates);
+			$templateMgr->assign('submissionId', $submission->getId());
+			$templateMgr->assign('userIsAuthor', $this->userIsAuthor($submission));
+			$templateMgr->assign('canAdvanceStage', $moderationStage->canAdvanceStage());
+
+			if($moderationStage->canAdvanceStage()) {
+				$currentStageName = $moderationStage->getCurrentStageName();
+				$nextStageName = $moderationStage->getNextStageName();
+
+				$templateMgr->assign('currentStage', $currentStageName);
+				$templateMgr->assign('nextStage', $nextStageName);
+			}
+
+			$output .= sprintf(
+				'<tab id="scieloModerationStages" label="%s">%s</tab>',
+				__('plugins.generic.scieloModerationStages.displayNameWorkflow'),
+				$templateMgr->fetch($this->getTemplateResource('moderationStageMenu.tpl'))
+			);
+		}
 	}
 
 	public function addCurrentStageStatus($hookName, $params) {
