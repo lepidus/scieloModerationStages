@@ -5,6 +5,8 @@ import ('plugins.reports.scieloModerationStagesReport.classes.ModerationStageDAO
 
 class ScieloModerationStagesHandler extends Handler {
 
+    protected const SUBMISSION_STAGE_ID = 5;
+
     public function updateSubmissionStageData($args, $request){
         $submissionDao = DAORegistry::getDAO('SubmissionDAO');
         $submission = $submissionDao->getById($args['submissionId']);
@@ -30,8 +32,18 @@ class ScieloModerationStagesHandler extends Handler {
         return http_response_code(200);
     }
 
-    public function getSubmissionModerationStage($args, $request) {
+    public function getSubmissionExhibitData($args, $request) {
         $submissionId = $args['submissionId'];
+        $exhibitData = array_merge(
+            $this->getSubmissionModerationStage($submissionId),
+            $this->getLastAssignedModerator($submissionId),
+            $this->getAreaModerators($submissionId)
+        );
+
+        return json_encode($exhibitData);
+    }
+
+    private function getSubmissionModerationStage($submissionId) {
         $moderationStageDAO = new ModerationStageDAO();
 
         $moderationStage = $moderationStageDAO->getSubmissionModerationStage($submissionId);
@@ -42,10 +54,44 @@ class ScieloModerationStagesHandler extends Handler {
                 SCIELO_MODERATION_STAGE_AREA => 'plugins.generic.scieloModerationStages.stages.areaStage',
             ];
 
-            return json_encode(['submissionId' => $submissionId, 'moderationStageName' => __($stageMap[$moderationStage])]);
+            return ['submissionId' => $submissionId, 'moderationStageName' => __($stageMap[$moderationStage])];
         }
 
-        return json_encode(['submissionId' => $submissionId, 'moderationStageName' => '']);
+        return ['submissionId' => $submissionId, 'moderationStageName' => ''];
     }
 
+    private function getLastAssignedModerator($submissionId) {
+        
+        return [];
+    }
+
+    private function getAreaModerators($submissionId) {
+        $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
+        $userGroupDao = DAORegistry::getDAO('UserGroupDAO');
+        $userDao = DAORegistry::getDAO('UserDAO');
+        
+        $areaModeratorUsers =  array();
+        $stageAssignmentsResults = $stageAssignmentDao->getBySubmissionAndRoleId($submissionId, ROLE_ID_SUB_EDITOR, self::SUBMISSION_STAGE_ID);
+
+        while ($stageAssignment = $stageAssignmentsResults->next()) {
+            $userGroup = $userGroupDao->getById($stageAssignment->getUserGroupId());
+            $userGroupName = strtolower($userGroup->getName('en_US'));
+
+            if ($userGroupName == 'area moderator') {
+                $user = $userDao->getById($stageAssignment->getUserId(), false);
+                $areaModeratorUsers[] = $this->getUserFirstAndLastName($user);
+            }
+        }
+        
+        $areaModerators = __('plugins.generic.scieloModerationStages.areaModerators', ['areaModerators' => implode(", ", $areaModeratorUsers)]);
+
+        return ['areaModerators' => $areaModerators];
+    }
+
+    private function getUserFirstAndLastName($user): string {
+        $fullName = $user->getFullName();
+        $explodedName = explode(" ", $fullName);
+
+        return $explodedName[0] . ' ' . $explodedName[count($explodedName)-1];
+    }
 }

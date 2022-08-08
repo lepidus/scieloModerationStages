@@ -45,4 +45,7 @@ msgid "plugins.generic.scieloModerationStages.menuDates.fieldDescription"
 msgstr "Lo envío entró en esta etapa de moderación en la siguiente fecha"
 
 msgid "plugins.generic.scieloModerationStages.currentStageStatusLabel"
-msgstr "Etapa de Moderación"
+msgstr "Etapa de Moderación:"
+
+msgid "plugins.generic.scieloModerationStages.areaModerators"
+msgstr "Moderadores de área: {$areaModerators}"
