@@ -49,3 +49,6 @@ msgstr "Estágio de Moderação:"
 
 msgid "plugins.generic.scieloModerationStages.areaModerators"
 msgstr "Moderador(es) de área: {$areaModerators}"
+
+msgid "plugins.generic.scieloModerationStages.moderator"
+msgstr "Moderador(a): {$moderator}"

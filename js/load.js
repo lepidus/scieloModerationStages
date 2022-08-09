@@ -18,23 +18,31 @@ function createAreaModeratorExhibitorNode(submissionId) {
     return createExhibitorNode(submissionId, 'AreaModerator');
 }
 
+function createModeratorExhibitorNode(submissionId) {
+    return createExhibitorNode(submissionId, 'Moderator');
+}
+
+function updateExhibitorNode(classNamePrefix, text, submissionId) {
+    var exhibitorNodes = document.getElementsByClassName(classNamePrefix + '--' + submissionId);
+    for(let exhibitorNode of exhibitorNodes) {
+        exhibitorNode.textContent = text;
+        exhibitorNode.classList.remove('withoutDataYet');
+    }
+}
+
 function updateExhibitorNodes(response) {
     response = JSON.parse(response);
     const submissionId = response['submissionId'];
     if(response['moderationStageName'] != '') {
-        var exhibitorNodes = document.getElementsByClassName('submissionModerationStage--' + submissionId);
-        for(let exhibitorNode of exhibitorNodes) {
-            exhibitorNode.textContent = response['moderationStageName'];
-            exhibitorNode.classList.remove('withoutDataYet');
-        }
+        updateExhibitorNode('submissionModerationStage', response['moderationStageName'], submissionId);
     }
 
     if(response['areaModerators'] != '') {
-        var exhibitorNodes = document.getElementsByClassName('submissionAreaModerator--' + submissionId);
-        for(let exhibitorNode of exhibitorNodes) {
-            exhibitorNode.textContent = response['areaModerators'];
-            exhibitorNode.classList.remove('withoutDataYet');
-        }
+        updateExhibitorNode('submissionAreaModerator', response['areaModerators'], submissionId);
+    }
+
+    if(response['moderator'] != '') {
+        updateExhibitorNode('submissionModerator', response['moderator'], submissionId);
     }
 }
 
@@ -59,8 +67,10 @@ function addSubmissionExhibitors() {
 
             var stageExhibitorNode = createStageExhibitorNode(submissionId);
             var areaModeratorExhibitorNode = createAreaModeratorExhibitorNode(submissionId);
+            var moderatorExhibitorNode = createModeratorExhibitorNode(submissionId);
             insertAfter(stageExhibitorNode, subtitle);
             insertAfter(areaModeratorExhibitorNode, stageExhibitorNode);
+            insertAfter(moderatorExhibitorNode, areaModeratorExhibitorNode);
         }
     }
 }

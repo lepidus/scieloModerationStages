@@ -61,8 +61,33 @@ class ScieloModerationStagesHandler extends Handler {
     }
 
     private function getLastAssignedModerator($submissionId) {
+        $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
+        $userGroupDao = DAORegistry::getDAO('UserGroupDAO');
+        $userDao = DAORegistry::getDAO('UserDAO');
         
-        return [];
+        $stageAssignmentsResults = $stageAssignmentDao->getBySubmissionAndRoleId($submissionId, ROLE_ID_SUB_EDITOR, self::SUBMISSION_STAGE_ID);
+        $stageAssignmentsResults = $stageAssignmentsResults->toArray();
+
+        usort($stageAssignmentsResults, function ($a, $b) {
+            $a = new DateTime($a->getData('dateAssigned'));
+            $b = new DateTime($b->getData('dateAssigned'));
+            if ($a == $b) return 0;
+            
+            return ($a > $b) ? -1 : 1;
+        });
+
+        foreach ($stageAssignmentsResults as $stageAssignment) {
+            $userGroup = $userGroupDao->getById($stageAssignment->getUserGroupId());
+            $userGroupName = strtolower($userGroup->getName('en_US'));
+
+            if ($userGroupName == 'moderator') {
+                $user = $userDao->getById($stageAssignment->getUserId(), false);
+                $moderatorText = __('plugins.generic.scieloModerationStages.moderator', ['moderator' => $user->getFullName()]);
+                return ['moderator' => $moderatorText];
+            }
+        }
+        
+        return ['moderator' => ""];
     }
 
     private function getAreaModerators($submissionId) {
@@ -79,19 +104,15 @@ class ScieloModerationStagesHandler extends Handler {
 
             if ($userGroupName == 'area moderator') {
                 $user = $userDao->getById($stageAssignment->getUserId(), false);
-                $areaModeratorUsers[] = $this->getUserFirstAndLastName($user);
+                $areaModeratorUsers[] = $user->getFullName();
             }
         }
         
-        $areaModerators = __('plugins.generic.scieloModerationStages.areaModerators', ['areaModerators' => implode(", ", $areaModeratorUsers)]);
+        if(!empty($areaModeratorUsers))
+            $areaModerators = __('plugins.generic.scieloModerationStages.areaModerators', ['areaModerators' => implode(", ", $areaModeratorUsers)]);
+        else
+            $areaModerators = "";
 
         return ['areaModerators' => $areaModerators];
-    }
-
-    private function getUserFirstAndLastName($user): string {
-        $fullName = $user->getFullName();
-        $explodedName = explode(" ", $fullName);
-
-        return $explodedName[0] . ' ' . $explodedName[count($explodedName)-1];
     }
 }
