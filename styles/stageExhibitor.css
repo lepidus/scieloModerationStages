@@ -1,7 +1,22 @@
-.listPanel__itemModerationStage:not(.withoutStageYet) {
+.listPanel__itemModerationStage:not(.withoutDataYet) {
     border: 1px solid #00b28d;
+    color: #00b28d;
     border-radius: 1.2em;
     margin-top: 0.5em;
+    margin-right: 0.5em;
+    padding: 0.25em 1em;
+    font-size: 0.85rem;
+    line-height: 1.5em;
+    display: inline-block;
+}
+
+.listPanel__itemAreaModerator:not(.withoutDataYet),
+.listPanel__itemModerator:not(.withoutDataYet) {
+    border: 1px solid #006798;
+    color: #006798;
+    border-radius: 1.2em;
+    margin-top: 0.5em;
+    margin-right: 0.5em;
     padding: 0.25em 1em;
     font-size: 0.85rem;
     line-height: 1.5em;

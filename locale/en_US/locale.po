@@ -46,3 +46,9 @@ msgstr "The submission has entered in this moderation stage in the following dat
 
 msgid "plugins.generic.scieloModerationStages.currentStageStatusLabel"
 msgstr "Moderation stage:"
+
+msgid "plugins.generic.scieloModerationStages.areaModerators"
+msgstr "Area moderators: {$areaModerators}"
+
+msgid "plugins.generic.scieloModerationStages.moderator"
+msgstr "Moderator: {$moderator}"
