@@ -14,12 +14,12 @@ function createStageExhibitorNode(submissionId) {
     return createExhibitorNode(submissionId, 'ModerationStage');
 }
 
-function createAreaModeratorExhibitorNode(submissionId) {
-    return createExhibitorNode(submissionId, 'AreaModerator');
-}
-
 function createModeratorExhibitorNode(submissionId) {
     return createExhibitorNode(submissionId, 'Moderator');
+}
+
+function createAreaModeratorExhibitorNode(submissionId) {
+    return createExhibitorNode(submissionId, 'AreaModerator');
 }
 
 function updateExhibitorNode(classNamePrefix, text, submissionId) {
@@ -37,12 +37,12 @@ function updateExhibitorNodes(response) {
         updateExhibitorNode('submissionModerationStage', response['moderationStageName'], submissionId);
     }
 
-    if(response['areaModerators'] != '') {
-        updateExhibitorNode('submissionAreaModerator', response['areaModerators'], submissionId);
-    }
-
     if(response['moderator'] != '') {
         updateExhibitorNode('submissionModerator', response['moderator'], submissionId);
+    }
+
+    if(response['areaModerators'] != '') {
+        updateExhibitorNode('submissionAreaModerator', response['areaModerators'], submissionId);
     }
 }
 
@@ -66,11 +66,11 @@ function addSubmissionExhibitors() {
             );
 
             var stageExhibitorNode = createStageExhibitorNode(submissionId);
-            var areaModeratorExhibitorNode = createAreaModeratorExhibitorNode(submissionId);
             var moderatorExhibitorNode = createModeratorExhibitorNode(submissionId);
+            var areaModeratorExhibitorNode = createAreaModeratorExhibitorNode(submissionId);
             insertAfter(stageExhibitorNode, subtitle);
-            insertAfter(areaModeratorExhibitorNode, stageExhibitorNode);
-            insertAfter(moderatorExhibitorNode, areaModeratorExhibitorNode);
+            insertAfter(moderatorExhibitorNode, stageExhibitorNode);
+            insertAfter(areaModeratorExhibitorNode, moderatorExhibitorNode);
         }
     }
 }
