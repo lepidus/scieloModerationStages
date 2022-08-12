@@ -32,7 +32,9 @@ function submissionStep2() {
 function submissionStep3() {
     cy.get('input[name^="title"]').first().type("Submission test first moderation stage", { delay: 0 });
     cy.get('label').contains('Title').click();
-    cy.get('textarea[id^="abstract-en_US"]').type("Example of abstract");
+    cy.get('textarea[id^="abstract-"').then((node) => {
+        cy.setTinyMceContent(node.attr("id"), "Example of abstract");
+    });
     cy.get('.section > label:visible').first().click();
     cy.get('ul[id^="en_US-keywords-"]').then(node => {
         node.tagit('createTag', "Dummy keyword");
@@ -47,10 +49,10 @@ function submissionStep4() {
 
 function checkOptionSendNextStageIsPresent() {
     cy.contains("This submission is in the Format Pre-Moderation stage, do you want to send it to the Content Pre-Moderation stage?");
-    cy.get('input[name="sendNextStage"][value="1"]').parent().contains("Yes");
-    cy.get('input[name="sendNextStage"][value="0"]').parent().contains("No");
-    cy.get('input[name="sendNextStage"][value="1"]').should('not.be.checked');
-    cy.get('input[name="sendNextStage"][value="0"]').should('not.be.checked');
+    cy.get('#checkboxSendNextStageAssignYes').parent().contains("Yes");
+    cy.get('#checkboxSendNextStageAssignNo').parent().contains("No");
+    cy.get('#checkboxSendNextStageAssignYes').should('not.be.checked');
+    cy.get('#checkboxSendNextStageAssignNo').should('not.be.checked');
 }
 
 function checkSubmissionHasBeenSentToNextModerationStage() {
@@ -72,12 +74,13 @@ describe("SciELO Moderation Stages Plugin - Option to sent submission to next mo
     });
     it("Check option to sent submission to next moderation stage in user assign modal", function() {
         loginAdminUser();
+        cy.wait(3000);
         cy.get("#active-button").click();
         cy.get(".listPanel__itemActions:visible > a.pkpButton").first().click();
         cy.get("a").contains("Assign").click();
         checkOptionSendNextStageIsPresent();
         cy.get('tr[id^="component-grid-users-userselect-userselectgrid-row"] > .first_column > input').first().click();
-        cy.get('input[name="sendNextStage"][value="1"]').click();
+        cy.get('#checkboxSendNextStageAssignYes').click();
         cy.get("#addParticipantForm > .formButtons > .submitFormButton").click();
         cy.wait(3000);
         checkSubmissionHasBeenSentToNextModerationStage();

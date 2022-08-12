@@ -32,7 +32,9 @@ function submissionStep2() {
 function submissionStep3() {
     cy.get('input[name^="title"]').first().type("Submission test first moderation stage", { delay: 0 });
     cy.get('label').contains('Title').click();
-    cy.get('textarea[id^="abstract-en_US"]').type("Example of abstract");
+    cy.get('textarea[id^="abstract-"').then((node) => {
+        cy.setTinyMceContent(node.attr("id"), "Example of abstract");
+    });
     cy.get('.section > label:visible').first().click();
     cy.get('ul[id^="en_US-keywords-"]').then(node => {
         node.tagit('createTag', "Dummy keyword");
@@ -59,7 +61,11 @@ describe("SciELO Moderation Stages Plugin - Exhibitor of submissions' stage in s
     });
     it("Check if exhibitor appears in submissions listing", function() {
         loginAdminUser();
+        cy.wait(3000);
         cy.get("#active-button").click();
-        cy.get(".listPanel__itemIdentity--submission:visible > .listPanel__itemModerationStage").first().contains("Moderation stage: Format Pre-Moderation");        
+        cy.get(".listPanel__itemActions:visible > a.pkpButton").first().click();
+        cy.get("#publication-button").click();
+        cy.get(".moderationStageStatus > strong").contains("Moderation stage:");
+        cy.get(".moderationStageStatus > span").contains("Format Pre-Moderation");
     });
 });

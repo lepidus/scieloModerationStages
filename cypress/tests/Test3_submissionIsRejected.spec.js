@@ -32,7 +32,9 @@ function submissionStep2() {
 function submissionStep3() {
     cy.get('input[name^="title"]').first().type("Submission test first moderation stage", { delay: 0 });
     cy.get('label').contains('Title').click();
-    cy.get('textarea[id^="abstract-en_US"]').type("Example of abstract");
+    cy.get('textarea[id^="abstract-"').then((node) => {
+        cy.setTinyMceContent(node.attr("id"), "Example of abstract");
+    });
     cy.get('.section > label:visible').first().click();
     cy.get('ul[id^="en_US-keywords-"]').then(node => {
         node.tagit('createTag', "Dummy keyword");
@@ -52,7 +54,7 @@ function rejectSubmission() {
 
 function checkOptionSendNextStageIsNotPresent() {
     cy.get("a").contains("Assign").click();
-    cy.contains("This submission is in the Format Pre-Moderation stage, do you want to send it to the Content Pre-Moderation stage?");
+    cy.get('#checkboxSendNextStageDiv').should('not.exist');
 }
 
 describe("SciELO Moderation Stages Plugin - Option to sent submission to next moderation stage when submission is rejected", function() {
@@ -69,12 +71,14 @@ describe("SciELO Moderation Stages Plugin - Option to sent submission to next mo
     });
     it("Check option to sent submission to next moderation stage does not show when submision is rejected", function() {
         loginAdminUser();
+        cy.wait(3000);
         cy.get("#active-button").click();
         cy.get(".listPanel__itemActions:visible > a.pkpButton").first().click();
         
         rejectSubmission();
         
         cy.visit(Cypress.env('baseUrl') + 'index.php/scielo/submissions');
+        cy.wait(3000);
         cy.get("#archive-button").click();
         cy.get(".listPanel__itemActions:visible > a.pkpButton").first().click();
         checkOptionSendNextStageIsNotPresent();

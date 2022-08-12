@@ -32,7 +32,9 @@ function submissionStep2() {
 function submissionStep3() {
     cy.get('input[name^="title"]').first().type("Submission test first moderation stage", { delay: 0 });
     cy.get('label').contains('Title').click();
-    cy.get('textarea[id^="abstract-en_US"]').type("Example of abstract");
+    cy.get('textarea[id^="abstract-"').then((node) => {
+        cy.setTinyMceContent(node.attr("id"), "Example of abstract");
+    });
     cy.get('.section > label:visible').first().click();
     cy.get('ul[id^="en_US-keywords-"]').then(node => {
         node.tagit('createTag', "Dummy keyword");
@@ -47,10 +49,10 @@ function submissionStep4() {
 
 function checkOptionSendNextStageIsPresent() {
     cy.contains("This submission is in the Format Pre-Moderation stage, do you want to send it to the Content Pre-Moderation stage?");
-    cy.get('input[name="sendNextStage"][value="1"]').parent().contains("Yes");
-    cy.get('input[name="sendNextStage"][value="0"]').parent().contains("No");
-    cy.get('input[name="sendNextStage"][value="1"]').should('not.be.checked');
-    cy.get('input[name="sendNextStage"][value="0"]').should('be.checked');
+    cy.get('#checkboxSendNextStageMenuYes').parent().contains("Yes");
+    cy.get('#checkboxSendNextStageMenuNo').parent().contains("No");
+    cy.get('#checkboxSendNextStageMenuYes').should('not.be.checked');
+    cy.get('#checkboxSendNextStageMenuNo').should('be.checked');
 }
 
 describe("SciELO Moderation Stages Plugin - Menu for view/edit moderation stage entry dates", function() {
@@ -67,12 +69,13 @@ describe("SciELO Moderation Stages Plugin - Menu for view/edit moderation stage 
     });
     it("Check if menu for view/edit moderation stage entry dates is present in preprint view", function() {
         loginAdminUser();
+        cy.wait(3000);
         cy.get("#active-button").click();
         cy.get(".listPanel__itemActions:visible > a.pkpButton").first().click();
         
         cy.get("#publication-button").click();
-        cy.get(".pkpTabs__buttons > #scieloModerationStages").click();
-        cy.get('.pkpFormFieldLabel:visible').contains('Format Pre-Moderation');
+        cy.get(".pkpTabs__buttons > #scieloModerationStages-button").click();
+        cy.get('label').contains('Format Pre-Moderation');
         checkOptionSendNextStageIsPresent();
     });
 });

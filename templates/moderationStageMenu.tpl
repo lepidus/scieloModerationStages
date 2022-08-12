@@ -35,9 +35,9 @@
         <div id="sendNextStageDiv">
             <label class="label">{translate key="plugins.generic.scieloModerationStages.sendNextStageField"}</label>
             <label class="description">{translate key="plugins.generic.scieloModerationStages.checkboxSendNextStage" currentStage=$currentStage nextStage=$nextStage}</label>
-            <input type="radio" id="checkboxSendNextStageYes" name="sendNextStage" value="1" {if $userIsAuthor}disabled{/if}/>
+            <input type="radio" id="checkboxSendNextStageMenuYes" name="sendNextStage" value="1" {if $userIsAuthor}disabled{/if}/>
             {translate key="common.yes"}<br>
-            <input type="radio" id="checkboxSendNextStageNo" name="sendNextStage" value="0" {if $userIsAuthor}disabled{/if} checked="checked"/>
+            <input type="radio" id="checkboxSendNextStageMenuNo" name="sendNextStage" value="0" {if $userIsAuthor}disabled{/if} checked="checked"/>
             {translate key="common.no"}<br>
         </div>
     {/if}
