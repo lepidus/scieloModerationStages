@@ -27,7 +27,7 @@ msgid "plugins.generic.scieloModerationStages.stages.formatStage"
 msgstr "Moderación Previa del Formato"
 
 msgid "plugins.generic.scieloModerationStages.stages.contentStage"
-msgstr "Moderación Previa del Contenido"
+msgstr "Moderación Previa de Tipo de Manuscrito"
 
 msgid "plugins.generic.scieloModerationStages.stages.areaStage"
 msgstr "Moderación del Área"
@@ -50,5 +50,5 @@ msgstr "Etapa de Moderación:"
 msgid "plugins.generic.scieloModerationStages.areaModerators"
 msgstr "Moderadores de área: {$areaModerators}"
 
-msgid "plugins.generic.scieloModerationStages.moderator"
-msgstr "Moderador: {$moderator}"
+msgid "plugins.generic.scieloModerationStages.responsible"
+msgstr "Responsable: {$responsible}"
