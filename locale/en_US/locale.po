@@ -50,5 +50,5 @@ msgstr "Moderation stage:"
 msgid "plugins.generic.scieloModerationStages.areaModerators"
 msgstr "Area moderators: {$areaModerators}"
 
-msgid "plugins.generic.scieloModerationStages.moderator"
-msgstr "Moderator: {$moderator}"
+msgid "plugins.generic.scieloModerationStages.responsible"
+msgstr "Responsible: {$responsible}"

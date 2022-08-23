@@ -36,7 +36,7 @@ class ScieloModerationStagesHandler extends Handler {
         $submissionId = $args['submissionId'];
         $exhibitData = array_merge(
             $this->getSubmissionModerationStage($submissionId),
-            $this->getLastAssignedModerator($submissionId),
+            $this->getLastAssignedResponsible($submissionId),
             $this->getAreaModerators($submissionId)
         );
 
@@ -60,7 +60,7 @@ class ScieloModerationStagesHandler extends Handler {
         return ['submissionId' => $submissionId, 'moderationStageName' => ''];
     }
 
-    private function getLastAssignedModerator($submissionId) {
+    private function getLastAssignedResponsible($submissionId) {
         $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
         $userGroupDao = DAORegistry::getDAO('UserGroupDAO');
         $userDao = DAORegistry::getDAO('UserDAO');
@@ -78,16 +78,16 @@ class ScieloModerationStagesHandler extends Handler {
 
         foreach ($stageAssignmentsResults as $stageAssignment) {
             $userGroup = $userGroupDao->getById($stageAssignment->getUserGroupId());
-            $userGroupName = strtolower($userGroup->getName('en_US'));
+            $userGroupAbbrev = strtolower($userGroup->getData('abbrev', 'en_US'));
 
-            if ($userGroupName == 'moderator') {
+            if ($userGroupAbbrev == 'resp') {
                 $user = $userDao->getById($stageAssignment->getUserId(), false);
-                $moderatorText = __('plugins.generic.scieloModerationStages.moderator', ['moderator' => $user->getFullName()]);
-                return ['moderator' => $moderatorText];
+                $responsibleText = __('plugins.generic.scieloModerationStages.responsible', ['responsible' => $user->getFullName()]);
+                return ['responsible' => $responsibleText];
             }
         }
         
-        return ['moderator' => ""];
+        return ['responsible' => ""];
     }
 
     private function getAreaModerators($submissionId) {
@@ -100,9 +100,9 @@ class ScieloModerationStagesHandler extends Handler {
 
         while ($stageAssignment = $stageAssignmentsResults->next()) {
             $userGroup = $userGroupDao->getById($stageAssignment->getUserGroupId());
-            $userGroupName = strtolower($userGroup->getName('en_US'));
+            $userGroupAbbrev = strtolower($userGroup->getData('abbrev', 'en_US'));
 
-            if ($userGroupName == 'area moderator') {
+            if ($userGroupAbbrev == 'am') {
                 $user = $userDao->getById($stageAssignment->getUserId(), false);
                 $areaModeratorUsers[] = $user->getFullName();
             }
