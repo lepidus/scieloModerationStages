@@ -36,7 +36,7 @@ class ScieloModerationStagesHandler extends Handler {
         $submissionId = $args['submissionId'];
         $exhibitData = array_merge(
             $this->getSubmissionModerationStage($submissionId),
-            $this->getLastAssignedResponsible($submissionId),
+            $this->getResponsibles($submissionId),
             $this->getAreaModerators($submissionId)
         );
 
@@ -60,7 +60,7 @@ class ScieloModerationStagesHandler extends Handler {
         return ['submissionId' => $submissionId, 'moderationStageName' => ''];
     }
 
-    private function getLastAssignedResponsible($submissionId) {
+    private function getResponsibles($submissionId) {
         $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
         $userGroupDao = DAORegistry::getDAO('UserGroupDAO');
         $userDao = DAORegistry::getDAO('UserDAO');
@@ -68,26 +68,25 @@ class ScieloModerationStagesHandler extends Handler {
         $stageAssignmentsResults = $stageAssignmentDao->getBySubmissionAndRoleId($submissionId, ROLE_ID_SUB_EDITOR, self::SUBMISSION_STAGE_ID);
         $stageAssignmentsResults = $stageAssignmentsResults->toArray();
 
-        usort($stageAssignmentsResults, function ($a, $b) {
-            $a = new DateTime($a->getData('dateAssigned'));
-            $b = new DateTime($b->getData('dateAssigned'));
-            if ($a == $b) return 0;
-            
-            return ($a > $b) ? -1 : 1;
-        });
-
+        $responsibleUsers = [];
         foreach ($stageAssignmentsResults as $stageAssignment) {
             $userGroup = $userGroupDao->getById($stageAssignment->getUserGroupId());
             $userGroupAbbrev = strtolower($userGroup->getData('abbrev', 'en_US'));
 
             if ($userGroupAbbrev == 'resp') {
                 $user = $userDao->getById($stageAssignment->getUserId(), false);
-                $responsibleText = __('plugins.generic.scieloModerationStages.responsible', ['responsible' => $user->getFullName()]);
-                return ['responsible' => $responsibleText];
+                $responsibleUsers[$user->getData('username')] = $user->getFullName();
             }
         }
         
-        return ['responsible' => ""];
+        if(count($responsibleUsers) == 0)
+            return ['responsibles' => ""];
+        
+        if(count($responsibleUsers) > 1)
+            unset($responsibleUsers['scielo-brasil']);
+        
+        $responsibles = __('plugins.generic.scieloModerationStages.responsibles', ['responsibles' => implode(", ", $responsibleUsers)]);
+        return ['responsibles' => $responsibles];
     }
 
     private function getAreaModerators($submissionId) {
