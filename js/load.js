@@ -37,8 +37,8 @@ function updateExhibitorNodes(response) {
         updateExhibitorNode('submissionModerationStage', response['moderationStageName'], submissionId);
     }
 
-    if(response['responsible'] != '') {
-        updateExhibitorNode('submissionResponsible', response['responsible'], submissionId);
+    if(response['responsibles'] != '') {
+        updateExhibitorNode('submissionResponsible', response['responsibles'], submissionId);
     }
 
     if(response['areaModerators'] != '') {
