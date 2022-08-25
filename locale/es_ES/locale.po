@@ -47,8 +47,14 @@ msgstr "Lo envío entró en esta etapa de moderación en la siguiente fecha"
 msgid "plugins.generic.scieloModerationStages.currentStageStatusLabel"
 msgstr "Etapa de Moderación:"
 
+msgid "plugins.generic.scieloModerationStages.areaModerator"
+msgstr "Moderador de área: {$areaModerator}"
+
 msgid "plugins.generic.scieloModerationStages.areaModerators"
 msgstr "Moderadores de área: {$areaModerators}"
+
+msgid "plugins.generic.scieloModerationStages.responsible"
+msgstr "Responsable: {$responsible}"
 
 msgid "plugins.generic.scieloModerationStages.responsibles"
 msgstr "Responsables: {$responsibles}"

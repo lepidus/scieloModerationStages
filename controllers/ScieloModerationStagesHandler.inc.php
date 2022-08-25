@@ -63,24 +63,28 @@ class ScieloModerationStagesHandler extends Handler {
     private function getResponsibles($submissionId) {
         $responsibleUsers = $this->getAssignedUsers($submissionId, 'resp');
         
-        if(count($responsibleUsers) == 0)
-            return ['responsibles' => ''];
-        
-        if(count($responsibleUsers) > 1)
+        $responsiblesText = "";
+        if (count($responsibleUsers) == 1) {
+            $responsiblesText = __('plugins.generic.scieloModerationStages.responsible', ['responsible' =>  array_pop($responsibleUsers)]);
+        }
+        else if (count($responsibleUsers) > 1) {
             unset($responsibleUsers['scielo-brasil']);
+            $responsiblesText = __('plugins.generic.scieloModerationStages.responsibles', ['responsibles' => implode(", ", $responsibleUsers)]);
+        }
         
-        $responsibles = __('plugins.generic.scieloModerationStages.responsibles', ['responsibles' => implode(", ", $responsibleUsers)]);
-        return ['responsibles' => $responsibles];
+        return ['responsibles' => $responsiblesText];
     }
 
     private function getAreaModerators($submissionId) {
         $areaModeratorUsers = $this->getAssignedUsers($submissionId, 'am');
 
-        if(count($areaModeratorUsers) == 0)
-            return ['areaModerators' => ''];
+        $areaModeratorsText = "";
+        if (count($areaModeratorUsers) == 1)
+            $areaModeratorsText = __('plugins.generic.scieloModerationStages.areaModerator', ['areaModerator' => array_pop($areaModeratorUsers)]);
+        else if(count($areaModeratorUsers) > 1)
+            $areaModeratorsText = __('plugins.generic.scieloModerationStages.areaModerators', ['areaModerators' => implode(", ", $areaModeratorUsers)]);
         
-        $areaModerators = __('plugins.generic.scieloModerationStages.areaModerators', ['areaModerators' => implode(", ", $areaModeratorUsers)]);
-        return ['areaModerators' => $areaModerators];
+        return ['areaModerators' => $areaModeratorsText];
     }
 
     private function getAssignedUsers($submissionId, $abbrev): array {
