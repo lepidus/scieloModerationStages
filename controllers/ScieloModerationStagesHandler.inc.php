@@ -64,13 +64,14 @@ class ScieloModerationStagesHandler extends Handler {
         $responsibleUsers = $this->getAssignedUsers($submissionId, 'resp');
         
         $responsiblesText = "";
-        if (count($responsibleUsers) == 1) {
-            $responsiblesText = __('plugins.generic.scieloModerationStages.responsible', ['responsible' =>  array_pop($responsibleUsers)]);
-        }
-        else if (count($responsibleUsers) > 1) {
+        
+        if(count($responsibleUsers) > 1)
             unset($responsibleUsers['scielo-brasil']);
+
+        if (count($responsibleUsers) == 1)
+            $responsiblesText = __('plugins.generic.scieloModerationStages.responsible', ['responsible' =>  array_pop($responsibleUsers)]);
+        else if (count($responsibleUsers) > 1)
             $responsiblesText = __('plugins.generic.scieloModerationStages.responsibles', ['responsibles' => implode(", ", $responsibleUsers)]);
-        }
         
         return ['responsibles' => $responsiblesText];
     }
