@@ -77,7 +77,7 @@ class ScieloModerationStagesHandler extends Handler {
         $areaModeratorUsers = $this->getAssignedUsers($submissionId, 'am');
 
         if(count($areaModeratorUsers) == 0)
-            return ['areaModerator' => ''];
+            return ['areaModerators' => ''];
         
         $areaModerators = __('plugins.generic.scieloModerationStages.areaModerators', ['areaModerators' => implode(", ", $areaModeratorUsers)]);
         return ['areaModerators' => $areaModerators];
