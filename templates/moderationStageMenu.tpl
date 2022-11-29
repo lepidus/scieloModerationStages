@@ -6,7 +6,7 @@
   *}
 
 <link rel="stylesheet" type="text/css" href="/plugins/generic/scieloModerationStages/styles/moderationStageStyleSheet.css">
-{capture assign=updateStageEntryDates}{url router=$smarty.const.ROUTE_COMPONENT component="plugins.generic.scieloModerationStages.controllers.ScieloModerationStagesHandler" op="updateSubmissionStageData" escape=false}{/capture}
+{capture assign=updateStageEntryDatesUrl}{url router=$smarty.const.ROUTE_COMPONENT component="plugins.generic.scieloModerationStages.controllers.ScieloModerationStagesHandler" op="updateSubmissionStageData" escape=false}{/capture}
 
 <div class="pkp_form" id="moderationStageEntriesForm">
     {if $formatStageEntryDate}
@@ -51,13 +51,13 @@
 
 {if not $userIsAuthor}
     <script>
-        function updateSuccess(){ldelim}
+        function updatedStageDatesSuccess(){ldelim}
             alert("{translate key="form.saved"}");
         {rdelim}
 
-        async function makeSubmit(e){ldelim}
+        async function requestUpdateStageEntryDates(e){ldelim}
             $.post(
-                "{$updateStageEntryDates}",
+                "{$updateStageEntryDatesUrl}",
                 {ldelim}
                     submissionId: {$submissionId},
                     {if $canAdvanceStage} sendNextStage: $('input[name=sendNextStage]:checked').val(), {/if}
@@ -65,12 +65,12 @@
                     {if $contentStageEntryDate} contentStageEntryDate: $('#contentStageEntryDate').val(), {/if}
                     {if $areaStageEntryDate} areaStageEntryDate: $('#areaStageEntryDate').val(), {/if}
                 {rdelim},
-                updateSuccess()
+                updatedStageDatesSuccess()
             );
         {rdelim}
 
         $(function(){ldelim}
-            $('#moderationStageSubmit').click(makeSubmit);
+            $('#moderationStageSubmit').click(requestUpdateStageEntryDates);
         {rdelim});
     </script>
 {/if}
