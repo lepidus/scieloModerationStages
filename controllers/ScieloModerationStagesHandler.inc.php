@@ -37,7 +37,8 @@ class ScieloModerationStagesHandler extends Handler {
         $exhibitData = array_merge(
             $this->getSubmissionModerationStage($submissionId),
             $this->getResponsibles($submissionId),
-            $this->getAreaModerators($submissionId)
+            $this->getAreaModerators($submissionId),
+            $this->getTimeSubmitted($submissionId)
         );
 
         return json_encode($exhibitData);
@@ -107,5 +108,20 @@ class ScieloModerationStagesHandler extends Handler {
         }
 
         return $assignedUsers;
+    }
+
+    private function getTimeSubmitted($submissionId) {
+        $submission = DAORegistry::getDAO('SubmissionDAO')->getById($submissionId);
+
+        $dateSubmitted = new DateTime($submission->getData('dateSubmitted'));
+        $currentDate = new DateTime(Core::getCurrentDate());
+        $daysSinceSubmission = $currentDate->diff($dateSubmitted)->format('%a');
+
+        if ($daysSinceSubmission == 0)
+            $timeSubmittedText = __('plugins.generic.scieloModerationStages.timeSubmitted.lessThanOneDay');
+        else
+            $timeSubmittedText = __('plugins.generic.scieloModerationStages.timeSubmitted', ['daysSinceSubmission' => $daysSinceSubmission]);
+
+        return ['timeSubmitted' => $timeSubmittedText];
     }
 }

@@ -1,4 +1,5 @@
-.listPanel__itemModerationStage:not(.withoutDataYet) {
+.listPanel__itemModerationStage:not(.withoutDataYet),
+.listPanel__itemTimeSubmitted:not(.withoutDataYet) {
     border: 1px solid #00b28d;
     color: #00b28d;
     border-radius: 1.2em;

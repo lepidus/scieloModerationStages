@@ -58,3 +58,9 @@ msgstr "Responsible: {$responsible}"
 
 msgid "plugins.generic.scieloModerationStages.responsibles"
 msgstr "Responsibles: {$responsibles}"
+
+msgid "plugins.generic.scieloModerationStages.timeSubmitted.lessThanOneDay"
+msgstr "Submission made less than a day ago"
+
+msgid "plugins.generic.scieloModerationStages.timeSubmitted"
+msgstr "Submission made {$daysSinceSubmission} days ago"

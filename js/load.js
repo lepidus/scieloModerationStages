@@ -22,6 +22,10 @@ function createAreaModeratorExhibitorNode(submissionId) {
     return createExhibitorNode(submissionId, 'AreaModerator');
 }
 
+function createTimeSubmittedExhibitorNode(submissionId) {
+    return createExhibitorNode(submissionId, 'TimeSubmitted');
+}
+
 function updateExhibitorNode(classNamePrefix, text, submissionId) {
     var exhibitorNodes = document.getElementsByClassName(classNamePrefix + '--' + submissionId);
     for(let exhibitorNode of exhibitorNodes) {
@@ -43,6 +47,10 @@ function updateExhibitorNodes(response) {
 
     if(response['areaModerators'] != '') {
         updateExhibitorNode('submissionAreaModerator', response['areaModerators'], submissionId);
+    }
+
+    if(response['timeSubmitted'] != '') {
+        updateExhibitorNode('submissionTimeSubmitted', response['timeSubmitted'], submissionId);
     }
 }
 
@@ -68,9 +76,11 @@ function addSubmissionExhibitors() {
             var stageExhibitorNode = createStageExhibitorNode(submissionId);
             var responsibleExhibitorNode = createResponsibleExhibitorNode(submissionId);
             var areaModeratorExhibitorNode = createAreaModeratorExhibitorNode(submissionId);
+            var timeSubmittedExhibitorNode = createTimeSubmittedExhibitorNode(submissionId);
             insertAfter(stageExhibitorNode, subtitle);
             insertAfter(responsibleExhibitorNode, stageExhibitorNode);
             insertAfter(areaModeratorExhibitorNode, responsibleExhibitorNode);
+            insertAfter(timeSubmittedExhibitorNode, areaModeratorExhibitorNode);
         }
     }
 }
