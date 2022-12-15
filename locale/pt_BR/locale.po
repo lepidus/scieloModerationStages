@@ -64,3 +64,15 @@ msgstr "Submissão realizada há menos de um dia"
 
 msgid "plugins.generic.scieloModerationStages.timeSubmitted"
 msgstr "Submissão realizada há {$daysSinceSubmission} dias"
+
+msgid "plugins.generic.scieloModerationStages.timeResponsible.lessThanOneDay"
+msgstr "Responsável designado(a) há menos de um dia"
+
+msgid "plugins.generic.scieloModerationStages.timeResponsible"
+msgstr "Responsável designado(a) há {$daysResponsibleAssignment} dias"
+
+msgid "plugins.generic.scieloModerationStages.timeAreaModerator.lessThanOneDay"
+msgstr "Moderador(a) de Área designado(a) há menos de um dia"
+
+msgid "plugins.generic.scieloModerationStages.timeAreaModerator"
+msgstr "Moderador(a) de Área designado(a) há {$daysAreaModeratorAssignment} dias"

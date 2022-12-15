@@ -12,7 +12,9 @@
 }
 
 .listPanel__itemAreaModerator:not(.withoutDataYet),
-.listPanel__itemResponsible:not(.withoutDataYet) {
+.listPanel__itemTimeAreaModerator:not(.withoutDataYet),
+.listPanel__itemResponsible:not(.withoutDataYet),
+.listPanel__itemTimeResponsible:not(.withoutDataYet) {
     border: 1px solid #006798;
     color: #006798;
     border-radius: 1.2em;

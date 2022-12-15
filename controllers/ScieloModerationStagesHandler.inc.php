@@ -38,7 +38,9 @@ class ScieloModerationStagesHandler extends Handler {
             $this->getSubmissionModerationStage($submissionId),
             $this->getResponsibles($submissionId),
             $this->getAreaModerators($submissionId),
-            $this->getTimeSubmitted($submissionId)
+            $this->getTimeSubmitted($submissionId),
+            $this->getTimeResponsible($submissionId),
+            $this->getTimeAreaModerator($submissionId)
         );
 
         return json_encode($exhibitData);
@@ -123,5 +125,57 @@ class ScieloModerationStagesHandler extends Handler {
             $timeSubmittedText = __('plugins.generic.scieloModerationStages.timeSubmitted', ['daysSinceSubmission' => $daysSinceSubmission]);
 
         return ['timeSubmitted' => $timeSubmittedText];
+    }
+
+    private function getLastAssignmentDate($submissionId, $abbrev): string {
+        $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
+        $userGroupDao = DAORegistry::getDAO('UserGroupDAO');
+        $userDao = DAORegistry::getDAO('UserDAO');
+
+        $stageAssignmentsResults = $stageAssignmentDao->getBySubmissionAndRoleId($submissionId, ROLE_ID_SUB_EDITOR, self::SUBMISSION_STAGE_ID);
+        $lastAssignmentDate = "";
+
+        while ($stageAssignment = $stageAssignmentsResults->next()) {
+            $userGroup = $userGroupDao->getById($stageAssignment->getUserGroupId());
+            $currentUserGroupAbbrev = strtolower($userGroup->getData('abbrev', 'en_US'));
+
+            if ($currentUserGroupAbbrev == $abbrev) {
+                if(empty($lastAssignmentDate) or ($stageAssignment->getData('dateAssigned') > $lastAssignmentDate)) {
+                    $lastAssignmentDate = $stageAssignment->getData('dateAssigned');
+                }
+            }
+        }
+
+        return $lastAssignmentDate;
+    }
+
+    private function getTimeResponsible($submissionId) {
+        $lastAssignmentDate = $this->getLastAssignmentDate($submissionId, 'resp');
+
+        $lastAssignmentDate = new DateTime($lastAssignmentDate);
+        $currentDate = new DateTime(Core::getCurrentDate());
+        $daysSinceAssignment = $currentDate->diff($lastAssignmentDate)->format('%a');
+
+        if ($daysSinceAssignment == 0)
+            $timeResponsibleText = __('plugins.generic.scieloModerationStages.timeResponsible.lessThanOneDay');
+        else
+            $timeResponsibleText = __('plugins.generic.scieloModerationStages.timeResponsible', ['daysResponsibleAssignment' => $daysSinceAssignment]);
+
+        return ['timeResponsible' => $timeResponsibleText];
+    }
+
+    private function getTimeAreaModerator($submissionId) {
+        $lastAssignmentDate = $this->getLastAssignmentDate($submissionId, 'am');
+
+        $lastAssignmentDate = new DateTime($lastAssignmentDate);
+        $currentDate = new DateTime(Core::getCurrentDate());
+        $daysSinceAssignment = $currentDate->diff($lastAssignmentDate)->format('%a');
+
+        if ($daysSinceAssignment == 0)
+            $timeAreaModeratorText = __('plugins.generic.scieloModerationStages.timeAreaModerator.lessThanOneDay');
+        else
+            $timeAreaModeratorText = __('plugins.generic.scieloModerationStages.timeAreaModerator', ['daysAreaModeratorAssignment' => $daysSinceAssignment]);
+
+        return ['timeAreaModerator' => $timeAreaModeratorText];
     }
 }

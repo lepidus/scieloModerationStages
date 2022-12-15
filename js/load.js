@@ -26,6 +26,14 @@ function createTimeSubmittedExhibitorNode(submissionId) {
     return createExhibitorNode(submissionId, 'TimeSubmitted');
 }
 
+function createTimeResponsibleExhibitorNode(submissionId) {
+    return createExhibitorNode(submissionId, 'TimeResponsible');
+}
+
+function createTimeAreaModeratorExhibitorNode(submissionId) {
+    return createExhibitorNode(submissionId, 'TimeAreaModerator');
+}
+
 function updateExhibitorNode(classNamePrefix, text, submissionId) {
     var exhibitorNodes = document.getElementsByClassName(classNamePrefix + '--' + submissionId);
     for(let exhibitorNode of exhibitorNodes) {
@@ -52,6 +60,14 @@ function updateExhibitorNodes(response) {
     if(response['timeSubmitted'] != '') {
         updateExhibitorNode('submissionTimeSubmitted', response['timeSubmitted'], submissionId);
     }
+
+    if(response['timeResponsible'] != '') {
+        updateExhibitorNode('submissionTimeResponsible', response['timeResponsible'], submissionId);
+    }
+    
+    if(response['timeAreaModerator'] != '') {
+        updateExhibitorNode('submissionTimeAreaModerator', response['timeAreaModerator'], submissionId);
+    }
 }
 
 function getSubmissionIdFromDiv(parentDiv) {
@@ -77,10 +93,14 @@ function addSubmissionExhibitors() {
             var responsibleExhibitorNode = createResponsibleExhibitorNode(submissionId);
             var areaModeratorExhibitorNode = createAreaModeratorExhibitorNode(submissionId);
             var timeSubmittedExhibitorNode = createTimeSubmittedExhibitorNode(submissionId);
+            var timeResponsibleExhibitorNode = createTimeResponsibleExhibitorNode(submissionId);
+            var timeAreaModeratorExhibitorNode = createTimeAreaModeratorExhibitorNode(submissionId);
             insertAfter(stageExhibitorNode, subtitle);
             insertAfter(responsibleExhibitorNode, stageExhibitorNode);
             insertAfter(areaModeratorExhibitorNode, responsibleExhibitorNode);
             insertAfter(timeSubmittedExhibitorNode, areaModeratorExhibitorNode);
+            insertAfter(timeResponsibleExhibitorNode, timeSubmittedExhibitorNode);
+            insertAfter(timeAreaModeratorExhibitorNode, timeResponsibleExhibitorNode);
         }
     }
 }

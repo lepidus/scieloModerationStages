@@ -64,3 +64,15 @@ msgstr "Envío realizado hace menos de un día"
 
 msgid "plugins.generic.scieloModerationStages.timeSubmitted"
 msgstr "Envío realizado hace {$daysSinceSubmission} días"
+
+msgid "plugins.generic.scieloModerationStages.timeResponsible.lessThanOneDay"
+msgstr "Responsable designado hace menos de un día"
+
+msgid "plugins.generic.scieloModerationStages.timeResponsible"
+msgstr "Responsable designado hace {$daysResponsibleAssignment} días"
+
+msgid "plugins.generic.scieloModerationStages.timeAreaModerator.lessThanOneDay"
+msgstr "Moderador de área designado hace menos de un día"
+
+msgid "plugins.generic.scieloModerationStages.timeAreaModerator"
+msgstr "Moderador de área designado hace {$daysAreaModeratorAssignment} días"
