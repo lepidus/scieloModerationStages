@@ -57,10 +57,10 @@ class ScieloModerationStagesHandler extends Handler {
                 SCIELO_MODERATION_STAGE_AREA => 'plugins.generic.scieloModerationStages.stages.areaStage',
             ];
 
-            return ['submissionId' => $submissionId, 'moderationStageName' => __($stageMap[$moderationStage])];
+            return ['submissionId' => $submissionId, 'ModerationStage' => __($stageMap[$moderationStage])];
         }
 
-        return ['submissionId' => $submissionId, 'moderationStageName' => ''];
+        return ['submissionId' => $submissionId, 'ModerationStage' => ''];
     }
 
     private function getResponsibles($submissionId) {
@@ -76,7 +76,7 @@ class ScieloModerationStagesHandler extends Handler {
         else if (count($responsibleUsers) > 1)
             $responsiblesText = __('plugins.generic.scieloModerationStages.responsibles', ['responsibles' => implode(", ", $responsibleUsers)]);
         
-        return ['responsibles' => $responsiblesText];
+        return ['Responsibles' => $responsiblesText];
     }
 
     private function getAreaModerators($submissionId) {
@@ -88,7 +88,7 @@ class ScieloModerationStagesHandler extends Handler {
         else if(count($areaModeratorUsers) > 1)
             $areaModeratorsText = __('plugins.generic.scieloModerationStages.areaModerators', ['areaModerators' => implode(", ", $areaModeratorUsers)]);
         
-        return ['areaModerators' => $areaModeratorsText];
+        return ['AreaModerators' => $areaModeratorsText];
     }
 
     private function getAssignedUsers($submissionId, $abbrev): array {
@@ -124,7 +124,7 @@ class ScieloModerationStagesHandler extends Handler {
         else
             $timeSubmittedText = __('plugins.generic.scieloModerationStages.timeSubmitted', ['daysSinceSubmission' => $daysSinceSubmission]);
 
-        return ['timeSubmitted' => $timeSubmittedText];
+        return ['TimeSubmitted' => $timeSubmittedText];
     }
 
     private function getLastAssignmentDate($submissionId, $abbrev): string {
@@ -161,7 +161,7 @@ class ScieloModerationStagesHandler extends Handler {
         else
             $timeResponsibleText = __('plugins.generic.scieloModerationStages.timeResponsible', ['daysResponsibleAssignment' => $daysSinceAssignment]);
 
-        return ['timeResponsible' => $timeResponsibleText];
+        return ['TimeResponsible' => $timeResponsibleText];
     }
 
     private function getTimeAreaModerator($submissionId) {
@@ -176,6 +176,6 @@ class ScieloModerationStagesHandler extends Handler {
         else
             $timeAreaModeratorText = __('plugins.generic.scieloModerationStages.timeAreaModerator', ['daysAreaModeratorAssignment' => $daysSinceAssignment]);
 
-        return ['timeAreaModerator' => $timeAreaModeratorText];
+        return ['TimeAreaModerator' => $timeAreaModeratorText];
     }
 }

@@ -1,3 +1,5 @@
+let exhibitorNodeNames = ['ModerationStage', 'Responsibles', 'AreaModerators', 'TimeSubmitted', 'TimeResponsible', 'TimeAreaModerator'];
+
 function insertAfter(newNode, referenceNode) {
     referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
 }
@@ -8,30 +10,6 @@ function createExhibitorNode(submissionId, type) {
     node.classList.add('submission' + type + '--' + submissionId);
     node.classList.add('withoutDataYet');
     return node;
-}
-
-function createStageExhibitorNode(submissionId) {
-    return createExhibitorNode(submissionId, 'ModerationStage');
-}
-
-function createResponsibleExhibitorNode(submissionId) {
-    return createExhibitorNode(submissionId, 'Responsible');
-}
-
-function createAreaModeratorExhibitorNode(submissionId) {
-    return createExhibitorNode(submissionId, 'AreaModerator');
-}
-
-function createTimeSubmittedExhibitorNode(submissionId) {
-    return createExhibitorNode(submissionId, 'TimeSubmitted');
-}
-
-function createTimeResponsibleExhibitorNode(submissionId) {
-    return createExhibitorNode(submissionId, 'TimeResponsible');
-}
-
-function createTimeAreaModeratorExhibitorNode(submissionId) {
-    return createExhibitorNode(submissionId, 'TimeAreaModerator');
 }
 
 function updateExhibitorNode(classNamePrefix, text, submissionId) {
@@ -45,28 +23,11 @@ function updateExhibitorNode(classNamePrefix, text, submissionId) {
 function updateExhibitorNodes(response) {
     response = JSON.parse(response);
     const submissionId = response['submissionId'];
-    if(response['moderationStageName'] != '') {
-        updateExhibitorNode('submissionModerationStage', response['moderationStageName'], submissionId);
-    }
-
-    if(response['responsibles'] != '') {
-        updateExhibitorNode('submissionResponsible', response['responsibles'], submissionId);
-    }
-
-    if(response['areaModerators'] != '') {
-        updateExhibitorNode('submissionAreaModerator', response['areaModerators'], submissionId);
-    }
-
-    if(response['timeSubmitted'] != '') {
-        updateExhibitorNode('submissionTimeSubmitted', response['timeSubmitted'], submissionId);
-    }
-
-    if(response['timeResponsible'] != '') {
-        updateExhibitorNode('submissionTimeResponsible', response['timeResponsible'], submissionId);
-    }
     
-    if(response['timeAreaModerator'] != '') {
-        updateExhibitorNode('submissionTimeAreaModerator', response['timeAreaModerator'], submissionId);
+    for (const exhibitorNodeName of exhibitorNodeNames) {
+        if(response[exhibitorNodeName] != '') {
+            updateExhibitorNode('submission'+exhibitorNodeName, response[exhibitorNodeName], submissionId);
+        }
     }
 }
 
@@ -89,18 +50,13 @@ function addSubmissionExhibitors() {
                 updateExhibitorNodes
             );
 
-            var stageExhibitorNode = createStageExhibitorNode(submissionId);
-            var responsibleExhibitorNode = createResponsibleExhibitorNode(submissionId);
-            var areaModeratorExhibitorNode = createAreaModeratorExhibitorNode(submissionId);
-            var timeSubmittedExhibitorNode = createTimeSubmittedExhibitorNode(submissionId);
-            var timeResponsibleExhibitorNode = createTimeResponsibleExhibitorNode(submissionId);
-            var timeAreaModeratorExhibitorNode = createTimeAreaModeratorExhibitorNode(submissionId);
-            insertAfter(stageExhibitorNode, subtitle);
-            insertAfter(responsibleExhibitorNode, stageExhibitorNode);
-            insertAfter(areaModeratorExhibitorNode, responsibleExhibitorNode);
-            insertAfter(timeSubmittedExhibitorNode, areaModeratorExhibitorNode);
-            insertAfter(timeResponsibleExhibitorNode, timeSubmittedExhibitorNode);
-            insertAfter(timeAreaModeratorExhibitorNode, timeResponsibleExhibitorNode);
+            var previousNode = subtitle;
+            for (const exhibitorNodeName of exhibitorNodeNames) {
+                console.log(exhibitorNodeName);
+                var newExhibitorNode = createExhibitorNode(submissionId, exhibitorNodeName);
+                insertAfter(newExhibitorNode, previousNode);
+                previousNode = newExhibitorNode;
+            }
         }
     }
 }

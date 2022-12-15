@@ -47,7 +47,7 @@ function submissionStep4() {
     cy.get('.pkp_modal_confirmation > .footer > .ok').click();
 }
 
-describe("SciELO Moderation Stages Plugin - Exhibitor of submissions' stage in submissions listing page", function() {
+describe("SciELO Moderation Stages Plugin - Exhibitor of submission's current stage in submission's page", function() {
     it("Author user submits", function() {
         cy.visit(Cypress.env('baseUrl') + 'index.php/scielo/submissions');
         loginAuthorUser();
@@ -59,7 +59,7 @@ describe("SciELO Moderation Stages Plugin - Exhibitor of submissions' stage in s
         submissionStep4();
         userLogout();
     });
-    it("Check if exhibitor appears in submissions listing", function() {
+    it("Check if current moderation stage exhibitor appears in submission's page", function() {
         loginAdminUser();
         cy.wait(3000);
         cy.get("#active-button").click();
