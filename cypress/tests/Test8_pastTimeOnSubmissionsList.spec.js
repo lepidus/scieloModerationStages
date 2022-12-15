@@ -47,6 +47,25 @@ function submissionStep4() {
     cy.get('.pkp_modal_confirmation > .footer > .ok').click();
 }
 
+function assignUser(userGroupName) {
+    cy.get('a[id^="component-grid-users-stageparticipant-stageparticipantgrid-requestAccount"]').contains("Assign").click();
+    cy.get('select[name^="filterUserGroupId"]').select(userGroupName);
+    cy.get('button').contains('Search').click();
+    cy.wait(500);
+    cy.get('tr[id^="component-grid-users-userselect-userselectgrid-row"] > .first_column > input').first().click();
+    cy.get('#checkboxSendNextStageAssignNo').click();
+    cy.get("#addParticipantForm > .formButtons > .submitFormButton").click();
+    cy.wait(3000);
+}
+
+function assignResponsibleUser() {
+    assignUser('Responsible');
+}
+
+function assignAreaModeratorUser() {
+    assignUser('Area Moderator');
+}
+
 describe("SciELO Moderation Stages Plugin - Past time exhibitors in submissions listing page", function() {
     it("Author user submits", function() {
         cy.visit(Cypress.env('baseUrl') + 'index.php/scielo/submissions');
@@ -59,12 +78,26 @@ describe("SciELO Moderation Stages Plugin - Past time exhibitors in submissions 
         submissionStep4();
         userLogout();
     });
-    it("Check if past time exhibitors appear in submissions listing", function() {
+    it("Assign responsible and area moderator users", function() {
         loginAdminUser();
         cy.wait(3000);
+        cy.get("#active-button").click();
+        cy.get("a.pkpButton:visible").contains("View").first().click();
+        assignResponsibleUser();
+        cy.reload();
+        assignAreaModeratorUser();
+    });
+    it("Check if past time exhibitors appear in submissions listing", function() {
+        cy.get(".app__navItem").contains("Submissions").click();
         cy.get("#active-button").click();
         cy.get(".listPanel__itemIdentity:visible > .listPanel__itemTimeSubmitted")
             .first()
             .contains('Submission made less than a day ago');
+        cy.get(".listPanel__itemIdentity:visible > .listPanel__itemTimeResponsible")
+            .first()
+            .contains('Responsible assigned less than a day ago');
+        cy.get(".listPanel__itemIdentity:visible > .listPanel__itemTimeAreaModerator")
+            .first()
+            .contains('Area moderator assigned less than a day ago');
     });
 });
