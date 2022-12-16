@@ -174,31 +174,37 @@ class ScieloModerationStagesHandler extends Handler {
     }
 
     private function getTimeResponsible($submissionId) {
+        $submission = DAORegistry::getDAO('SubmissionDAO')->getById($submissionId);
         $lastAssignmentDate = $this->getLastAssignmentDate($submissionId, 'resp');
-
         $lastAssignmentDate = new DateTime($lastAssignmentDate);
-        $currentDate = new DateTime(Core::getCurrentDate());
-        $daysSinceAssignment = $currentDate->diff($lastAssignmentDate)->format('%a');
+
+        list($dateType, $secondDate) = $this->getSecondDateParamsForTimeSubmitted($submission);
+        $secondDate = new DateTime($secondDate);
+
+        $daysSinceAssignment = $secondDate->diff($lastAssignmentDate)->format('%a');
 
         if ($daysSinceAssignment == 0)
-            $timeResponsibleText = __('plugins.generic.scieloModerationStages.timeResponsible.lessThanOneDay');
+            $timeResponsibleText = __("plugins.generic.scieloModerationStages.timeResponsible.$dateType.lessThanOneDay");
         else
-            $timeResponsibleText = __('plugins.generic.scieloModerationStages.timeResponsible', ['daysResponsibleAssignment' => $daysSinceAssignment]);
+            $timeResponsibleText = __("plugins.generic.scieloModerationStages.timeResponsible.$dateType", ['daysResponsibleAssignment' => $daysSinceAssignment]);
 
         return ['TimeResponsible' => $timeResponsibleText];
     }
 
     private function getTimeAreaModerator($submissionId) {
+        $submission = DAORegistry::getDAO('SubmissionDAO')->getById($submissionId);
         $lastAssignmentDate = $this->getLastAssignmentDate($submissionId, 'am');
-
         $lastAssignmentDate = new DateTime($lastAssignmentDate);
-        $currentDate = new DateTime(Core::getCurrentDate());
-        $daysSinceAssignment = $currentDate->diff($lastAssignmentDate)->format('%a');
+
+        list($dateType, $secondDate) = $this->getSecondDateParamsForTimeSubmitted($submission);
+        $secondDate = new DateTime($secondDate);
+        
+        $daysSinceAssignment = $secondDate->diff($lastAssignmentDate)->format('%a');
 
         if ($daysSinceAssignment == 0)
-            $timeAreaModeratorText = __('plugins.generic.scieloModerationStages.timeAreaModerator.lessThanOneDay');
+            $timeAreaModeratorText = __("plugins.generic.scieloModerationStages.timeAreaModerator.$dateType.lessThanOneDay");
         else
-            $timeAreaModeratorText = __('plugins.generic.scieloModerationStages.timeAreaModerator', ['daysAreaModeratorAssignment' => $daysSinceAssignment]);
+            $timeAreaModeratorText = __("plugins.generic.scieloModerationStages.timeAreaModerator.$dateType", ['daysAreaModeratorAssignment' => $daysSinceAssignment]);
 
         return ['TimeAreaModerator' => $timeAreaModeratorText];
     }

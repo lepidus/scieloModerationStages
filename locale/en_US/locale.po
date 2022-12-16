@@ -59,6 +59,7 @@ msgstr "Responsible: {$responsible}"
 msgid "plugins.generic.scieloModerationStages.responsibles"
 msgstr "Responsibles: {$responsibles}"
 
+
 msgid "plugins.generic.scieloModerationStages.timeSubmitted.currentDate.lessThanOneDay"
 msgstr "Submission made less than a day ago"
 
@@ -77,14 +78,40 @@ msgstr "Submission made less than a day before rejection"
 msgid "plugins.generic.scieloModerationStages.timeSubmitted.dateDeclined"
 msgstr "Submission made {$daysSinceSubmission} days before rejection"
 
-msgid "plugins.generic.scieloModerationStages.timeResponsible.lessThanOneDay"
+
+msgid "plugins.generic.scieloModerationStages.timeResponsible.currentDate.lessThanOneDay"
 msgstr "Responsible assigned less than a day ago"
 
-msgid "plugins.generic.scieloModerationStages.timeResponsible"
+msgid "plugins.generic.scieloModerationStages.timeResponsible.currentDate"
 msgstr "Responsible assigned {$daysResponsibleAssignment} days ago"
 
-msgid "plugins.generic.scieloModerationStages.timeAreaModerator.lessThanOneDay"
+msgid "plugins.generic.scieloModerationStages.timeResponsible.datePublished.lessThanOneDay"
+msgstr "Responsible assigned less than a day before posting"
+
+msgid "plugins.generic.scieloModerationStages.timeResponsible.datePublished"
+msgstr "Responsible assigned {$daysResponsibleAssignment} days before posting"
+
+msgid "plugins.generic.scieloModerationStages.timeResponsible.dateDeclined.lessThanOneDay"
+msgstr "Responsible assigned less than a day before declining"
+
+msgid "plugins.generic.scieloModerationStages.timeResponsible.dateDeclined"
+msgstr "Responsible assigned {$daysResponsibleAssignment} days before declining"
+
+
+msgid "plugins.generic.scieloModerationStages.timeAreaModerator.currentDate.lessThanOneDay"
 msgstr "Area moderator assigned less than a day ago"
 
-msgid "plugins.generic.scieloModerationStages.timeAreaModerator"
+msgid "plugins.generic.scieloModerationStages.timeAreaModerator.currentDate"
 msgstr "Area moderator assigned {$daysAreaModeratorAssignment} days ago"
+
+msgid "plugins.generic.scieloModerationStages.timeAreaModerator.datePublished.lessThanOneDay"
+msgstr "Area moderator assigned less than a day before posting"
+
+msgid "plugins.generic.scieloModerationStages.timeAreaModerator.datePublished"
+msgstr "Area moderator assigned {$daysAreaModeratorAssignment} days before posting"
+
+msgid "plugins.generic.scieloModerationStages.timeAreaModerator.dateDeclined.lessThanOneDay"
+msgstr "Area moderator assigned less than a day before declining"
+
+msgid "plugins.generic.scieloModerationStages.timeAreaModerator.dateDeclined"
+msgstr "Area moderator assigned {$daysAreaModeratorAssignment} days before declining"
