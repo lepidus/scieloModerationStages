@@ -49,6 +49,16 @@ class ScieloModerationStagesHandler extends Handler {
         return json_encode($exhibitData);
     }
 
+    public function getUserIsAuthor($args, $request) {
+        $userRoles = $this->getAuthorizedContextObject(ASSOC_TYPE_USER_ROLES);
+        $adminRoles = [ROLE_ID_SITE_ADMIN, ROLE_ID_SUB_EDITOR];
+
+        if(count(array_intersect($userRoles, $adminRoles)) > 0)
+            return json_encode(0);
+
+        return json_encode(1);
+    }
+
     private function getSubmissionModerationStage($submissionId) {
         $moderationStageDAO = new ModerationStageDAO();
 
