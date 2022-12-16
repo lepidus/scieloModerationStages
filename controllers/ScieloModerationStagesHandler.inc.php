@@ -1,7 +1,10 @@
 <?php
 
+use Illuminate\Database\Capsule\Manager as Capsule;
+
 import('classes.handler.Handler');
-import ('plugins.reports.scieloModerationStagesReport.classes.ModerationStageDAO');
+import('classes.workflow.EditorDecisionActionsManager');
+import('plugins.reports.scieloModerationStagesReport.classes.ModerationStageDAO');
 
 class ScieloModerationStagesHandler extends Handler {
 
@@ -112,17 +115,38 @@ class ScieloModerationStagesHandler extends Handler {
         return $assignedUsers;
     }
 
+    private function getSecondDateParamsForTimeSubmitted($submission): array {
+        if($submission->getData('status') == STATUS_PUBLISHED) {
+            $publication = $submission->getCurrentPublication();
+            return ['datePublished', $publication->getData('datePublished')];
+        }
+        
+        if($submission->getData('status') == STATUS_DECLINED) {
+            $result = Capsule::table('edit_decisions')
+                ->where('submission_id', $submission->getId())
+                ->whereIn('decision', [SUBMISSION_EDITOR_DECISION_DECLINE, SUBMISSION_EDITOR_DECISION_INITIAL_DECLINE])
+                ->orderBy('date_decided', 'asc')
+                ->first();
+            
+            return ['dateDeclined', get_object_vars($result)['date_decided']];
+        }
+
+        return ['currentDate', Core::getCurrentDate()];
+    }
+
     private function getTimeSubmitted($submissionId) {
         $submission = DAORegistry::getDAO('SubmissionDAO')->getById($submissionId);
-
         $dateSubmitted = new DateTime($submission->getData('dateSubmitted'));
-        $currentDate = new DateTime(Core::getCurrentDate());
-        $daysSinceSubmission = $currentDate->diff($dateSubmitted)->format('%a');
+
+        list($dateType, $secondDate) = $this->getSecondDateParamsForTimeSubmitted($submission);
+        $secondDate = new DateTime($secondDate);
+
+        $daysSinceSubmission = $secondDate->diff($dateSubmitted)->format('%a');
 
         if ($daysSinceSubmission == 0)
-            $timeSubmittedText = __('plugins.generic.scieloModerationStages.timeSubmitted.lessThanOneDay');
+            $timeSubmittedText = __("plugins.generic.scieloModerationStages.timeSubmitted.$dateType.lessThanOneDay");
         else
-            $timeSubmittedText = __('plugins.generic.scieloModerationStages.timeSubmitted', ['daysSinceSubmission' => $daysSinceSubmission]);
+            $timeSubmittedText = __("plugins.generic.scieloModerationStages.timeSubmitted.$dateType", ['daysSinceSubmission' => $daysSinceSubmission]);
 
         return ['TimeSubmitted' => $timeSubmittedText];
     }

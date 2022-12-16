@@ -59,11 +59,23 @@ msgstr "Responsible: {$responsible}"
 msgid "plugins.generic.scieloModerationStages.responsibles"
 msgstr "Responsibles: {$responsibles}"
 
-msgid "plugins.generic.scieloModerationStages.timeSubmitted.lessThanOneDay"
+msgid "plugins.generic.scieloModerationStages.timeSubmitted.currentDate.lessThanOneDay"
 msgstr "Submission made less than a day ago"
 
-msgid "plugins.generic.scieloModerationStages.timeSubmitted"
+msgid "plugins.generic.scieloModerationStages.timeSubmitted.currentDate"
 msgstr "Submission made {$daysSinceSubmission} days ago"
+
+msgid "plugins.generic.scieloModerationStages.timeSubmitted.datePublished.lessThanOneDay"
+msgstr "Submission made less than a day before posting"
+
+msgid "plugins.generic.scieloModerationStages.timeSubmitted.datePublished"
+msgstr "Submission made {$daysSinceSubmission} days before posting"
+
+msgid "plugins.generic.scieloModerationStages.timeSubmitted.dateDeclined.lessThanOneDay"
+msgstr "Submission made less than a day before rejection"
+
+msgid "plugins.generic.scieloModerationStages.timeSubmitted.dateDeclined"
+msgstr "Submission made {$daysSinceSubmission} days before rejection"
 
 msgid "plugins.generic.scieloModerationStages.timeResponsible.lessThanOneDay"
 msgstr "Responsible assigned less than a day ago"
