@@ -151,7 +151,10 @@ class ScieloModerationStagesHandler extends Handler {
         $submission = DAORegistry::getDAO('SubmissionDAO')->getById($submissionId);
         $dateSubmitted = $submission->getData('dateSubmitted');
 
-        $timeSubmittedText = $this->getTextForTimeExhibitors($submission, $dateSubmitted, "timeSubmitted");
+        $timeSubmittedText = "";
+        if(!empty($dateSubmitted)) {
+            $timeSubmittedText = $this->getTextForTimeExhibitors($submission, $dateSubmitted, "timeSubmitted");
+        }
 
         return ['TimeSubmitted' => $timeSubmittedText];
     }
@@ -182,7 +185,10 @@ class ScieloModerationStagesHandler extends Handler {
         $submission = DAORegistry::getDAO('SubmissionDAO')->getById($submissionId);
         $lastAssignmentDate = $this->getLastAssignmentDate($submissionId, 'resp');
 
-        $timeResponsibleText = $this->getTextForTimeExhibitors($submission, $lastAssignmentDate, "timeResponsible");
+        $timeResponsibleText = "";
+        if(!empty($lastAssignmentDate)) {
+            $timeResponsibleText = $this->getTextForTimeExhibitors($submission, $lastAssignmentDate, "timeResponsible");
+        }
 
         return ['TimeResponsible' => $timeResponsibleText];
     }
@@ -191,7 +197,10 @@ class ScieloModerationStagesHandler extends Handler {
         $submission = DAORegistry::getDAO('SubmissionDAO')->getById($submissionId);
         $lastAssignmentDate = $this->getLastAssignmentDate($submissionId, 'am');
         
-        $timeAreaModeratorText = $this->getTextForTimeExhibitors($submission, $lastAssignmentDate, "timeAreaModerator");
+        $timeAreaModeratorText = "";
+        if(!empty($lastAssignmentDate)) {
+            $timeAreaModeratorText = $this->getTextForTimeExhibitors($submission, $lastAssignmentDate, "timeAreaModerator");
+        }
         
         return ['TimeAreaModerator' => $timeAreaModeratorText];
     }
