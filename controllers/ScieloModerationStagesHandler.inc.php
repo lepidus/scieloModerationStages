@@ -115,7 +115,7 @@ class ScieloModerationStagesHandler extends Handler {
         return $assignedUsers;
     }
 
-    private function getSecondDateParamsForTimeSubmitted($submission): array {
+    private function getSecondDateParamsForTimeExhibitors($submission): array {
         if($submission->getData('status') == STATUS_PUBLISHED) {
             $publication = $submission->getCurrentPublication();
             return ['datePublished', $publication->getData('datePublished')];
@@ -134,19 +134,24 @@ class ScieloModerationStagesHandler extends Handler {
         return ['currentDate', Core::getCurrentDate()];
     }
 
-    private function getTimeSubmitted($submissionId) {
-        $submission = DAORegistry::getDAO('SubmissionDAO')->getById($submissionId);
-        $dateSubmitted = new DateTime($submission->getData('dateSubmitted'));
-
-        list($dateType, $secondDate) = $this->getSecondDateParamsForTimeSubmitted($submission);
+    private function getTextForTimeExhibitors($submission, $firstDate, $exhibitor): string {
+        list($dateType, $secondDate) = $this->getSecondDateParamsForTimeExhibitors($submission);
+        $firstDate = new DateTime($firstDate);
         $secondDate = new DateTime($secondDate);
 
-        $daysSinceSubmission = $secondDate->diff($dateSubmitted)->format('%a');
+        $daysPassed = $secondDate->diff($firstDate)->format('%a');
 
-        if ($daysSinceSubmission == 0)
-            $timeSubmittedText = __("plugins.generic.scieloModerationStages.timeSubmitted.$dateType.lessThanOneDay");
-        else
-            $timeSubmittedText = __("plugins.generic.scieloModerationStages.timeSubmitted.$dateType", ['daysSinceSubmission' => $daysSinceSubmission]);
+        if ($daysPassed == 0)
+            return __("plugins.generic.scieloModerationStages.$exhibitor.$dateType.lessThanOneDay");
+        
+        return __("plugins.generic.scieloModerationStages.$exhibitor.$dateType", ['daysPassed' => $daysPassed]);
+    }
+
+    private function getTimeSubmitted($submissionId) {
+        $submission = DAORegistry::getDAO('SubmissionDAO')->getById($submissionId);
+        $dateSubmitted = $submission->getData('dateSubmitted');
+
+        $timeSubmittedText = $this->getTextForTimeExhibitors($submission, $dateSubmitted, "timeSubmitted");
 
         return ['TimeSubmitted' => $timeSubmittedText];
     }
@@ -176,17 +181,8 @@ class ScieloModerationStagesHandler extends Handler {
     private function getTimeResponsible($submissionId) {
         $submission = DAORegistry::getDAO('SubmissionDAO')->getById($submissionId);
         $lastAssignmentDate = $this->getLastAssignmentDate($submissionId, 'resp');
-        $lastAssignmentDate = new DateTime($lastAssignmentDate);
 
-        list($dateType, $secondDate) = $this->getSecondDateParamsForTimeSubmitted($submission);
-        $secondDate = new DateTime($secondDate);
-
-        $daysSinceAssignment = $secondDate->diff($lastAssignmentDate)->format('%a');
-
-        if ($daysSinceAssignment == 0)
-            $timeResponsibleText = __("plugins.generic.scieloModerationStages.timeResponsible.$dateType.lessThanOneDay");
-        else
-            $timeResponsibleText = __("plugins.generic.scieloModerationStages.timeResponsible.$dateType", ['daysResponsibleAssignment' => $daysSinceAssignment]);
+        $timeResponsibleText = $this->getTextForTimeExhibitors($submission, $lastAssignmentDate, "timeResponsible");
 
         return ['TimeResponsible' => $timeResponsibleText];
     }
@@ -194,18 +190,9 @@ class ScieloModerationStagesHandler extends Handler {
     private function getTimeAreaModerator($submissionId) {
         $submission = DAORegistry::getDAO('SubmissionDAO')->getById($submissionId);
         $lastAssignmentDate = $this->getLastAssignmentDate($submissionId, 'am');
-        $lastAssignmentDate = new DateTime($lastAssignmentDate);
-
-        list($dateType, $secondDate) = $this->getSecondDateParamsForTimeSubmitted($submission);
-        $secondDate = new DateTime($secondDate);
         
-        $daysSinceAssignment = $secondDate->diff($lastAssignmentDate)->format('%a');
-
-        if ($daysSinceAssignment == 0)
-            $timeAreaModeratorText = __("plugins.generic.scieloModerationStages.timeAreaModerator.$dateType.lessThanOneDay");
-        else
-            $timeAreaModeratorText = __("plugins.generic.scieloModerationStages.timeAreaModerator.$dateType", ['daysAreaModeratorAssignment' => $daysSinceAssignment]);
-
+        $timeAreaModeratorText = $this->getTextForTimeExhibitors($submission, $lastAssignmentDate, "timeAreaModerator");
+        
         return ['TimeAreaModerator' => $timeAreaModeratorText];
     }
 }

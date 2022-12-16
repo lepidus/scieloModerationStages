@@ -64,54 +64,54 @@ msgid "plugins.generic.scieloModerationStages.timeSubmitted.currentDate.lessThan
 msgstr "Envío realizado hace menos de un día"
 
 msgid "plugins.generic.scieloModerationStages.timeSubmitted.currentDate"
-msgstr "Envío realizado hace {$daysSinceSubmission} días"
+msgstr "Envío realizado hace {$daysPassed} días"
 
 msgid "plugins.generic.scieloModerationStages.timeSubmitted.datePublished.lessThanOneDay"
 msgstr "Envío realizado menos de un día antes de la publicación"
 
 msgid "plugins.generic.scieloModerationStages.timeSubmitted.datePublished"
-msgstr "Envío realizado {$daysSinceSubmission} días antes de la publicación"
+msgstr "Envío realizado {$daysPassed} días antes de la publicación"
 
 msgid "plugins.generic.scieloModerationStages.timeSubmitted.dateDeclined.lessThanOneDay"
 msgstr "Envío realizado menos de un día antes del rechazo"
 
 msgid "plugins.generic.scieloModerationStages.timeSubmitted.dateDeclined"
-msgstr "Envío realizado {$daysSinceSubmission} días antes del rechazo"
+msgstr "Envío realizado {$daysPassed} días antes del rechazo"
 
 
 msgid "plugins.generic.scieloModerationStages.timeResponsible.currentDate.lessThanOneDay"
 msgstr "Responsable designado hace menos de un día"
 
 msgid "plugins.generic.scieloModerationStages.timeResponsible.currentDate"
-msgstr "Responsable designado hace {$daysResponsibleAssignment} días"
+msgstr "Responsable designado hace {$daysPassed} días"
 
 msgid "plugins.generic.scieloModerationStages.timeResponsible.datePublished.lessThanOneDay"
 msgstr "Responsable designado menos de un día antes de la publicación"
 
 msgid "plugins.generic.scieloModerationStages.timeResponsible.datePublished"
-msgstr "Responsable designado {$daysResponsibleAssignment} días antes de la publicación"
+msgstr "Responsable designado {$daysPassed} días antes de la publicación"
 
 msgid "plugins.generic.scieloModerationStages.timeResponsible.dateDeclined.lessThanOneDay"
 msgstr "Responsable designado menos de un día antes del rechazo"
 
 msgid "plugins.generic.scieloModerationStages.timeResponsible.dateDeclined"
-msgstr "Responsable designado {$daysResponsibleAssignment} días antes del rechazo"
+msgstr "Responsable designado {$daysPassed} días antes del rechazo"
 
 
 msgid "plugins.generic.scieloModerationStages.timeAreaModerator.currentDate.lessThanOneDay"
 msgstr "Moderador de área designado hace menos de un día"
 
 msgid "plugins.generic.scieloModerationStages.timeAreaModerator.currentDate"
-msgstr "Moderador de área designado hace {$daysAreaModeratorAssignment} días"
+msgstr "Moderador de área designado hace {$daysPassed} días"
 
 msgid "plugins.generic.scieloModerationStages.timeAreaModerator.datePublished.lessThanOneDay"
 msgstr "Moderador de área designado menos de un día antes de la publicación"
 
 msgid "plugins.generic.scieloModerationStages.timeAreaModerator.datePublished"
-msgstr "Moderador de área designado {$daysAreaModeratorAssignment} días antes de la publicación"
+msgstr "Moderador de área designado {$daysPassed} días antes de la publicación"
 
 msgid "plugins.generic.scieloModerationStages.timeAreaModerator.dateDeclined.lessThanOneDay"
 msgstr "Moderador de área designado menos de un día antes del rechazo"
 
 msgid "plugins.generic.scieloModerationStages.timeAreaModerator.dateDeclined"
-msgstr "Moderador de área designado {$daysAreaModeratorAssignment} días antes del rechazo"
+msgstr "Moderador de área designado {$daysPassed} días antes del rechazo"
