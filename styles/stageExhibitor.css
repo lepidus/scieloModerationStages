@@ -25,3 +25,8 @@
     line-height: 1.5em;
     display: inline-block;
 }
+
+.itemTimeRed {
+    border: 1px solid #d00a6c !important;
+    color: #d00a6c !important;
+}

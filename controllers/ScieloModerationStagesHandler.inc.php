@@ -8,7 +8,8 @@ import('plugins.reports.scieloModerationStagesReport.classes.ModerationStageDAO'
 
 class ScieloModerationStagesHandler extends Handler {
 
-    protected const SUBMISSION_STAGE_ID = 5;
+    private const SUBMISSION_STAGE_ID = 5;
+    private const THRESHOLD_TIME_EXHIBITORS = 2;
 
     public function updateSubmissionStageData($args, $request){
         $submissionDao = DAORegistry::getDAO('SubmissionDAO');
@@ -150,29 +151,35 @@ class ScieloModerationStagesHandler extends Handler {
         return ['currentDate', Core::getCurrentDate()];
     }
 
-    private function getTextForTimeExhibitors($submission, $firstDate, $exhibitor): string {
+    private function getDataForTimeExhibitors($submission, $firstDate, $exhibitor): array {
         list($dateType, $secondDate) = $this->getSecondDateParamsForTimeExhibitors($submission);
         $firstDate = new DateTime($firstDate);
         $secondDate = new DateTime($secondDate);
 
         $daysPassed = $secondDate->diff($firstDate)->format('%a');
 
-        if ($daysPassed == 0)
-            return __("plugins.generic.scieloModerationStages.$exhibitor.$dateType.lessThanOneDay");
+        if ($daysPassed == 0) {
+            return [$exhibitor => __("plugins.generic.scieloModerationStages.$exhibitor.$dateType.lessThanOneDay")];
+        }
+        else if($daysPassed > self::THRESHOLD_TIME_EXHIBITORS and $dateType == 'currentDate') {
+            return [
+                $exhibitor => __("plugins.generic.scieloModerationStages.$exhibitor.$dateType", ['daysPassed' => $daysPassed]),
+                "{$exhibitor}RedFlag" => true
+            ];
+        }
         
-        return __("plugins.generic.scieloModerationStages.$exhibitor.$dateType", ['daysPassed' => $daysPassed]);
+        return [$exhibitor => __("plugins.generic.scieloModerationStages.$exhibitor.$dateType", ['daysPassed' => $daysPassed])];
     }
 
     private function getTimeSubmitted($submissionId) {
         $submission = DAORegistry::getDAO('SubmissionDAO')->getById($submissionId);
         $dateSubmitted = $submission->getData('dateSubmitted');
 
-        $timeSubmittedText = "";
-        if(!empty($dateSubmitted)) {
-            $timeSubmittedText = $this->getTextForTimeExhibitors($submission, $dateSubmitted, "timeSubmitted");
+        if(empty($dateSubmitted)) {
+            return ['TimeSubmitted' => ''];
         }
-
-        return ['TimeSubmitted' => $timeSubmittedText];
+        
+        return $this->getDataForTimeExhibitors($submission, $dateSubmitted, "TimeSubmitted");
     }
 
     private function getLastAssignmentDate($submissionId, $abbrev): string {
@@ -201,23 +208,20 @@ class ScieloModerationStagesHandler extends Handler {
         $submission = DAORegistry::getDAO('SubmissionDAO')->getById($submissionId);
         $lastAssignmentDate = $this->getLastAssignmentDate($submissionId, 'resp');
 
-        $timeResponsibleText = "";
-        if(!empty($lastAssignmentDate)) {
-            $timeResponsibleText = $this->getTextForTimeExhibitors($submission, $lastAssignmentDate, "timeResponsible");
+        if(empty($lastAssignmentDate)) {
+            return ['TimeResponsible' => ''];
         }
-
-        return ['TimeResponsible' => $timeResponsibleText];
+        return $this->getDataForTimeExhibitors($submission, $lastAssignmentDate, "TimeResponsible");
     }
 
     private function getTimeAreaModerator($submissionId) {
         $submission = DAORegistry::getDAO('SubmissionDAO')->getById($submissionId);
         $lastAssignmentDate = $this->getLastAssignmentDate($submissionId, 'am');
         
-        $timeAreaModeratorText = "";
-        if(!empty($lastAssignmentDate)) {
-            $timeAreaModeratorText = $this->getTextForTimeExhibitors($submission, $lastAssignmentDate, "timeAreaModerator");
+        if(empty($lastAssignmentDate)) {
+            return ['TimeAreaModerator' => ''];
         }
         
-        return ['TimeAreaModerator' => $timeAreaModeratorText];
+        return $this->getDataForTimeExhibitors($submission, $lastAssignmentDate, "TimeAreaModerator");
     }
 }

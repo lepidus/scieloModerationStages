@@ -22,6 +22,13 @@ function updateExhibitorNode(classNamePrefix, text, submissionId) {
     }
 }
 
+function addRedColorToTimeExhibitor(classNamePrefix, submissionId) {
+    var exhibitorNodes = document.getElementsByClassName(classNamePrefix + '--' + submissionId);
+    for(let exhibitorNode of exhibitorNodes) {
+        exhibitorNode.classList.add('itemTimeRed');
+    }
+}
+
 function updateExhibitorNodes(response) {
     response = JSON.parse(response);
     const submissionId = response['submissionId'];
@@ -36,6 +43,10 @@ function updateExhibitorNodes(response) {
         for (const exhibitorNodeName of exhibitorNodesAdmin) {
             if(response[exhibitorNodeName] != '') {
                 updateExhibitorNode('submission'+exhibitorNodeName, response[exhibitorNodeName], submissionId);
+
+                if(exhibitorNodeName+'RedFlag' in response) {
+                    addRedColorToTimeExhibitor('submission'+exhibitorNodeName, submissionId);
+                }
             }
         }
     }
