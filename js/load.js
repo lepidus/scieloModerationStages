@@ -1,3 +1,7 @@
+let exhibitorNodesAll = ['ModerationStage', 'Responsibles', 'AreaModerators'];
+let exhibitorNodesAdmin = ['TimeSubmitted', 'TimeResponsible', 'TimeAreaModerator'];
+var userIsAuthor = '1';
+
 function insertAfter(newNode, referenceNode) {
     referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
 }
@@ -10,18 +14,6 @@ function createExhibitorNode(submissionId, type) {
     return node;
 }
 
-function createStageExhibitorNode(submissionId) {
-    return createExhibitorNode(submissionId, 'ModerationStage');
-}
-
-function createResponsibleExhibitorNode(submissionId) {
-    return createExhibitorNode(submissionId, 'Responsible');
-}
-
-function createAreaModeratorExhibitorNode(submissionId) {
-    return createExhibitorNode(submissionId, 'AreaModerator');
-}
-
 function updateExhibitorNode(classNamePrefix, text, submissionId) {
     var exhibitorNodes = document.getElementsByClassName(classNamePrefix + '--' + submissionId);
     for(let exhibitorNode of exhibitorNodes) {
@@ -30,19 +22,33 @@ function updateExhibitorNode(classNamePrefix, text, submissionId) {
     }
 }
 
+function addRedColorToTimeExhibitor(classNamePrefix, submissionId) {
+    var exhibitorNodes = document.getElementsByClassName(classNamePrefix + '--' + submissionId);
+    for(let exhibitorNode of exhibitorNodes) {
+        exhibitorNode.classList.add('itemTimeRed');
+    }
+}
+
 function updateExhibitorNodes(response) {
     response = JSON.parse(response);
     const submissionId = response['submissionId'];
-    if(response['moderationStageName'] != '') {
-        updateExhibitorNode('submissionModerationStage', response['moderationStageName'], submissionId);
+    
+    for (const exhibitorNodeName of exhibitorNodesAll) {
+        if(response[exhibitorNodeName] != '') {
+            updateExhibitorNode('submission'+exhibitorNodeName, response[exhibitorNodeName], submissionId);
+        }
     }
 
-    if(response['responsibles'] != '') {
-        updateExhibitorNode('submissionResponsible', response['responsibles'], submissionId);
-    }
+    if(userIsAuthor == false) {
+        for (const exhibitorNodeName of exhibitorNodesAdmin) {
+            if(response[exhibitorNodeName] != '') {
+                updateExhibitorNode('submission'+exhibitorNodeName, response[exhibitorNodeName], submissionId);
 
-    if(response['areaModerators'] != '') {
-        updateExhibitorNode('submissionAreaModerator', response['areaModerators'], submissionId);
+                if(exhibitorNodeName+'RedFlag' in response) {
+                    addRedColorToTimeExhibitor('submission'+exhibitorNodeName, submissionId);
+                }
+            }
+        }
     }
 }
 
@@ -51,7 +57,11 @@ function getSubmissionIdFromDiv(parentDiv) {
     return id;
 }
 
-function addSubmissionExhibitors() {
+async function addSubmissionExhibitors() {
+    userIsAuthor = await $.get(
+        app.moderationStagesHandlerUrl + 'get-user-is-author'
+    );
+
     var submissionSubtitle = document.getElementsByClassName('listPanel__itemSubtitle');
     for (let subtitle of submissionSubtitle) {
         const hasExhibitors = subtitle.parentNode.getElementsByClassName('listPanel__itemModerationStage').length > 0;
@@ -61,16 +71,25 @@ function addSubmissionExhibitors() {
                 app.moderationStagesHandlerUrl + 'get-submission-exhibit-data',
                 {
                     submissionId: submissionId,
+                    userIsAuthor: userIsAuthor
                 },
                 updateExhibitorNodes
             );
 
-            var stageExhibitorNode = createStageExhibitorNode(submissionId);
-            var responsibleExhibitorNode = createResponsibleExhibitorNode(submissionId);
-            var areaModeratorExhibitorNode = createAreaModeratorExhibitorNode(submissionId);
-            insertAfter(stageExhibitorNode, subtitle);
-            insertAfter(responsibleExhibitorNode, stageExhibitorNode);
-            insertAfter(areaModeratorExhibitorNode, responsibleExhibitorNode);
+            var previousNode = subtitle;
+            for (const exhibitorNodeName of exhibitorNodesAll) {
+                var newExhibitorNode = createExhibitorNode(submissionId, exhibitorNodeName);
+                insertAfter(newExhibitorNode, previousNode);
+                previousNode = newExhibitorNode;
+            }
+
+            if(userIsAuthor == false) {
+                for(const exhibitorNodeName of exhibitorNodesAdmin) {
+                    var newExhibitorNode = createExhibitorNode(submissionId, exhibitorNodeName);
+                    insertAfter(newExhibitorNode, previousNode);
+                    previousNode = newExhibitorNode;
+                }
+            }
         }
     }
 }

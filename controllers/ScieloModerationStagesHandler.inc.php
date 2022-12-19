@@ -1,11 +1,15 @@
 <?php
 
+use Illuminate\Database\Capsule\Manager as Capsule;
+
 import('classes.handler.Handler');
-import ('plugins.reports.scieloModerationStagesReport.classes.ModerationStageDAO');
+import('classes.workflow.EditorDecisionActionsManager');
+import('plugins.reports.scieloModerationStagesReport.classes.ModerationStageDAO');
 
 class ScieloModerationStagesHandler extends Handler {
 
-    protected const SUBMISSION_STAGE_ID = 5;
+    private const SUBMISSION_STAGE_ID = 5;
+    private const THRESHOLD_TIME_EXHIBITORS = 2;
 
     public function updateSubmissionStageData($args, $request){
         $submissionDao = DAORegistry::getDAO('SubmissionDAO');
@@ -40,7 +44,26 @@ class ScieloModerationStagesHandler extends Handler {
             $this->getAreaModerators($submissionId)
         );
 
+        if($args['userIsAuthor'] == 0) {
+            $exhibitData = array_merge(
+                $exhibitData,
+                $this->getTimeSubmitted($submissionId),
+                $this->getTimeResponsible($submissionId),
+                $this->getTimeAreaModerator($submissionId)
+            );
+        }
+
         return json_encode($exhibitData);
+    }
+
+    public function getUserIsAuthor($args, $request) {
+        $userRoles = $this->getAuthorizedContextObject(ASSOC_TYPE_USER_ROLES);
+        $adminRoles = [ROLE_ID_SITE_ADMIN, ROLE_ID_SUB_EDITOR];
+
+        if(count(array_intersect($userRoles, $adminRoles)) > 0)
+            return json_encode(0);
+
+        return json_encode(1);
     }
 
     private function getSubmissionModerationStage($submissionId) {
@@ -54,10 +77,10 @@ class ScieloModerationStagesHandler extends Handler {
                 SCIELO_MODERATION_STAGE_AREA => 'plugins.generic.scieloModerationStages.stages.areaStage',
             ];
 
-            return ['submissionId' => $submissionId, 'moderationStageName' => __($stageMap[$moderationStage])];
+            return ['submissionId' => $submissionId, 'ModerationStage' => __($stageMap[$moderationStage])];
         }
 
-        return ['submissionId' => $submissionId, 'moderationStageName' => ''];
+        return ['submissionId' => $submissionId, 'ModerationStage' => ''];
     }
 
     private function getResponsibles($submissionId) {
@@ -73,7 +96,7 @@ class ScieloModerationStagesHandler extends Handler {
         else if (count($responsibleUsers) > 1)
             $responsiblesText = __('plugins.generic.scieloModerationStages.responsibles', ['responsibles' => implode(", ", $responsibleUsers)]);
         
-        return ['responsibles' => $responsiblesText];
+        return ['Responsibles' => $responsiblesText];
     }
 
     private function getAreaModerators($submissionId) {
@@ -85,7 +108,7 @@ class ScieloModerationStagesHandler extends Handler {
         else if(count($areaModeratorUsers) > 1)
             $areaModeratorsText = __('plugins.generic.scieloModerationStages.areaModerators', ['areaModerators' => implode(", ", $areaModeratorUsers)]);
         
-        return ['areaModerators' => $areaModeratorsText];
+        return ['AreaModerators' => $areaModeratorsText];
     }
 
     private function getAssignedUsers($submissionId, $abbrev): array {
@@ -107,5 +130,98 @@ class ScieloModerationStagesHandler extends Handler {
         }
 
         return $assignedUsers;
+    }
+
+    private function getSecondDateParamsForTimeExhibitors($submission): array {
+        if($submission->getData('status') == STATUS_PUBLISHED) {
+            $publication = $submission->getCurrentPublication();
+            return ['datePublished', $publication->getData('datePublished')];
+        }
+        
+        if($submission->getData('status') == STATUS_DECLINED) {
+            $result = Capsule::table('edit_decisions')
+                ->where('submission_id', $submission->getId())
+                ->whereIn('decision', [SUBMISSION_EDITOR_DECISION_DECLINE, SUBMISSION_EDITOR_DECISION_INITIAL_DECLINE])
+                ->orderBy('date_decided', 'asc')
+                ->first();
+            
+            return ['dateDeclined', get_object_vars($result)['date_decided']];
+        }
+
+        return ['currentDate', Core::getCurrentDate()];
+    }
+
+    private function getDataForTimeExhibitors($submission, $firstDate, $exhibitor): array {
+        list($dateType, $secondDate) = $this->getSecondDateParamsForTimeExhibitors($submission);
+        $firstDate = new DateTime($firstDate);
+        $secondDate = new DateTime($secondDate);
+
+        $daysPassed = $secondDate->diff($firstDate)->format('%a');
+
+        if ($daysPassed == 0) {
+            return [$exhibitor => __("plugins.generic.scieloModerationStages.$exhibitor.$dateType.lessThanOneDay")];
+        }
+        else if($daysPassed > self::THRESHOLD_TIME_EXHIBITORS) {
+            return [
+                $exhibitor => __("plugins.generic.scieloModerationStages.$exhibitor.$dateType", ['daysPassed' => $daysPassed]),
+                "{$exhibitor}RedFlag" => true
+            ];
+        }
+        
+        return [$exhibitor => __("plugins.generic.scieloModerationStages.$exhibitor.$dateType", ['daysPassed' => $daysPassed])];
+    }
+
+    private function getTimeSubmitted($submissionId) {
+        $submission = DAORegistry::getDAO('SubmissionDAO')->getById($submissionId);
+        $dateSubmitted = $submission->getData('dateSubmitted');
+
+        if(empty($dateSubmitted)) {
+            return ['TimeSubmitted' => ''];
+        }
+        
+        return $this->getDataForTimeExhibitors($submission, $dateSubmitted, "TimeSubmitted");
+    }
+
+    private function getLastAssignmentDate($submissionId, $abbrev): string {
+        $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
+        $userGroupDao = DAORegistry::getDAO('UserGroupDAO');
+        $userDao = DAORegistry::getDAO('UserDAO');
+
+        $stageAssignmentsResults = $stageAssignmentDao->getBySubmissionAndRoleId($submissionId, ROLE_ID_SUB_EDITOR, self::SUBMISSION_STAGE_ID);
+        $lastAssignmentDate = "";
+
+        while ($stageAssignment = $stageAssignmentsResults->next()) {
+            $userGroup = $userGroupDao->getById($stageAssignment->getUserGroupId());
+            $currentUserGroupAbbrev = strtolower($userGroup->getData('abbrev', 'en_US'));
+
+            if ($currentUserGroupAbbrev == $abbrev) {
+                if(empty($lastAssignmentDate) or ($stageAssignment->getData('dateAssigned') > $lastAssignmentDate)) {
+                    $lastAssignmentDate = $stageAssignment->getData('dateAssigned');
+                }
+            }
+        }
+
+        return $lastAssignmentDate;
+    }
+
+    private function getTimeResponsible($submissionId) {
+        $submission = DAORegistry::getDAO('SubmissionDAO')->getById($submissionId);
+        $lastAssignmentDate = $this->getLastAssignmentDate($submissionId, 'resp');
+
+        if(empty($lastAssignmentDate)) {
+            return ['TimeResponsible' => ''];
+        }
+        return $this->getDataForTimeExhibitors($submission, $lastAssignmentDate, "TimeResponsible");
+    }
+
+    private function getTimeAreaModerator($submissionId) {
+        $submission = DAORegistry::getDAO('SubmissionDAO')->getById($submissionId);
+        $lastAssignmentDate = $this->getLastAssignmentDate($submissionId, 'am');
+        
+        if(empty($lastAssignmentDate)) {
+            return ['TimeAreaModerator' => ''];
+        }
+        
+        return $this->getDataForTimeExhibitors($submission, $lastAssignmentDate, "TimeAreaModerator");
     }
 }

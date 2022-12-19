@@ -1,4 +1,5 @@
-.listPanel__itemModerationStage:not(.withoutDataYet) {
+.listPanel__itemModerationStage:not(.withoutDataYet),
+.listPanel__itemTimeSubmitted:not(.withoutDataYet) {
     border: 1px solid #00b28d;
     color: #00b28d;
     border-radius: 1.2em;
@@ -10,8 +11,10 @@
     display: inline-block;
 }
 
-.listPanel__itemAreaModerator:not(.withoutDataYet),
-.listPanel__itemResponsible:not(.withoutDataYet) {
+.listPanel__itemAreaModerators:not(.withoutDataYet),
+.listPanel__itemTimeAreaModerator:not(.withoutDataYet),
+.listPanel__itemResponsibles:not(.withoutDataYet),
+.listPanel__itemTimeResponsible:not(.withoutDataYet) {
     border: 1px solid #006798;
     color: #006798;
     border-radius: 1.2em;
@@ -21,4 +24,9 @@
     font-size: 0.85rem;
     line-height: 1.5em;
     display: inline-block;
+}
+
+.itemTimeRed {
+    border: 1px solid #d00a6c !important;
+    color: #d00a6c !important;
 }

@@ -30,7 +30,7 @@ function submissionStep2() {
 }
 
 function submissionStep3() {
-    cy.get('input[name^="title"]').first().type("Submission test first moderation stage", { delay: 0 });
+    cy.get('input[name^="title"]').first().type("Submission test past time in submissions listing", { delay: 0 });
     cy.get('label').contains('Title').click();
     cy.get('textarea[id^="abstract-"').then((node) => {
         cy.setTinyMceContent(node.attr("id"), "Example of abstract");
@@ -47,7 +47,26 @@ function submissionStep4() {
     cy.get('.pkp_modal_confirmation > .footer > .ok').click();
 }
 
-describe("SciELO Moderation Stages Plugin - Exhibitor of submissions' stage in submissions listing page", function() {
+function assignUser(userGroupName) {
+    cy.get('a[id^="component-grid-users-stageparticipant-stageparticipantgrid-requestAccount"]').contains("Assign").click();
+    cy.get('select[name^="filterUserGroupId"]').select(userGroupName);
+    cy.get('button').contains('Search').click();
+    cy.wait(500);
+    cy.get('tr[id^="component-grid-users-userselect-userselectgrid-row"] > .first_column > input').first().click();
+    cy.get('#checkboxSendNextStageAssignNo').click();
+    cy.get("#addParticipantForm > .formButtons > .submitFormButton").click();
+    cy.wait(3000);
+}
+
+function assignResponsibleUser() {
+    assignUser('Responsible');
+}
+
+function assignAreaModeratorUser() {
+    assignUser('Area Moderator');
+}
+
+describe("SciELO Moderation Stages Plugin - Past time exhibitors in submissions listing page", function() {
     it("Author user submits", function() {
         cy.visit(Cypress.env('baseUrl') + 'index.php/scielo/submissions');
         loginAuthorUser();
@@ -59,13 +78,26 @@ describe("SciELO Moderation Stages Plugin - Exhibitor of submissions' stage in s
         submissionStep4();
         userLogout();
     });
-    it("Check if exhibitor appears in submissions listing", function() {
+    it("Assign responsible and area moderator users", function() {
         loginAdminUser();
         cy.wait(3000);
         cy.get("#active-button").click();
-        cy.get(".listPanel__itemActions:visible > a.pkpButton").first().click();
-        cy.get("#publication-button").click();
-        cy.get(".moderationStageStatus > strong").contains("Moderation stage:");
-        cy.get(".moderationStageStatus > span").contains("Format Pre-Moderation");
+        cy.get("a.pkpButton:visible").contains("View").first().click();
+        assignResponsibleUser();
+        cy.reload();
+        assignAreaModeratorUser();
+    });
+    it("Check if past time exhibitors appear in submissions listing", function() {
+        cy.get(".app__navItem").contains("Submissions").click();
+        cy.get("#active-button").click();
+        cy.get(".listPanel__itemIdentity:visible > .listPanel__itemTimeSubmitted")
+            .first()
+            .contains('Submission made less than a day ago');
+        cy.get(".listPanel__itemIdentity:visible > .listPanel__itemTimeResponsible")
+            .first()
+            .contains('Responsible assigned less than a day ago');
+        cy.get(".listPanel__itemIdentity:visible > .listPanel__itemTimeAreaModerator")
+            .first()
+            .contains('Area moderator assigned less than a day ago');
     });
 });
