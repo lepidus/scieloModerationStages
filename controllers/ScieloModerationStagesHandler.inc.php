@@ -40,11 +40,17 @@ class ScieloModerationStagesHandler extends Handler {
         $exhibitData = array_merge(
             $this->getSubmissionModerationStage($submissionId),
             $this->getResponsibles($submissionId),
-            $this->getAreaModerators($submissionId),
-            $this->getTimeSubmitted($submissionId),
-            $this->getTimeResponsible($submissionId),
-            $this->getTimeAreaModerator($submissionId)
+            $this->getAreaModerators($submissionId)
         );
+
+        if($args['userIsAuthor'] == 0) {
+            $exhibitData = array_merge(
+                $exhibitData,
+                $this->getTimeSubmitted($submissionId),
+                $this->getTimeResponsible($submissionId),
+                $this->getTimeAreaModerator($submissionId)
+            );
+        }
 
         return json_encode($exhibitData);
     }

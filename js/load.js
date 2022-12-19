@@ -60,6 +60,7 @@ async function addSubmissionExhibitors() {
                 app.moderationStagesHandlerUrl + 'get-submission-exhibit-data',
                 {
                     submissionId: submissionId,
+                    userIsAuthor: userIsAuthor
                 },
                 updateExhibitorNodes
             );
