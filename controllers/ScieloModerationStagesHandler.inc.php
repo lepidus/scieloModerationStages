@@ -161,7 +161,7 @@ class ScieloModerationStagesHandler extends Handler {
         if ($daysPassed == 0) {
             return [$exhibitor => __("plugins.generic.scieloModerationStages.$exhibitor.$dateType.lessThanOneDay")];
         }
-        else if($daysPassed > self::THRESHOLD_TIME_EXHIBITORS and $dateType == 'currentDate') {
+        else if($daysPassed > self::THRESHOLD_TIME_EXHIBITORS) {
             return [
                 $exhibitor => __("plugins.generic.scieloModerationStages.$exhibitor.$dateType", ['daysPassed' => $daysPassed]),
                 "{$exhibitor}RedFlag" => true
