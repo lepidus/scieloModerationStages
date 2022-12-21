@@ -1,8 +1,6 @@
 .listPanel__itemModerationStage:not(.withoutDataYet),
 .listPanel__itemTimeSubmitted:not(.withoutDataYet) {
-    border: 1px solid #00b28d;
     color: #00b28d;
-    border-radius: 1.2em;
     margin-top: 0.5em;
     margin-right: 0.5em;
     padding: 0.25em 1em;
@@ -15,9 +13,7 @@
 .listPanel__itemTimeAreaModerator:not(.withoutDataYet),
 .listPanel__itemResponsibles:not(.withoutDataYet),
 .listPanel__itemTimeResponsible:not(.withoutDataYet) {
-    border: 1px solid #006798;
     color: #006798;
-    border-radius: 1.2em;
     margin-top: 0.5em;
     margin-right: 0.5em;
     padding: 0.25em 1em;
@@ -35,6 +31,6 @@
 }
 
 .itemTimeRed {
-    border: 1px solid #d00a6c !important;
     color: #d00a6c !important;
+    font-weight: 700;
 }

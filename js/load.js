@@ -22,11 +22,34 @@ function createExhibitorsSeparator(submissionId) {
     return node;
 }
 
-function updateExhibitorNode(classNamePrefix, text, submissionId) {
-    var exhibitorNodes = document.getElementsByClassName(classNamePrefix + '--' + submissionId);
+function addLineBreakAfterExhibitor(exhibitorNode) {
+    var br = document.createElement('br');
+    insertAfter(br, exhibitorNode);
+}
+
+function addTextToLabeledExhibitor(exhibitorNode, text) {
+    let [labelText, contentText] = text.split(':');
+    var labelStrong = document.createElement('strong');
+
+    exhibitorNode.appendChild(labelStrong);
+    labelStrong.textContent = labelText+':';
+    exhibitorNode.innerHTML += contentText;
+}
+
+function updateExhibitorNode(exhibitorNodeName, text, submissionId) {
+    var exhibitorNodes = document.getElementsByClassName('submission' + exhibitorNodeName + '--' + submissionId);
     for(let exhibitorNode of exhibitorNodes) {
-        exhibitorNode.textContent = text;
-        exhibitorNode.classList.remove('withoutDataYet');
+        if(exhibitorNode.classList.contains('withoutDataYet')) {
+            exhibitorNode.classList.remove('withoutDataYet');
+        
+            if(exhibitorNodesAll.includes(exhibitorNodeName)) {
+                addTextToLabeledExhibitor(exhibitorNode, text);
+            }
+            else {
+                exhibitorNode.textContent = text;
+            }
+            addLineBreakAfterExhibitor(exhibitorNode);
+        }
     }
 }
 
@@ -37,8 +60,8 @@ function updateExhibitorsSeparator(submissionId) {
     }
 }
 
-function addRedColorToTimeExhibitor(classNamePrefix, submissionId) {
-    var exhibitorNodes = document.getElementsByClassName(classNamePrefix + '--' + submissionId);
+function addRedColorToTimeExhibitor(exhibitorNodeName, submissionId) {
+    var exhibitorNodes = document.getElementsByClassName('submission' + exhibitorNodeName + '--' + submissionId);
     for(let exhibitorNode of exhibitorNodes) {
         exhibitorNode.classList.add('itemTimeRed');
     }
@@ -53,17 +76,17 @@ function updateExhibitorNodes(response) {
             updateExhibitorsSeparator(submissionId);
         }
         else if(response[exhibitorNodeName] != '') {
-            updateExhibitorNode('submission'+exhibitorNodeName, response[exhibitorNodeName], submissionId);
+            updateExhibitorNode(exhibitorNodeName, response[exhibitorNodeName], submissionId);
         }
     }
 
     if(userIsAuthor == false) {
         for (const exhibitorNodeName of exhibitorNodesAdmin) {
             if(response[exhibitorNodeName] != '') {
-                updateExhibitorNode('submission'+exhibitorNodeName, response[exhibitorNodeName], submissionId);
+                updateExhibitorNode(exhibitorNodeName, response[exhibitorNodeName], submissionId);
 
                 if(exhibitorNodeName+'RedFlag' in response) {
-                    addRedColorToTimeExhibitor('submission'+exhibitorNodeName, submissionId);
+                    addRedColorToTimeExhibitor(exhibitorNodeName, submissionId);
                 }
             }
         }

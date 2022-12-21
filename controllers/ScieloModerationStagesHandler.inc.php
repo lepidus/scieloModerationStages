@@ -77,7 +77,9 @@ class ScieloModerationStagesHandler extends Handler {
                 SCIELO_MODERATION_STAGE_AREA => 'plugins.generic.scieloModerationStages.stages.areaStage',
             ];
 
-            return ['submissionId' => $submissionId, 'ModerationStage' => __($stageMap[$moderationStage])];
+            $moderationStageText = __('plugins.generic.scieloModerationStages.currentStageStatusLabel') . ' ' . __($stageMap[$moderationStage]);
+
+            return ['submissionId' => $submissionId, 'ModerationStage' => $moderationStageText];
         }
 
         return ['submissionId' => $submissionId, 'ModerationStage' => ''];
