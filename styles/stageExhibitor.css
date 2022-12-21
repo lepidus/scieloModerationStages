@@ -26,6 +26,14 @@
     display: inline-block;
 }
 
+.exhibitorsSeparator {
+    margin-top: 0.75em;
+    margin-bottom: 0.25em;
+    width: 95%;
+    border-top: 1px solid #ccc;
+    border-bottom: 0px;
+}
+
 .itemTimeRed {
     border: 1px solid #d00a6c !important;
     color: #d00a6c !important;

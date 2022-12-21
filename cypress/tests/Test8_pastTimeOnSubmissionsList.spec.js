@@ -90,6 +90,7 @@ describe("SciELO Moderation Stages Plugin - Past time exhibitors in submissions 
     it("Check if past time exhibitors appear in submissions listing", function() {
         cy.get(".app__navItem").contains("Submissions").click();
         cy.get("#active-button").click();
+        cy.get(".listPanel__itemIdentity:visible > .exhibitorsSeparator").first();
         cy.get(".listPanel__itemIdentity:visible > .listPanel__itemTimeSubmitted")
             .first()
             .contains('Submission made less than a day ago');

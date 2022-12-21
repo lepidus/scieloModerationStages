@@ -1,4 +1,4 @@
-let exhibitorNodesAll = ['ModerationStage', 'Responsibles', 'AreaModerators'];
+let exhibitorNodesAll = ['ModerationStage', 'exhibitorsSeparator', 'Responsibles', 'AreaModerators'];
 let exhibitorNodesAdmin = ['TimeSubmitted', 'TimeResponsible', 'TimeAreaModerator'];
 var userIsAuthor = '1';
 
@@ -14,11 +14,26 @@ function createExhibitorNode(submissionId, type) {
     return node;
 }
 
+function createExhibitorsSeparator(submissionId) {
+    var node = document.createElement('hr');
+    node.classList.add('exhibitorsSeparator');
+    node.classList.add('submissionExhibitorSeparator' + '--' + submissionId);
+    node.style.display = 'none';
+    return node;
+}
+
 function updateExhibitorNode(classNamePrefix, text, submissionId) {
     var exhibitorNodes = document.getElementsByClassName(classNamePrefix + '--' + submissionId);
     for(let exhibitorNode of exhibitorNodes) {
         exhibitorNode.textContent = text;
         exhibitorNode.classList.remove('withoutDataYet');
+    }
+}
+
+function updateExhibitorsSeparator(submissionId) {
+    var exhibitorsSeparators = document.getElementsByClassName('submissionExhibitorSeparator--' + submissionId);
+    for(let separator of exhibitorsSeparators) {
+        separator.style.display = 'block';
     }
 }
 
@@ -34,7 +49,10 @@ function updateExhibitorNodes(response) {
     const submissionId = response['submissionId'];
     
     for (const exhibitorNodeName of exhibitorNodesAll) {
-        if(response[exhibitorNodeName] != '') {
+        if(exhibitorNodeName == 'exhibitorsSeparator') {
+            updateExhibitorsSeparator(submissionId);
+        }
+        else if(response[exhibitorNodeName] != '') {
             updateExhibitorNode('submission'+exhibitorNodeName, response[exhibitorNodeName], submissionId);
         }
     }
@@ -77,15 +95,23 @@ async function addSubmissionExhibitors() {
             );
 
             var previousNode = subtitle;
+            var newExhibitorNode = null;
             for (const exhibitorNodeName of exhibitorNodesAll) {
-                var newExhibitorNode = createExhibitorNode(submissionId, exhibitorNodeName);
+                if(exhibitorNodeName == 'exhibitorsSeparator')
+                    newExhibitorNode = createExhibitorsSeparator(submissionId);
+                else
+                    newExhibitorNode = createExhibitorNode(submissionId, exhibitorNodeName);
                 insertAfter(newExhibitorNode, previousNode);
                 previousNode = newExhibitorNode;
             }
 
             if(userIsAuthor == false) {
+                newExhibitorNode = createExhibitorsSeparator(submissionId);
+                insertAfter(newExhibitorNode, previousNode);
+                previousNode = newExhibitorNode;
+
                 for(const exhibitorNodeName of exhibitorNodesAdmin) {
-                    var newExhibitorNode = createExhibitorNode(submissionId, exhibitorNodeName);
+                    newExhibitorNode = createExhibitorNode(submissionId, exhibitorNodeName);
                     insertAfter(newExhibitorNode, previousNode);
                     previousNode = newExhibitorNode;
                 }
