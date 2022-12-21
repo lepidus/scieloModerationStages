@@ -22,11 +22,17 @@ function createExhibitorsSeparator(submissionId) {
     return node;
 }
 
+function addLineBreakAfterExhibitor(exhibitorNode) {
+    var br = document.createElement('br');
+    insertAfter(br, exhibitorNode);
+}
+
 function updateExhibitorNode(classNamePrefix, text, submissionId) {
     var exhibitorNodes = document.getElementsByClassName(classNamePrefix + '--' + submissionId);
     for(let exhibitorNode of exhibitorNodes) {
         exhibitorNode.textContent = text;
         exhibitorNode.classList.remove('withoutDataYet');
+        addLineBreakAfterExhibitor(exhibitorNode);
     }
 }
 
