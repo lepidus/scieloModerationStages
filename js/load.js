@@ -25,6 +25,7 @@ function createExhibitorsSeparator(submissionId) {
 function addLineBreakAfterExhibitor(exhibitorNode) {
     var br = document.createElement('br');
     insertAfter(br, exhibitorNode);
+    exhibitorNode.classList.add('exhibitorWithLineBreak');
 }
 
 function updateExhibitorNode(classNamePrefix, text, submissionId) {
@@ -32,7 +33,9 @@ function updateExhibitorNode(classNamePrefix, text, submissionId) {
     for(let exhibitorNode of exhibitorNodes) {
         exhibitorNode.textContent = text;
         exhibitorNode.classList.remove('withoutDataYet');
-        addLineBreakAfterExhibitor(exhibitorNode);
+        if(!exhibitorNode.classList.contains('exhibitorWithLineBreak')) {
+            addLineBreakAfterExhibitor(exhibitorNode);
+        }
     }
 }
 
