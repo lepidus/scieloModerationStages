@@ -14,10 +14,8 @@
  * @ingroup plugins_generic_scieloModerationStages
  * @brief Wrapper for SciELO Moderation Stages plugin.
  *
- */ 
+ */
 
 require_once('ScieloModerationStagesPlugin.inc.php');
 
 return new ScieloModerationStagesPlugin();
-
-
