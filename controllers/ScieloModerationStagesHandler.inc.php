@@ -4,7 +4,7 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 
 import('classes.handler.Handler');
 import('classes.workflow.EditorDecisionActionsManager');
-import('plugins.reports.scieloModerationStagesReport.classes.ModerationStageDAO');
+import('plugins.generic.scieloModerationStages.classes.ModerationStageDAO');
 
 class ScieloModerationStagesHandler extends Handler
 {
