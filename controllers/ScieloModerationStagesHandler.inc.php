@@ -15,6 +15,7 @@ class ScieloModerationStagesHandler extends Handler
     {
         $submissionDao = DAORegistry::getDAO('SubmissionDAO');
         $submission = $submissionDao->getById($args['submissionId']);
+        $moderationStage = new ModerationStage($submission);
 
         if (isset($args['formatStageEntryDate'])) {
             $submission->setData('formatStageEntryDate', $args['formatStageEntryDate']);
@@ -28,8 +29,7 @@ class ScieloModerationStagesHandler extends Handler
             $submission->setData('areaStageEntryDate', $args['areaStageEntryDate']);
         }
 
-        if (isset($args['sendNextStage']) && $args['sendNextStage'] == 1) {
-            $moderationStage = new ModerationStage($submission);
+        if (isset($args['sendNextStage']) && $args['sendNextStage'] == 1 && $moderationStage->canAdvanceStage()) {
             $moderationStage->sendNextStage();
             $moderationStageRegister = new ModerationStageRegister();
             $moderationStageRegister->registerModerationStageOnDatabase($moderationStage);

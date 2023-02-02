@@ -48,16 +48,27 @@ function submissionStep4() {
 }
 
 function sendSubmissionToNextStage() {
-    cy.get("a").contains("Assign").click();
+    cy.get('a[id^="component-grid-users-stageparticipant-stageparticipantgrid-requestAccount"]').contains("Assign").click();
+    cy.wait(500);
     cy.get('tr[id^="component-grid-users-userselect-userselectgrid-row"] > .first_column > input').first().click();
     cy.get('#checkboxSendNextStageAssignYes').click();
     cy.get("#addParticipantForm > .formButtons > .submitFormButton").click();
     cy.wait(3000);
 }
 
-function checkOptionSendNextStageIsNotPresent() {
-    cy.get("a").contains("Assign").click();
+function checkSendingNextStageInAssignmentIsNotPresent() {
+    cy.get('a[id^="component-grid-users-stageparticipant-stageparticipantgrid-requestAccount"]').contains("Assign").click();
     cy.get('#checkboxSendNextStageDiv').should('not.exist');
+    cy.get('.cancelButton').click();
+}
+
+function checkTryingSendNextStageDoesntWork() {
+    cy.get('#publication-button').click();
+    cy.get('#scieloModerationStages-button').click();
+    cy.get('#checkboxSendNextStageMenuYes').click();
+    cy.get('#moderationStageSubmit').click();
+    cy.reload();
+    cy.get('#scieloModerationStages-button');
 }
 
 describe("SciELO Moderation Stages Plugin - Option to sent submission to next moderation stage when submission in last stage", function() {
@@ -72,7 +83,7 @@ describe("SciELO Moderation Stages Plugin - Option to sent submission to next mo
         submissionStep4();
         userLogout();
     });
-    it("Check option to sent submission to next moderation stage does not show when submision is in last moderation stage", function() {
+    it("Check the options to send submission to next moderation stage behavior when submission is in last moderation stage", function() {
         loginAdminUser();
         cy.wait(3000);
         cy.get("#active-button").click();
@@ -80,6 +91,7 @@ describe("SciELO Moderation Stages Plugin - Option to sent submission to next mo
         
         sendSubmissionToNextStage();
         sendSubmissionToNextStage();
-        checkOptionSendNextStageIsNotPresent();
+        checkSendingNextStageInAssignmentIsNotPresent();
+        checkTryingSendNextStageDoesntWork();
     });
 });
