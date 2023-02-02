@@ -254,10 +254,13 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         if ($requestVars['sendNextStage']) {
             $submission = $form->getSubmission();
             $moderationStage = new ModerationStage($submission);
-            $moderationStage->sendNextStage();
-            $moderationStageRegister = new ModerationStageRegister();
-            $moderationStageRegister->registerModerationStageOnDatabase($moderationStage);
-            $moderationStageRegister->registerModerationStageOnSubmissionLog($moderationStage);
+            
+            if($moderationStage->canAdvanceStage()) {
+                $moderationStage->sendNextStage();
+                $moderationStageRegister = new ModerationStageRegister();
+                $moderationStageRegister->registerModerationStageOnDatabase($moderationStage);
+                $moderationStageRegister->registerModerationStageOnSubmissionLog($moderationStage);
+            }
         }
     }
 }
