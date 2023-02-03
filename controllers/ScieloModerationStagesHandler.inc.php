@@ -29,7 +29,8 @@ class ScieloModerationStagesHandler extends Handler
             $submission->setData('areaStageEntryDate', $args['areaStageEntryDate']);
         }
 
-        if (isset($args['sendNextStage']) && $args['sendNextStage'] == 1 && $moderationStage->canAdvanceStage()) {
+        $userSelectedAdvanceStage = ($args['sendNextStage'] == 1);
+        if ($userSelectedAdvanceStage and $moderationStage->canAdvanceStage()) {
             $moderationStage->sendNextStage();
             $moderationStageRegister = new ModerationStageRegister();
             $moderationStageRegister->registerModerationStageOnDatabase($moderationStage);
