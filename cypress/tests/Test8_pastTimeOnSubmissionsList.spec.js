@@ -100,5 +100,20 @@ describe("SciELO Moderation Stages Plugin - Past time exhibitors in submissions 
         cy.get(".listPanel__itemIdentity:visible > .listPanel__itemTimeAreaModerator")
             .first()
             .contains('Area moderator assigned less than a day ago');
+        cy.logout();
+    });
+    it("Check if past time exhibitors do not appear for authors", function() {
+        loginAuthorUser();
+        cy.get('.listPanel__itemModerationStage').within(() => {
+            cy.contains('Moderation stage:');
+            cy.contains('Format Pre-Moderation');
+        });
+
+        cy.contains('Responsible:').should('not.exist');
+        cy.contains('Area moderator:').should('not.exist');
+        
+        cy.contains('Submission made').should('not.exist');
+        cy.contains('Responsible assigned').should('not.exist');
+        cy.contains('Area moderator assigned').should('not.exist');
     });
 });
