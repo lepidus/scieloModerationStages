@@ -1,5 +1,5 @@
-let exhibitorNodesAll = ['ModerationStage', 'exhibitorsSeparator', 'Responsibles', 'AreaModerators'];
-let exhibitorNodesAdmin = ['TimeSubmitted', 'TimeResponsible', 'TimeAreaModerator'];
+let labeledExhibitorNodes = ['ModerationStage', 'Responsibles', 'AreaModerators'];
+let exhibitorNodesAdmin = ['exhibitorsSeparator', 'Responsibles', 'AreaModerators', 'TimeSubmitted', 'TimeResponsible', 'TimeAreaModerator'];
 var userIsAuthor = '1';
 
 function insertAfter(newNode, referenceNode) {
@@ -42,7 +42,7 @@ function updateExhibitorNode(exhibitorNodeName, text, submissionId) {
         if(exhibitorNode.classList.contains('withoutDataYet')) {
             exhibitorNode.classList.remove('withoutDataYet');
         
-            if(exhibitorNodesAll.includes(exhibitorNodeName)) {
+            if(labeledExhibitorNodes.includes(exhibitorNodeName)) {
                 addTextToLabeledExhibitor(exhibitorNode, text);
             }
             else {
@@ -70,19 +70,17 @@ function addRedColorToTimeExhibitor(exhibitorNodeName, submissionId) {
 function updateExhibitorNodes(response) {
     response = JSON.parse(response);
     const submissionId = response['submissionId'];
-    
-    for (const exhibitorNodeName of exhibitorNodesAll) {
-        if(exhibitorNodeName == 'exhibitorsSeparator') {
-            updateExhibitorsSeparator(submissionId);
-        }
-        else if(response[exhibitorNodeName] != '') {
-            updateExhibitorNode(exhibitorNodeName, response[exhibitorNodeName], submissionId);
-        }
+
+    if(response['ModerationStage'] != '') {
+        updateExhibitorNode('ModerationStage', response['ModerationStage'], submissionId);
     }
 
     if(userIsAuthor == false) {
         for (const exhibitorNodeName of exhibitorNodesAdmin) {
-            if(response[exhibitorNodeName] != '') {
+            if(exhibitorNodeName == 'exhibitorsSeparator') {
+                updateExhibitorsSeparator(submissionId);
+            }
+            else if(response[exhibitorNodeName] != '') {
                 updateExhibitorNode(exhibitorNodeName, response[exhibitorNodeName], submissionId);
 
                 if(exhibitorNodeName+'RedFlag' in response) {
@@ -117,24 +115,16 @@ async function addSubmissionExhibitors() {
                 updateExhibitorNodes
             );
 
-            var previousNode = subtitle;
-            var newExhibitorNode = null;
-            for (const exhibitorNodeName of exhibitorNodesAll) {
-                if(exhibitorNodeName == 'exhibitorsSeparator')
-                    newExhibitorNode = createExhibitorsSeparator(submissionId);
-                else
-                    newExhibitorNode = createExhibitorNode(submissionId, exhibitorNodeName);
-                insertAfter(newExhibitorNode, previousNode);
-                previousNode = newExhibitorNode;
-            }
-
+            var newExhibitorNode = createExhibitorNode(submissionId, 'ModerationStage');
+            insertAfter(newExhibitorNode, subtitle);
+            var previousNode = newExhibitorNode;
+            
             if(userIsAuthor == false) {
-                newExhibitorNode = createExhibitorsSeparator(submissionId);
-                insertAfter(newExhibitorNode, previousNode);
-                previousNode = newExhibitorNode;
-
                 for(const exhibitorNodeName of exhibitorNodesAdmin) {
-                    newExhibitorNode = createExhibitorNode(submissionId, exhibitorNodeName);
+                    if(exhibitorNodeName == 'exhibitorsSeparator')
+                        newExhibitorNode = createExhibitorsSeparator(submissionId);
+                    else
+                        newExhibitorNode = createExhibitorNode(submissionId, exhibitorNodeName);
                     insertAfter(newExhibitorNode, previousNode);
                     previousNode = newExhibitorNode;
                 }
