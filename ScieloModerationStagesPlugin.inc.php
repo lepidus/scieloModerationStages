@@ -81,7 +81,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
 
     public function setupScieloModerationStagesHandler($hookName, $params)
     {
-        $component =& $params[0];
+        $component = &$params[0];
         if ($component == 'plugins.generic.scieloModerationStages.controllers.ScieloModerationStagesHandler') {
             return true;
         }
@@ -90,7 +90,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
 
     public function addOurFieldsToSubmissionSchema($hookName, $params)
     {
-        $schema =& $params[0];
+        $schema = &$params[0];
 
         $schema->properties->{'currentModerationStage'} = (object) [
             'type' => 'string',
@@ -166,8 +166,8 @@ class ScieloModerationStagesPlugin extends GenericPlugin
 
     public function addToWorkflowTabs($hookName, $params)
     {
-        $templateMgr =& $params[1];
-        $output =& $params[2];
+        $templateMgr = &$params[1];
+        $output = &$params[2];
         $submission = $templateMgr->get_template_vars('submission');
 
         $moderationStage = new ModerationStage($submission);
@@ -197,7 +197,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
 
     public function addCurrentStageStatus($hookName, $params)
     {
-        $templateMgr =& $params[1];
+        $templateMgr = &$params[1];
         $submission = $templateMgr->get_template_vars('submission');
 
         if (!is_null($submission->getData('currentModerationStage'))) {
@@ -254,7 +254,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         if ($requestVars['sendNextStage']) {
             $submission = $form->getSubmission();
             $moderationStage = new ModerationStage($submission);
-            
+
             if($moderationStage->canAdvanceStage()) {
                 $moderationStage->sendNextStage();
                 $moderationStageRegister = new ModerationStageRegister();
