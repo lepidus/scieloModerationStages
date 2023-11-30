@@ -276,11 +276,24 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         $submission = Services::get('submission')->get($query->getData('assocId'));
 
         if ($this->userIsAuthor($submission)) {
-            foreach($allParticipants as $userId => $userData) {
-                //WIP
+            $newParticipantsList = [];
+            foreach ($allParticipants as $userId => $userData) {
+                $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
+                $stageAssignmentsResult = $stageAssignmentDao->getBySubmissionAndUserIdAndStageId($submission->getId(), $userId, $submission->getData('stageId'));
+
+                $userGroupDao = DAORegistry::getDAO('UserGroupDAO');
+                $userRoles = [];
+                while ($stageAssignment = $stageAssignmentsResult->next()) {
+                    $userGroup = $userGroupDao->getById($stageAssignment->getUserGroupId(), $submission->getData('contextId'));
+                    $userRoles[] = (int) $userGroup->getRoleId();
+                }
+
+                if ($userRoles[0] != ROLE_ID_SUB_EDITOR) {
+                    $newParticipantsList[$userId] = $userData;
+                }
             }
 
-            $templateMgr->assign('allParticipants', $allParticipants);
+            $templateMgr->assign('allParticipants', $newParticipantsList);
         }
 
         return false;
