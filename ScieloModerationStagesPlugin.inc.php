@@ -32,6 +32,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             HookRegistry::register('submissionsubmitstep4form::execute', array($this, 'setSubmissionFirstModerationStage'));
             HookRegistry::register('addparticipantform::display', array($this, 'addFieldsAssignForm'));
             HookRegistry::register('addparticipantform::execute', array($this, 'sendSubmissionToNextModerationStage'));
+            HookRegistry::register('queryform::display', array($this, 'hideParticipantsOnDiscussionOpening'));
 
             HookRegistry::register('Template::Workflow::Publication', array($this, 'addToWorkflowTabs'));
             HookRegistry::register('Template::Workflow', array($this, 'addCurrentStageStatus'));
@@ -262,5 +263,26 @@ class ScieloModerationStagesPlugin extends GenericPlugin
                 $moderationStageRegister->registerModerationStageOnSubmissionLog($moderationStage);
             }
         }
+    }
+
+    public function hideParticipantsOnDiscussionOpening($hookName, $params)
+    {
+        $form = $params[0];
+        $request = Application::get()->getRequest();
+        $templateMgr = TemplateManager::getManager($request);
+        $allParticipants = $templateMgr->getTemplateVars('allParticipants');
+
+        $query = $form->getQuery();
+        $submission = Services::get('submission')->get($query->getData('assocId'));
+
+        if ($this->userIsAuthor($submission)) {
+            foreach($allParticipants as $userId => $userData) {
+                //WIP
+            }
+
+            $templateMgr->assign('allParticipants', $allParticipants);
+        }
+
+        return false;
     }
 }
