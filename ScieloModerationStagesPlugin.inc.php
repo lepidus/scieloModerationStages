@@ -17,6 +17,8 @@ import('lib.pkp.classes.plugins.GenericPlugin');
 import('plugins.generic.scieloModerationStages.classes.ModerationStage');
 import('plugins.generic.scieloModerationStages.classes.ModerationStageRegister');
 
+define('SCIELO_BRASIL_EMAIL', 'scielo.submission@scielo.org');
+
 class ScieloModerationStagesPlugin extends GenericPlugin
 {
     public function register($category, $path, $mainContextId = null)
@@ -256,7 +258,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             $submission = $form->getSubmission();
             $moderationStage = new ModerationStage($submission);
 
-            if($moderationStage->canAdvanceStage()) {
+            if ($moderationStage->canAdvanceStage()) {
                 $moderationStage->sendNextStage();
                 $moderationStageRegister = new ModerationStageRegister();
                 $moderationStageRegister->registerModerationStageOnDatabase($moderationStage);
@@ -276,20 +278,19 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         $submission = Services::get('submission')->get($query->getData('assocId'));
 
         if ($this->userIsAuthor($submission)) {
+            $author = $request->getUser();
             $newParticipantsList = [];
-            foreach ($allParticipants as $userId => $userData) {
-                $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
-                $stageAssignmentsResult = $stageAssignmentDao->getBySubmissionAndUserIdAndStageId($submission->getId(), $userId, $submission->getData('stageId'));
+            $allowedUsersEmails = [
+                $author->getEmail(),
+                SCIELO_BRASIL_EMAIL
+            ];
 
-                $userGroupDao = DAORegistry::getDAO('UserGroupDAO');
-                $userRoles = [];
-                while ($stageAssignment = $stageAssignmentsResult->next()) {
-                    $userGroup = $userGroupDao->getById($stageAssignment->getUserGroupId(), $submission->getData('contextId'));
-                    $userRoles[] = (int) $userGroup->getRoleId();
-                }
+            foreach ($allParticipants as $participantId => $participantData) {
+                $userDao = DAORegistry::getDAO('UserDAO');
+                $participant = $userDao->getById($participantId);
 
-                if ($userRoles[0] != ROLE_ID_SUB_EDITOR) {
-                    $newParticipantsList[$userId] = $userData;
+                if (in_array($participant->getEmail(), $allowedUsersEmails)) {
+                    $newParticipantsList[$participantId] = $participantData;
                 }
             }
 
