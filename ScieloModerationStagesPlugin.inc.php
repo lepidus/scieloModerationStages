@@ -17,6 +17,8 @@ import('lib.pkp.classes.plugins.GenericPlugin');
 import('plugins.generic.scieloModerationStages.classes.ModerationStage');
 import('plugins.generic.scieloModerationStages.classes.ModerationStageRegister');
 
+define('SCIELO_BRASIL_EMAIL', 'scielo.submission@scielo.org');
+
 class ScieloModerationStagesPlugin extends GenericPlugin
 {
     public function register($category, $path, $mainContextId = null)
@@ -32,6 +34,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             HookRegistry::register('submissionsubmitstep4form::execute', array($this, 'setSubmissionFirstModerationStage'));
             HookRegistry::register('addparticipantform::display', array($this, 'addFieldsAssignForm'));
             HookRegistry::register('addparticipantform::execute', array($this, 'sendSubmissionToNextModerationStage'));
+            HookRegistry::register('queryform::display', array($this, 'hideParticipantsOnDiscussionOpening'));
 
             HookRegistry::register('Template::Workflow::Publication', array($this, 'addToWorkflowTabs'));
             HookRegistry::register('Template::Workflow', array($this, 'addCurrentStageStatus'));
@@ -255,12 +258,45 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             $submission = $form->getSubmission();
             $moderationStage = new ModerationStage($submission);
 
-            if($moderationStage->canAdvanceStage()) {
+            if ($moderationStage->canAdvanceStage()) {
                 $moderationStage->sendNextStage();
                 $moderationStageRegister = new ModerationStageRegister();
                 $moderationStageRegister->registerModerationStageOnDatabase($moderationStage);
                 $moderationStageRegister->registerModerationStageOnSubmissionLog($moderationStage);
             }
         }
+    }
+
+    public function hideParticipantsOnDiscussionOpening($hookName, $params)
+    {
+        $form = $params[0];
+        $request = Application::get()->getRequest();
+        $templateMgr = TemplateManager::getManager($request);
+        $allParticipants = $templateMgr->getTemplateVars('allParticipants');
+
+        $query = $form->getQuery();
+        $submission = Services::get('submission')->get($query->getData('assocId'));
+
+        if ($this->userIsAuthor($submission)) {
+            $author = $request->getUser();
+            $newParticipantsList = [];
+            $allowedUsersEmails = [
+                $author->getEmail(),
+                SCIELO_BRASIL_EMAIL
+            ];
+
+            foreach ($allParticipants as $participantId => $participantData) {
+                $userDao = DAORegistry::getDAO('UserDAO');
+                $participant = $userDao->getById($participantId);
+
+                if (in_array($participant->getEmail(), $allowedUsersEmails)) {
+                    $newParticipantsList[$participantId] = $participantData;
+                }
+            }
+
+            $templateMgr->assign('allParticipants', $newParticipantsList);
+        }
+
+        return false;
     }
 }
