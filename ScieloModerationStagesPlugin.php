@@ -13,34 +13,37 @@
  * @brief SciELO Moderation Stages Plugin
  */
 
-import('lib.pkp.classes.plugins.GenericPlugin');
-import('plugins.generic.scieloModerationStages.classes.ModerationStage');
-import('plugins.generic.scieloModerationStages.classes.ModerationStageRegister');
-
-define('SCIELO_BRASIL_EMAIL', 'scielo.submission@scielo.org');
+use PKP\plugins\GenericPlugin;
+use PKP\plugins\Hook;
+use APP\core\Application;
+use APP\template\TemplateManager;
+use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
+use APP\plugins\generic\scieloModerationStages\classes\ModerationStageRegister;
 
 class ScieloModerationStagesPlugin extends GenericPlugin
 {
+    private const SCIELO_BRASIL_EMAIL = 'scielo.submission@scielo.org';
+
     public function register($category, $path, $mainContextId = null)
     {
         $success = parent::register($category, $path, $mainContextId);
 
-        if (!Config::getVar('general', 'installed') || defined('RUNNING_UPGRADE')) {
-            return true;
+        if (Application::isUnderMaintenance()) {
+            return $success;
         }
 
         if ($success && $this->getEnabled($mainContextId)) {
-            HookRegistry::register('Schema::get::submission', array($this, 'addOurFieldsToSubmissionSchema'));
-            HookRegistry::register('submissionsubmitstep4form::execute', array($this, 'setSubmissionFirstModerationStage'));
-            HookRegistry::register('addparticipantform::display', array($this, 'addFieldsAssignForm'));
-            HookRegistry::register('addparticipantform::execute', array($this, 'sendSubmissionToNextModerationStage'));
-            HookRegistry::register('queryform::display', array($this, 'hideParticipantsOnDiscussionOpening'));
+            Hook::add('Schema::get::submission', [$this, 'addOurFieldsToSubmissionSchema']);
+            Hook::add('submissionsubmitstep4form::execute', [$this, 'setSubmissionFirstModerationStage']);
+            Hook::add('addparticipantform::display', [$this, 'addFieldsAssignForm']);
+            Hook::add('addparticipantform::execute', [$this, 'sendSubmissionToNextModerationStage']);
+            Hook::add('queryform::display', [$this, 'hideParticipantsOnDiscussionOpening']);
 
-            HookRegistry::register('Template::Workflow::Publication', array($this, 'addToWorkflowTabs'));
-            HookRegistry::register('Template::Workflow', array($this, 'addCurrentStageStatus'));
-            HookRegistry::register('LoadComponentHandler', array($this, 'setupScieloModerationStagesHandler'));
+            Hook::add('Template::Workflow::Publication', [$this, 'addToWorkflowTabs']);
+            Hook::add('Template::Workflow', [$this, 'addCurrentStageStatus']);
+            Hook::add('LoadComponentHandler', [$this, 'setupScieloModerationStagesHandler']);
 
-            HookRegistry::register('TemplateManager::display', array($this, 'addJavaScriptAndStylesheet'));
+            Hook::add('TemplateManager::display', [$this, 'addJavaScriptAndStylesheet']);
             $this->addHandlerURLToJavaScript();
         }
 
@@ -233,7 +236,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
 
     private function userIsAuthor($submission)
     {
-        $currentUser = \Application::get()->getRequest()->getUser();
+        $currentUser = Application::get()->getRequest()->getUser();
         $currentUserAssignedRoles = array();
         if ($currentUser) {
             $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
