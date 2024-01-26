@@ -1,0 +1,20 @@
+Avanço de estágio de moderação
+    Cria uma submissão
+    Verifica que a submissão foi pro primeiro estágio de moderação
+    Envia submissão para próximo estágio de moderação pela designação de usuário
+    Avanço de estágio não aparece quando no último estágio
+
+Menu dos estágios de moderação
+  Autor deve poder visualizar estágios
+  Editor deve poder editar estágios
+
+Exibidor de estágio de moderação na página de submissões
+  Verificar vários itens que são exibidos
+  Autores devem ter acesso apenas a visualização do estágio de moderação
+
+Opção de enviar submissão para próximo estágio não deve aparecer quando:
+  Submissão rejeitada
+  Submissão postada
+
+Esconder participantes para autores ao abrir discussão
+  Teste praticamente pronto. Só conferir se está bom.
