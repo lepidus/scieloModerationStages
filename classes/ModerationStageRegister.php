@@ -21,15 +21,16 @@ class ModerationStageRegister
         $stageName = $stage->getCurrentStageName();
         $submission = $stage->submission;
 
+        $user = Application::get()->getRequest()->getUser();
+
         $eventLog = Repo::eventLog()->newDataObject([
             'assocType' => Application::ASSOC_TYPE_SUBMISSION,
             'assocId' => $submission->getId(),
             'eventType' => PKPSubmissionEventLogEntry::SUBMISSION_LOG_METADATA_UPDATE,
-            'userId' => Validation::loggedInAs(),
-            'message' => 'plugins.generic.scieloModerationStages.log.submissionSentToModerationStage',
-            'isTranslated' => false,
+            'userId' => Validation::loggedInAs() ?? $user->getId(),
+            'message' => __('plugins.generic.scieloModerationStages.log.submissionSentToModerationStage', ['moderationStageName' => $stageName]),
+            'isTranslated' => true,
             'dateLogged' => Core::getCurrentDate(),
-            'moderationStageName' => $stageName,
         ]);
         Repo::eventLog()->add($eventLog);
     }
