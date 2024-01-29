@@ -40,8 +40,8 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             Event::subscribe(new AssignFirstModerationStage());
 
             Hook::add('Schema::get::submission', [$this, 'addOurFieldsToSubmissionSchema']);
-            // Hook::add('addparticipantform::display', [$this, 'addFieldsAssignForm']);
-            // Hook::add('addparticipantform::execute', [$this, 'sendSubmissionToNextModerationStage']);
+            Hook::add('addparticipantform::display', [$this, 'addFieldsAssignForm']);
+            Hook::add('addparticipantform::execute', [$this, 'sendSubmissionToNextModerationStage']);
             // Hook::add('queryform::display', [$this, 'hideParticipantsOnDiscussionOpening']);
 
             // Hook::add('Template::Workflow::Publication', [$this, 'addToWorkflowTabs']);
@@ -134,7 +134,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
 
     public function addFieldsAssignForm($hookName, $params)
     {
-        $request = PKPApplication::get()->getRequest();
+        $request = Application::get()->getRequest();
         $templateMgr = TemplateManager::getManager($request);
 
         $submission = $params[0]->getSubmission();
@@ -249,7 +249,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
 
     public function sendSubmissionToNextModerationStage($hookName, $params)
     {
-        $request = PKPApplication::get()->getRequest();
+        $request = Application::get()->getRequest();
         $form = $params[0];
         $requestVars = $request->getUserVars();
 
