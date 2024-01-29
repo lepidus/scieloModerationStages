@@ -29,7 +29,7 @@ class ModerationStageRegister
             'message' => 'plugins.generic.scieloModerationStages.log.submissionSentToModerationStage',
             'isTranslated' => false,
             'dateLogged' => Core::getCurrentDate(),
-            'moderationStageName' => $moderationStageName,
+            'moderationStageName' => $stageName,
         ]);
         Repo::eventLog()->add($eventLog);
     }

@@ -1,6 +1,6 @@
 <?php
 
-namespace APP\observers\listeners;
+namespace APP\plugins\generic\scieloModerationStages\classes\observers\listeners;
 
 use Illuminate\Events\Dispatcher;
 use PKP\observers\events\SubmissionSubmitted;
@@ -23,6 +23,7 @@ class AssignFirstModerationStage
         $moderationStage = new ModerationStage($submission);
         $moderationStage->setToFirstStage();
         $moderationStageRegister = new ModerationStageRegister();
+        $moderationStageRegister->registerModerationStageOnDatabase($moderationStage);
         $moderationStageRegister->registerModerationStageOnSubmissionLog($moderationStage);
     }
 }

@@ -19,8 +19,10 @@ use PKP\plugins\GenericPlugin;
 use PKP\plugins\Hook;
 use APP\core\Application;
 use APP\template\TemplateManager;
+use Illuminate\Support\Facades\Event;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageRegister;
+use APP\plugins\generic\scieloModerationStages\classes\observers\listeners\AssignFirstModerationStage;
 
 class ScieloModerationStagesPlugin extends GenericPlugin
 {
@@ -35,16 +37,19 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         }
 
         if ($success && $this->getEnabled($mainContextId)) {
+            Event::subscribe(new AssignFirstModerationStage());
+
             Hook::add('Schema::get::submission', [$this, 'addOurFieldsToSubmissionSchema']);
-            Hook::add('addparticipantform::display', [$this, 'addFieldsAssignForm']);
-            Hook::add('addparticipantform::execute', [$this, 'sendSubmissionToNextModerationStage']);
-            Hook::add('queryform::display', [$this, 'hideParticipantsOnDiscussionOpening']);
+            // Hook::add('addparticipantform::display', [$this, 'addFieldsAssignForm']);
+            // Hook::add('addparticipantform::execute', [$this, 'sendSubmissionToNextModerationStage']);
+            // Hook::add('queryform::display', [$this, 'hideParticipantsOnDiscussionOpening']);
 
-            Hook::add('Template::Workflow::Publication', [$this, 'addToWorkflowTabs']);
+            // Hook::add('Template::Workflow::Publication', [$this, 'addToWorkflowTabs']);
             Hook::add('Template::Workflow', [$this, 'addCurrentStageStatus']);
-            Hook::add('LoadComponentHandler', [$this, 'setupScieloModerationStagesHandler']);
+            // Hook::add('LoadComponentHandler', [$this, 'setupScieloModerationStagesHandler']);
 
-            Hook::add('TemplateManager::display', [$this, 'addJavaScriptAndStylesheet']);
+            // Hook::add('TemplateManager::display', [$this, 'addJavaScriptAndStylesheet']);
+
             $this->addHandlerURLToJavaScript();
         }
         return $success;
@@ -195,13 +200,13 @@ class ScieloModerationStagesPlugin extends GenericPlugin
     public function addCurrentStageStatus($hookName, $params)
     {
         $templateMgr = &$params[1];
-        $submission = $templateMgr->get_template_vars('submission');
+        $submission = $templateMgr->getTemplateVars('submission');
 
         if (!is_null($submission->getData('currentModerationStage'))) {
             $moderationStage = new ModerationStage($submission);
 
             $templateMgr->assign('currentStageName', $moderationStage->getCurrentStageName());
-            $templateMgr->registerFilter("output", array($this, 'addCurrentStageStatusFilter'));
+            $templateMgr->registerFilter("output", [$this, 'addCurrentStageStatusFilter']);
         }
 
         return false;
