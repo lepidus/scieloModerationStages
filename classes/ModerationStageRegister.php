@@ -1,21 +1,36 @@
 <?php
 
-import('classes.log.SubmissionEventLogEntry');
-import('lib.pkp.classes.log.SubmissionLog');
-import('plugins.generic.scieloModerationStages.classes.ModerationStage');
+namespace APP\plugins\generic\scieloModerationStages\classes;
+
+use APP\core\Application;
+use APP\facades\Repo;
+use PKP\core\Core;
+use PKP\security\Validation;
+use PKP\log\event\PKPSubmissionEventLogEntry;
+use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 
 class ModerationStageRegister
 {
-    public function registerModerationStageOnDatabase($moderationStage)
+    public function registerModerationStageOnDatabase(ModerationStage $stage)
     {
-        $submissionDao = DAORegistry::getDAO('SubmissionDAO');
-        $submissionDao->updateObject($moderationStage->submission);
+        Repo::submission()->edit($stage->submission, []);
     }
 
-    public function registerModerationStageOnSubmissionlog($moderationStage)
+    public function registerModerationStageOnSubmissionlog(ModerationStage $stage)
     {
-        $moderationStageName = $moderationStage->getCurrentStageName();
-        $request = Application::get()->getRequest();
-        SubmissionLog::logEvent($request, $moderationStage->submission, SUBMISSION_LOG_METADATA_UPDATE, 'plugins.generic.scieloModerationStages.log.submissionSentToModerationStage', ['moderationStageName' => $moderationStageName]);
+        $stageName = $stage->getCurrentStageName();
+        $submission = $stage->submission;
+
+        $eventLog = Repo::eventLog()->newDataObject([
+            'assocType' => Application::ASSOC_TYPE_SUBMISSION,
+            'assocId' => $submission->getId(),
+            'eventType' => PKPSubmissionEventLogEntry::SUBMISSION_LOG_METADATA_UPDATE,
+            'userId' => Validation::loggedInAs(),
+            'message' => 'plugins.generic.scieloModerationStages.log.submissionSentToModerationStage',
+            'isTranslated' => false,
+            'dateLogged' => Core::getCurrentDate(),
+            'moderationStageName' => $moderationStageName,
+        ]);
+        Repo::eventLog()->add($eventLog);
     }
 }

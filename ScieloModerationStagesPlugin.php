@@ -13,6 +13,8 @@
  * @brief SciELO Moderation Stages Plugin
  */
 
+namespace APP\plugins\generic\scieloModerationStages;
+
 use PKP\plugins\GenericPlugin;
 use PKP\plugins\Hook;
 use APP\core\Application;
@@ -34,7 +36,6 @@ class ScieloModerationStagesPlugin extends GenericPlugin
 
         if ($success && $this->getEnabled($mainContextId)) {
             Hook::add('Schema::get::submission', [$this, 'addOurFieldsToSubmissionSchema']);
-            Hook::add('submissionsubmitstep4form::execute', [$this, 'setSubmissionFirstModerationStage']);
             Hook::add('addparticipantform::display', [$this, 'addFieldsAssignForm']);
             Hook::add('addparticipantform::execute', [$this, 'sendSubmissionToNextModerationStage']);
             Hook::add('queryform::display', [$this, 'hideParticipantsOnDiscussionOpening']);
@@ -46,7 +47,6 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             Hook::add('TemplateManager::display', [$this, 'addJavaScriptAndStylesheet']);
             $this->addHandlerURLToJavaScript();
         }
-
         return $success;
     }
 
@@ -125,15 +125,6 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         ];
 
         return false;
-    }
-
-    public function setSubmissionFirstModerationStage($hookName, $params)
-    {
-        $submission = $params[0]->submission;
-        $moderationStage = new ModerationStage($submission);
-        $moderationStage->setToFirstStage();
-        $moderationStageRegister = new ModerationStageRegister();
-        $moderationStageRegister->registerModerationStageOnSubmissionLog($moderationStage);
     }
 
     public function addFieldsAssignForm($hookName, $params)
