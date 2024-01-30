@@ -6,7 +6,7 @@ function checkSendNextStageOptionIsNotPresent() {
     cy.get('#checkboxSendNextStageAssignNo').should('not.exist');
 }
 
-describe("SciELO Moderation Stages - Moderation stage advancement", function() {
+describe("SciELO Moderation Stages - Stage advancement hidden scenarios", function() {
     let submissionData;
     
     before(function() {
@@ -38,7 +38,7 @@ describe("SciELO Moderation Stages - Moderation stage advancement", function() {
         cy.login('fpaglieri', null, 'publicknowledge');
         cy.createSubmission(submissionData);
     });
-    it("Sending of submission to next moderation stage does not appear when posted/rejected", function() {
+    it("Sending of submission to next moderation stage does not appear when posted/declined", function() {
         cy.login('dbarnes', null, 'publicknowledge');
         cy.findSubmission('active', submissionData.title);
 
