@@ -2,9 +2,14 @@
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 
-import('classes.handler.Handler');
-import('classes.workflow.EditorDecisionActionsManager');
-import('plugins.generic.scieloModerationStages.classes.ModerationStageDAO');
+use APP\core\Application;
+use APP\handler\Handler;
+use PKP\security\Role;
+use PKP\db\DAORegistry;
+use APP\submission\Submission;
+use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
+use APP\plugins\generic\scieloModerationStages\classes\ModerationStageRegister;
+use APP\plugins\generic\scieloModerationStages\classes\ModerationStageDAO;
 
 class ScieloModerationStagesHandler extends Handler
 {
@@ -13,8 +18,7 @@ class ScieloModerationStagesHandler extends Handler
 
     public function updateSubmissionStageData($args, $request)
     {
-        $submissionDao = DAORegistry::getDAO('SubmissionDAO');
-        $submission = $submissionDao->getById($args['submissionId']);
+        $submission = Repo::submission()->get($args['submissionId']);
         $moderationStage = new ModerationStage($submission);
 
         if (isset($args['formatStageEntryDate'])) {
@@ -37,7 +41,7 @@ class ScieloModerationStagesHandler extends Handler
             $moderationStageRegister->registerModerationStageOnSubmissionLog($moderationStage);
         }
 
-        $submissionDao->updateObject($submission);
+        Repo::submission()->edit($submission, []);
         return http_response_code(200);
     }
 
@@ -62,8 +66,8 @@ class ScieloModerationStagesHandler extends Handler
 
     public function getUserIsAuthor($args, $request)
     {
-        $userRoles = $this->getAuthorizedContextObject(ASSOC_TYPE_USER_ROLES);
-        $adminRoles = [ROLE_ID_SITE_ADMIN, ROLE_ID_SUB_EDITOR];
+        $userRoles = $this->getAuthorizedContextObject(Application::ASSOC_TYPE_USER_ROLES);
+        $adminRoles = [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_SUB_EDITOR];
 
         if (count(array_intersect($userRoles, $adminRoles)) > 0) {
             return json_encode(0);
@@ -79,9 +83,9 @@ class ScieloModerationStagesHandler extends Handler
         $moderationStage = $moderationStageDAO->getSubmissionModerationStage($submissionId);
         if (!is_null($moderationStage)) {
             $stageMap = [
-                SCIELO_MODERATION_STAGE_FORMAT => 'plugins.generic.scieloModerationStages.stages.formatStage',
-                SCIELO_MODERATION_STAGE_CONTENT => 'plugins.generic.scieloModerationStages.stages.contentStage',
-                SCIELO_MODERATION_STAGE_AREA => 'plugins.generic.scieloModerationStages.stages.areaStage',
+                ModerationStage::SCIELO_MODERATION_STAGE_FORMAT => 'plugins.generic.scieloModerationStages.stages.formatStage',
+                ModerationStage::SCIELO_MODERATION_STAGE_CONTENT => 'plugins.generic.scieloModerationStages.stages.contentStage',
+                ModerationStage::SCIELO_MODERATION_STAGE_AREA => 'plugins.generic.scieloModerationStages.stages.areaStage',
             ];
 
             $moderationStageText = __('plugins.generic.scieloModerationStages.currentStageStatusLabel') . ' ' . __($stageMap[$moderationStage]);
@@ -128,18 +132,15 @@ class ScieloModerationStagesHandler extends Handler
     private function getAssignedUsers($submissionId, $abbrev): array
     {
         $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
-        $userGroupDao = DAORegistry::getDAO('UserGroupDAO');
-        $userDao = DAORegistry::getDAO('UserDAO');
-
-        $stageAssignmentsResults = $stageAssignmentDao->getBySubmissionAndRoleId($submissionId, ROLE_ID_SUB_EDITOR, self::SUBMISSION_STAGE_ID);
+        $stageAssignmentsResults = $stageAssignmentDao->getBySubmissionAndRoleId($submissionId, Role::ROLE_ID_SUB_EDITOR, self::SUBMISSION_STAGE_ID);
         $assignedUsers = [];
 
         while ($stageAssignment = $stageAssignmentsResults->next()) {
-            $userGroup = $userGroupDao->getById($stageAssignment->getUserGroupId());
-            $userGroupAbbrev = strtolower($userGroup->getData('abbrev', 'en_US'));
+            $userGroup = Repo::userGroup()->get($stageAssignment->getUserGroupId());
+            $userGroupAbbrev = strtolower($userGroup->getData('abbrev', 'en'));
 
             if ($userGroupAbbrev == $abbrev) {
-                $user = $userDao->getById($stageAssignment->getUserId(), false);
+                $user = Repo::user()->get($stageAssignment->getUserId(), false);
                 $assignedUsers[$user->getData('username')] = $user->getFullName();
             }
         }
@@ -149,12 +150,12 @@ class ScieloModerationStagesHandler extends Handler
 
     private function getSecondDateParamsForTimeExhibitors($submission): array
     {
-        if ($submission->getData('status') == STATUS_PUBLISHED) {
+        if ($submission->getData('status') == Submission::STATUS_PUBLISHED) {
             $publication = $submission->getCurrentPublication();
             return ['datePublished', $publication->getData('datePublished')];
         }
 
-        if ($submission->getData('status') == STATUS_DECLINED) {
+        if ($submission->getData('status') == Submission::STATUS_DECLINED) {
             $result = Capsule::table('edit_decisions')
                 ->where('submission_id', $submission->getId())
                 ->whereIn('decision', [SUBMISSION_EDITOR_DECISION_DECLINE, SUBMISSION_EDITOR_DECISION_INITIAL_DECLINE])
@@ -189,7 +190,7 @@ class ScieloModerationStagesHandler extends Handler
 
     private function getTimeSubmitted($submissionId)
     {
-        $submission = DAORegistry::getDAO('SubmissionDAO')->getById($submissionId);
+        $submission = Repo::submission()->get($submissionId);
         $dateSubmitted = $submission->getData('dateSubmitted');
 
         if (empty($dateSubmitted)) {
@@ -202,15 +203,13 @@ class ScieloModerationStagesHandler extends Handler
     private function getLastAssignmentDate($submissionId, $abbrev): string
     {
         $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
-        $userGroupDao = DAORegistry::getDAO('UserGroupDAO');
-        $userDao = DAORegistry::getDAO('UserDAO');
 
-        $stageAssignmentsResults = $stageAssignmentDao->getBySubmissionAndRoleId($submissionId, ROLE_ID_SUB_EDITOR, self::SUBMISSION_STAGE_ID);
+        $stageAssignmentsResults = $stageAssignmentDao->getBySubmissionAndRoleId($submissionId, Role::ROLE_ID_SUB_EDITOR, self::SUBMISSION_STAGE_ID);
         $lastAssignmentDate = "";
 
         while ($stageAssignment = $stageAssignmentsResults->next()) {
-            $userGroup = $userGroupDao->getById($stageAssignment->getUserGroupId());
-            $currentUserGroupAbbrev = strtolower($userGroup->getData('abbrev', 'en_US'));
+            $userGroup = Repo::userGroup()->get($stageAssignment->getUserGroupId());
+            $currentUserGroupAbbrev = strtolower($userGroup->getData('abbrev', 'en'));
 
             if ($currentUserGroupAbbrev == $abbrev) {
                 if (empty($lastAssignmentDate) or ($stageAssignment->getData('dateAssigned') > $lastAssignmentDate)) {
@@ -224,7 +223,7 @@ class ScieloModerationStagesHandler extends Handler
 
     private function getTimeResponsible($submissionId)
     {
-        $submission = DAORegistry::getDAO('SubmissionDAO')->getById($submissionId);
+        $submission = Repo::submission()->get($submissionId);
         $lastAssignmentDate = $this->getLastAssignmentDate($submissionId, 'resp');
 
         if (empty($lastAssignmentDate)) {
@@ -235,7 +234,7 @@ class ScieloModerationStagesHandler extends Handler
 
     private function getTimeAreaModerator($submissionId)
     {
-        $submission = DAORegistry::getDAO('SubmissionDAO')->getById($submissionId);
+        $submission = Repo::submission()->get($submissionId);
         $lastAssignmentDate = $this->getLastAssignmentDate($submissionId, 'am');
 
         if (empty($lastAssignmentDate)) {

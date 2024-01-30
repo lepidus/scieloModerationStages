@@ -19,6 +19,9 @@ use PKP\plugins\GenericPlugin;
 use PKP\plugins\Hook;
 use APP\core\Application;
 use APP\template\TemplateManager;
+use APP\facades\Repo;
+use PKP\security\Role;
+use PKP\db\DAORegistry;
 use Illuminate\Support\Facades\Event;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageRegister;
@@ -44,9 +47,9 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             Hook::add('addparticipantform::execute', [$this, 'sendSubmissionToNextModerationStage']);
             // Hook::add('queryform::display', [$this, 'hideParticipantsOnDiscussionOpening']);
 
-            // Hook::add('Template::Workflow::Publication', [$this, 'addToWorkflowTabs']);
+            Hook::add('Template::Workflow::Publication', [$this, 'addToWorkflowTabs']);
             Hook::add('Template::Workflow', [$this, 'addCurrentStageStatus']);
-            // Hook::add('LoadComponentHandler', [$this, 'setupScieloModerationStagesHandler']);
+            Hook::add('LoadComponentHandler', [$this, 'setupScieloModerationStagesHandler']);
 
             // Hook::add('TemplateManager::display', [$this, 'addJavaScriptAndStylesheet']);
 
@@ -170,7 +173,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
     {
         $templateMgr = &$params[1];
         $output = &$params[2];
-        $submission = $templateMgr->get_template_vars('submission');
+        $submission = $templateMgr->getTemplateVars('submission');
 
         $moderationStage = new ModerationStage($submission);
         if ($moderationStage->submissionStageExists()) {
@@ -237,14 +240,14 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         if ($currentUser) {
             $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
             $stageAssignmentsResult = $stageAssignmentDao->getBySubmissionAndUserIdAndStageId($submission->getId(), $currentUser->getId(), $submission->getData('stageId'));
-            $userGroupDao = DAORegistry::getDAO('UserGroupDAO');
+
             while ($stageAssignment = $stageAssignmentsResult->next()) {
-                $userGroup = $userGroupDao->getById($stageAssignment->getUserGroupId(), $submission->getData('contextId'));
+                $userGroup = Repo::userGroup()->get($stageAssignment->getUserGroupId(), $submission->getData('contextId'));
                 $currentUserAssignedRoles[] = (int) $userGroup->getRoleId();
             }
         }
 
-        return $currentUserAssignedRoles[0] == ROLE_ID_AUTHOR;
+        return $currentUserAssignedRoles[0] == Role::ROLE_ID_AUTHOR;
     }
 
     public function sendSubmissionToNextModerationStage($hookName, $params)
