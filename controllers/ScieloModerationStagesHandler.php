@@ -7,6 +7,7 @@ use APP\facades\Repo;
 use PKP\security\Role;
 use PKP\db\DAORegistry;
 use APP\submission\Submission;
+use APP\decision\Decision;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageRegister;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageDAO;
@@ -158,7 +159,7 @@ class ScieloModerationStagesHandler extends Handler
         if ($submission->getData('status') == Submission::STATUS_DECLINED) {
             $result = DB::table('edit_decisions')
                 ->where('submission_id', $submission->getId())
-                ->whereIn('decision', [SUBMISSION_EDITOR_DECISION_DECLINE, SUBMISSION_EDITOR_DECISION_INITIAL_DECLINE])
+                ->whereIn('decision', [Decision::DECLINE, Decision::INITIAL_DECLINE])
                 ->orderBy('date_decided', 'asc')
                 ->first();
 
