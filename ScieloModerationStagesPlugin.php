@@ -43,12 +43,12 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             Event::subscribe(new AssignFirstModerationStage());
 
             Hook::add('Schema::get::submission', [$this, 'addOurFieldsToSubmissionSchema']);
-            Hook::add('addparticipantform::display', [$this, 'addFieldsAssignForm']);
+            Hook::add('addparticipantform::display', [$this, 'addStageAdvanceToAssignForm']);
             Hook::add('addparticipantform::execute', [$this, 'sendSubmissionToNextModerationStage']);
-            // Hook::add('queryform::display', [$this, 'hideParticipantsOnDiscussionOpening']);
+            Hook::add('queryform::display', [$this, 'hideParticipantsOnDiscussionOpening']);
 
             Hook::add('Template::Workflow::Publication', [$this, 'addToWorkflowTabs']);
-            Hook::add('Template::Workflow', [$this, 'addCurrentStageStatus']);
+            Hook::add('Template::Workflow', [$this, 'addCurrentStageStatusToWorkflow']);
             Hook::add('LoadComponentHandler', [$this, 'setupScieloModerationStagesHandler']);
 
             // Hook::add('TemplateManager::display', [$this, 'addJavaScriptAndStylesheet']);
@@ -135,7 +135,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         return false;
     }
 
-    public function addFieldsAssignForm($hookName, $params)
+    public function addStageAdvanceToAssignForm($hookName, $params)
     {
         $request = Application::get()->getRequest();
         $templateMgr = TemplateManager::getManager($request);
@@ -200,7 +200,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         }
     }
 
-    public function addCurrentStageStatus($hookName, $params)
+    public function addCurrentStageStatusToWorkflow($hookName, $params)
     {
         $templateMgr = &$params[1];
         $submission = $templateMgr->getTemplateVars('submission');
@@ -209,13 +209,13 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             $moderationStage = new ModerationStage($submission);
 
             $templateMgr->assign('currentStageName', $moderationStage->getCurrentStageName());
-            $templateMgr->registerFilter("output", [$this, 'addCurrentStageStatusFilter']);
+            $templateMgr->registerFilter("output", [$this, 'addCurrentStageStatusToWorkflowFilter']);
         }
 
         return false;
     }
 
-    public function addCurrentStageStatusFilter($output, $templateMgr)
+    public function addCurrentStageStatusToWorkflowFilter($output, $templateMgr)
     {
         if (preg_match('/<span[^>]+v-if="publicationList.length/', $output, $matches, PREG_OFFSET_CAPTURE)) {
             $posMatch = $matches[0][1];
@@ -223,7 +223,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             $currentStageStatus = $templateMgr->fetch($this->getTemplateResource('currentStageStatus.tpl'));
 
             $output = substr_replace($output, $currentStageStatus, $posMatch, 0);
-            $templateMgr->unregisterFilter('output', array($this, 'addCurrentStageStatusFilter'));
+            $templateMgr->unregisterFilter('output', array($this, 'addCurrentStageStatusToWorkflowFilter'));
         }
         return $output;
     }
@@ -277,19 +277,18 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         $allParticipants = $templateMgr->getTemplateVars('allParticipants');
 
         $query = $form->getQuery();
-        $submission = Services::get('submission')->get($query->getData('assocId'));
+        $submission = Repo::submission()->get($query->getData('assocId'));
 
         if ($this->userIsAuthor($submission)) {
             $author = $request->getUser();
             $newParticipantsList = [];
             $allowedUsersEmails = [
                 $author->getEmail(),
-                SCIELO_BRASIL_EMAIL
+                self::SCIELO_BRASIL_EMAIL
             ];
 
             foreach ($allParticipants as $participantId => $participantData) {
-                $userDao = DAORegistry::getDAO('UserDAO');
-                $participant = $userDao->getById($participantId);
+                $participant = Repo::user()->get($participantId);
 
                 if (in_array($participant->getEmail(), $allowedUsersEmails)) {
                     $newParticipantsList[$participantId] = $participantData;
