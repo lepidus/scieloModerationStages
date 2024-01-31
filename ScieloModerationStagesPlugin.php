@@ -51,7 +51,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             Hook::add('Template::Workflow', [$this, 'addCurrentStageStatusToWorkflow']);
             Hook::add('LoadComponentHandler', [$this, 'setupScieloModerationStagesHandler']);
 
-            // Hook::add('TemplateManager::display', [$this, 'addJavaScriptAndStylesheet']);
+            Hook::add('TemplateManager::display', [$this, 'addJavaScriptAndStylesheet']);
 
             $this->addHandlerURLToJavaScript();
         }

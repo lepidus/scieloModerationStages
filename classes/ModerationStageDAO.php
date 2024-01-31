@@ -9,16 +9,16 @@
  * Operations for retrieving data to help identify submissions' moderation stage
  */
 
-import('lib.pkp.classes.db.DAO');
+namespace APP\plugins\generic\scieloModerationStages\classes;
 
-use Illuminate\Database\Capsule\Manager as Capsule;
-use Illuminate\Support\Collection;
+use PKP\db\DAO;
+use Illuminate\Support\Facades\DB;
 
 class ModerationStageDAO extends DAO
 {
     public function getSubmissionModerationStage($submissionId): ?int
     {
-        $result = Capsule::table('submission_settings')
+        $result = DB::table('submission_settings')
             ->where('submission_id', $submissionId)
             ->where('setting_name', 'currentModerationStage')
             ->select('setting_value')
