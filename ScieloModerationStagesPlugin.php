@@ -62,7 +62,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
     {
         $request = Application::get()->getRequest();
         $templateMgr = TemplateManager::getManager($request);
-        $handlerUrl = $request->getDispatcher()->url($request, ROUTE_COMPONENT) . 'plugins/generic/scielo-moderation-stages/controllers/scielo-moderation-stages/';
+        $handlerUrl = $request->getDispatcher()->url($request, Application::ROUTE_COMPONENT, null, 'plugins.generic.scieloModerationStages.controllers.ScieloModerationStagesHandler');
         $data = ['moderationStagesHandlerUrl' => $handlerUrl];
 
         $templateMgr->addJavaScript('ModerationStagesHandler', 'app = ' . json_encode($data) . ';', ['contexts' => 'backend', 'inline' => true]);
