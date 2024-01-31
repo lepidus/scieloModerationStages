@@ -59,7 +59,7 @@ describe("SciELO Moderation Stages - Moderation stage advancement", function() {
         cy.get('tr[id^="component-grid-users-userselect-userselectgrid-row"] > .first_column > input').first().click();
         cy.get('#checkboxSendNextStageAssignYes').click();
         cy.get("#addParticipantForm > .formButtons > .submitFormButton").click();
-        cy.waitJQuery();
+        cy.wait(3000);
         cy.reload();
 
         cy.contains('span', 'Manuscript Type Pre-Moderation');
@@ -74,7 +74,7 @@ describe("SciELO Moderation Stages - Moderation stage advancement", function() {
         cy.get('tr[id^="component-grid-users-userselect-userselectgrid-row"] > .first_column > input').first().click();
         cy.get('#checkboxSendNextStageAssignYes').click();
         cy.get("#addParticipantForm > .formButtons > .submitFormButton").click();
-        cy.waitJQuery();
+        cy.wait(3000);
         cy.reload();
 
         cy.contains('span', 'Area Moderation');
