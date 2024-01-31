@@ -46,6 +46,7 @@ describe("SciELO Moderation Stages - Stage advancement hidden scenarios", functi
         cy.get('.pkpHeader__actions button:contains("Post")').click();
         cy.get('.pkp_modal_panel button:contains("Post")').click();
         cy.contains('span', 'Posted');
+        cy.reload();
         
         cy.get('#workflow-button').click();
         cy.contains('a', 'Assign').click();
@@ -57,6 +58,7 @@ describe("SciELO Moderation Stages - Stage advancement hidden scenarios", functi
 		cy.get('.pkpHeader__actions button:contains("Unpost")').click();
         cy.get('.modal__panel button:contains("Unpost")').click();
         cy.contains('span', 'Unposted');
+        cy.reload();
 
         cy.get('#workflow-button').click();
         cy.contains('a', 'Decline Submission').click();
