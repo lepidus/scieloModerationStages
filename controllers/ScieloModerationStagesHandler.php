@@ -67,7 +67,7 @@ class ScieloModerationStagesHandler extends Handler
     public function getUserIsAuthor($args, $request)
     {
         $userRoles = $this->getAuthorizedContextObject(Application::ASSOC_TYPE_USER_ROLES);
-        $adminRoles = [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_SUB_EDITOR];
+        $adminRoles = [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR];
 
         if (count(array_intersect($userRoles, $adminRoles)) > 0) {
             return json_encode(0);
