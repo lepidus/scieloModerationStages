@@ -43,7 +43,7 @@ describe("SciELO Moderation Stages - Workflow tab", function() {
         cy.login('fpaglieri', null, 'publicknowledge');
         cy.findSubmission('myQueue', submissionData.title);
 
-        cy.get('#scieloModerationStages').click();
+        cy.get('#scieloModerationStages-button').click();
         cy.get('#formatStageEntryDateDiv').within(() => {
             cy.contains('label', 'Format Pre-Moderation');
             cy.contains('label', 'The submission has entered in this moderation stage in the following data');
@@ -57,7 +57,7 @@ describe("SciELO Moderation Stages - Workflow tab", function() {
         cy.findSubmission('active', submissionData.title);
 
         cy.get('#publication-button').click();
-        cy.get('#scieloModerationStages').click();
+        cy.get('#scieloModerationStages-button').click();
 
         cy.get('#formatStageEntryDateDiv').within(() => {
             cy.get('input[name="formatStageEntryDate"]').should('have.value', today);
@@ -75,7 +75,7 @@ describe("SciELO Moderation Stages - Workflow tab", function() {
         cy.findSubmission('active', submissionData.title);
 
         cy.get('#publication-button').click();
-        cy.get('#scieloModerationStages').click();
+        cy.get('#scieloModerationStages-button').click();
 
         cy.get('#checkboxSendNextStageMenuYes').check();
         cy.get('#moderationStageSubmit').click();

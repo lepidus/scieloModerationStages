@@ -1,9 +1,9 @@
 <?php
 
-use Illuminate\Database\Capsule\Manager as Capsule;
-
+use Illuminate\Support\Facades\DB;
 use APP\core\Application;
 use APP\handler\Handler;
+use APP\facades\Repo;
 use PKP\security\Role;
 use PKP\db\DAORegistry;
 use APP\submission\Submission;
@@ -156,7 +156,7 @@ class ScieloModerationStagesHandler extends Handler
         }
 
         if ($submission->getData('status') == Submission::STATUS_DECLINED) {
-            $result = Capsule::table('edit_decisions')
+            $result = DB::table('edit_decisions')
                 ->where('submission_id', $submission->getId())
                 ->whereIn('decision', [SUBMISSION_EDITOR_DECISION_DECLINE, SUBMISSION_EDITOR_DECISION_INITIAL_DECLINE])
                 ->orderBy('date_decided', 'asc')
