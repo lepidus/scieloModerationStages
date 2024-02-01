@@ -1,15 +1,14 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-
-import('classes.submission.Submission');
-import('plugins.generic.scieloModerationStages.classes.ModerationStage');
+use APP\submission\Submission;
+use PKP\core\Core;
+use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 
 class ModerationStageTest extends TestCase
 {
     private $submission;
     private $moderationStage;
-
 
     public function setUp(): void
     {
@@ -17,10 +16,10 @@ class ModerationStageTest extends TestCase
         $this->moderationStage = new ModerationStage($this->submission);
     }
 
-    private function createSubmission()
+    private function createSubmission(): Submission
     {
         $submission = new Submission();
-        $submission->setData('currentModerationStage', SCIELO_MODERATION_STAGE_FORMAT);
+        $submission->setData('currentModerationStage', ModerationStage::SCIELO_MODERATION_STAGE_FORMAT);
         return $submission;
     }
 
@@ -29,7 +28,6 @@ class ModerationStageTest extends TestCase
         $expectedStageName = __('plugins.generic.scieloModerationStages.stages.formatStage');
         $this->assertEquals($expectedStageName, $this->moderationStage->getCurrentStageName());
     }
-
 
     public function testGetNextStageName(): void
     {
@@ -49,7 +47,7 @@ class ModerationStageTest extends TestCase
     {
         $this->moderationStage->sendNextStage();
 
-        $this->assertEquals(SCIELO_MODERATION_STAGE_CONTENT, $this->submission->getData('currentModerationStage'));
+        $this->assertEquals(ModerationStage::SCIELO_MODERATION_STAGE_CONTENT, $this->submission->getData('currentModerationStage'));
         $this->assertEquals(Core::getCurrentDate(), $this->submission->getData('lastModerationStageChange'));
         $this->assertEquals(Core::getCurrentDate(), $this->submission->getData('contentStageEntryDate'));
     }
@@ -66,21 +64,21 @@ class ModerationStageTest extends TestCase
 
     public function testRejectedSubmissionCantAdvanceStage(): void
     {
-        $this->submission->setData('status', STATUS_DECLINED);
+        $this->submission->setData('status', Submission::STATUS_DECLINED);
         $moderationStage = new ModerationStage($this->submission);
         $this->assertFalse($moderationStage->canAdvanceStage());
     }
 
     public function testPostedSubmissionCantAdvanceStage(): void
     {
-        $this->submission->setData('status', STATUS_PUBLISHED);
+        $this->submission->setData('status', Submission::STATUS_PUBLISHED);
         $moderationStage = new ModerationStage($this->submission);
         $this->assertFalse($moderationStage->canAdvanceStage());
     }
 
     public function testSubmissionOnLastStageCantAdvance(): void
     {
-        $this->submission->setData('currentModerationStage', SCIELO_MODERATION_STAGE_AREA);
+        $this->submission->setData('currentModerationStage', ModerationStage::SCIELO_MODERATION_STAGE_AREA);
         $moderationStage = new ModerationStage($this->submission);
         $this->assertFalse($moderationStage->canAdvanceStage());
     }

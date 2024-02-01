@@ -1,9 +1,15 @@
+import '../support/commands.js';
+
 describe('SciELO Moderation Stages - Hide participants discussion', function () {
+    let submissionTitle = 'Candyman';
+    
+    before(function() {
+        Cypress.config('defaultCommandTimeout', 4000);
+    });
+
     it('Moderators participants are hidden when author opens discussion', function () {
         cy.login('fpaglieri', null, 'publicknowledge');
-        
-        cy.get('#archive-button').click();
-        cy.contains('a','View').click();
+        cy.findSubmission('archive', submissionTitle);
 
         cy.contains('Discussions').click();
         cy.contains('Add discussion').click();
@@ -14,8 +20,7 @@ describe('SciELO Moderation Stages - Hide participants discussion', function () 
     });
     it('Participants are not hidden for other roles', function () {
         cy.login('dbarnes', null, 'publicknowledge');
-        cy.get('#archive-button').click();
-        cy.contains('View Paglieri').first().click();
+        cy.findSubmission('archive', submissionTitle);
 
         cy.contains('Add discussion').click();
         cy.waitJQuery();

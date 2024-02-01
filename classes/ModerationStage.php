@@ -1,11 +1,16 @@
 <?php
 
-define('SCIELO_MODERATION_STAGE_FORMAT', 1);
-define('SCIELO_MODERATION_STAGE_CONTENT', 2);
-define('SCIELO_MODERATION_STAGE_AREA', 3);
+namespace APP\plugins\generic\scieloModerationStages\classes;
+
+use APP\submission\Submission;
+use PKP\core\Core;
 
 class ModerationStage
 {
+    public const SCIELO_MODERATION_STAGE_FORMAT = 1;
+    public const SCIELO_MODERATION_STAGE_CONTENT = 2;
+    public const SCIELO_MODERATION_STAGE_AREA = 3;
+
     public $submission;
 
     public function __construct($submission)
@@ -16,9 +21,9 @@ class ModerationStage
     private function getModerationStageName($stage)
     {
         $stageMap = [
-            SCIELO_MODERATION_STAGE_FORMAT => 'plugins.generic.scieloModerationStages.stages.formatStage',
-            SCIELO_MODERATION_STAGE_CONTENT => 'plugins.generic.scieloModerationStages.stages.contentStage',
-            SCIELO_MODERATION_STAGE_AREA => 'plugins.generic.scieloModerationStages.stages.areaStage',
+            self::SCIELO_MODERATION_STAGE_FORMAT => 'plugins.generic.scieloModerationStages.stages.formatStage',
+            self::SCIELO_MODERATION_STAGE_CONTENT => 'plugins.generic.scieloModerationStages.stages.contentStage',
+            self::SCIELO_MODERATION_STAGE_AREA => 'plugins.generic.scieloModerationStages.stages.areaStage',
         ];
 
         return __($stageMap[$stage]);
@@ -27,8 +32,8 @@ class ModerationStage
     private function getNextModerationStage($stage)
     {
         $nextStageMap = [
-            SCIELO_MODERATION_STAGE_FORMAT => SCIELO_MODERATION_STAGE_CONTENT,
-            SCIELO_MODERATION_STAGE_CONTENT => SCIELO_MODERATION_STAGE_AREA,
+            self::SCIELO_MODERATION_STAGE_FORMAT => self::SCIELO_MODERATION_STAGE_CONTENT,
+            self::SCIELO_MODERATION_STAGE_CONTENT => self::SCIELO_MODERATION_STAGE_AREA,
         ];
 
         return $nextStageMap[$stage];
@@ -37,9 +42,9 @@ class ModerationStage
     private function getModerationStageEntryConfig($stage)
     {
         $stageMap = [
-            SCIELO_MODERATION_STAGE_FORMAT => 'formatStageEntryDate',
-            SCIELO_MODERATION_STAGE_CONTENT => 'contentStageEntryDate',
-            SCIELO_MODERATION_STAGE_AREA => 'areaStageEntryDate',
+            self::SCIELO_MODERATION_STAGE_FORMAT => 'formatStageEntryDate',
+            self::SCIELO_MODERATION_STAGE_CONTENT => 'contentStageEntryDate',
+            self::SCIELO_MODERATION_STAGE_AREA => 'areaStageEntryDate',
         ];
 
         return $stageMap[$stage];
@@ -81,12 +86,12 @@ class ModerationStage
 
     public function canAdvanceStage(): bool
     {
-        if ($this->submission->getData('status') == STATUS_DECLINED || $this->submission->getData('status') == STATUS_PUBLISHED) {
+        if ($this->submission->getData('status') == Submission::STATUS_DECLINED || $this->submission->getData('status') == Submission::STATUS_PUBLISHED) {
             return false;
         }
 
         $currentStage = $this->submission->getData('currentModerationStage');
-        if (is_null($currentStage) || $currentStage == SCIELO_MODERATION_STAGE_AREA) {
+        if (is_null($currentStage) || $currentStage == self::SCIELO_MODERATION_STAGE_AREA) {
             return false;
         }
 
@@ -100,7 +105,7 @@ class ModerationStage
 
     public function setToFirstStage()
     {
-        $this->setSubmissionToStage(SCIELO_MODERATION_STAGE_FORMAT);
+        $this->setSubmissionToStage(self::SCIELO_MODERATION_STAGE_FORMAT);
     }
 
     public function sendNextStage()
