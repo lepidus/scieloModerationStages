@@ -56,7 +56,7 @@ Cypress.Commands.add('createSubmission', function (submissionData) {
 });
 
 Cypress.Commands.add('findSubmission', function(tab, title) {
-	cy.waitJQuery();
+	cy.wait(3000);
     cy.get('#' + tab + '-button').click();
     cy.get('.listPanel__itemSubtitle:visible:contains("' + title + '")').first()
         .parent().parent().within(() => {
