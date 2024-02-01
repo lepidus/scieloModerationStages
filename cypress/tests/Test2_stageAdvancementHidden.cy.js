@@ -54,6 +54,7 @@ describe("SciELO Moderation Stages - Stage advancement hidden scenarios", functi
         checkSendNextStageOptionIsNotPresent();
         cy.get('a.pkpModalCloseButton:visible').click();
         cy.on('window:confirm', () => true);
+        cy.wait(3000);
 
         cy.get('#publication-button').click();
 		cy.get('.pkpHeader__actions button:contains("Unpost")').click();
