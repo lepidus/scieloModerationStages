@@ -2,6 +2,7 @@
 
 use PHPUnit\Framework\TestCase;
 
+import('classes.journal.Journal');
 import('lib.pkp.classes.user.User');
 import('classes.submission.Submission');
 import('classes.publication.Publication');
@@ -10,20 +11,32 @@ import('plugins.generic.scieloModerationStages.classes.ModerationReminderEmailBu
 class ModerationReminderEmailBuilderTest extends TestCase
 {
     private $locale = 'en_US';
+    private $context;
     private $moderator;
     private $submissions;
     private $moderationReminderEmailBuilder;
 
     public function setUp(): void
     {
+        $this->context = $this->createTestContext();
         $this->moderator = $this->createModeratorUser();
         $this->submissions = $this->createTestSubmissions();
-        $this->moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($this->moderator, $this->submissions);
+        $this->moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($this->context, $this->moderator, $this->submissions);
+    }
+
+    private function createTestContext()
+    {
+        $context = new Journal();
+        $context->setData('contactName', 'Example contact');
+        $context->setData('contactEmail', 'example.contact@gmail.com');
+
+        return $context;
     }
 
     private function createModeratorUser(): User
     {
         $moderator = new User();
+        $moderator->setData('email', 'juancarlo.rodriguez@gmail.com');
         $moderator->setData('givenName', 'Juan Carlo', $this->locale);
         $moderator->setData('familyName', 'Rodriguez', $this->locale);
 
@@ -70,6 +83,9 @@ class ModerationReminderEmailBuilderTest extends TestCase
     public function testModerationReminderEmailBuilting(): void
     {
         $email = $this->moderationReminderEmailBuilder->buildEmail();
+
+        $expectedFrom = ['name' => $this->context->getContactName(), 'email' => $this->context->getContactEmail()];
+        $this->assertEquals($expectedFrom, $email->getData('from'));
 
         $expectedSubject = __('plugins.generic.scieloModerationStages.emails.moderationReminder.subject');
         $this->assertEquals($expectedSubject, $email->getData('subject'));

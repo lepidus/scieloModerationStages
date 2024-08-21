@@ -4,11 +4,13 @@ import('lib.pkp.classes.mail.Mail');
 
 class ModerationReminderEmailBuilder
 {
+    private $context;
     private $moderator;
     private $submissions;
 
-    public function __construct($moderator, $submissions)
+    public function __construct($context, $moderator, $submissions)
     {
+        $this->context = $context;
         $this->moderator = $moderator;
         $this->submissions = $submissions;
     }
@@ -16,6 +18,9 @@ class ModerationReminderEmailBuilder
     public function buildEmail(): Mail
     {
         $email = new Mail();
+
+        $email->setFrom($this->context->getContactEmail(), $this->context->getContactName());
+
         $email->setSubject(__('plugins.generic.scieloModerationStages.emails.moderationReminder.subject'));
 
         $bodyParams = [
