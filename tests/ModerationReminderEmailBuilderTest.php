@@ -2,19 +2,32 @@
 
 use PHPUnit\Framework\TestCase;
 
+import('lib.pkp.classes.user.User');
 import('classes.submission.Submission');
 import('classes.publication.Publication');
 import('plugins.generic.scieloModerationStages.classes.ModerationReminderEmailBuilder');
 
 class ModerationReminderEmailBuilderTest extends TestCase
 {
+    private $locale = 'en_US';
+    private $moderator;
     private $submissions;
     private $moderationReminderEmailBuilder;
 
     public function setUp(): void
     {
+        $this->moderator = $this->createModeratorUser();
         $this->submissions = $this->createTestSubmissions();
-        $this->moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($this->submissions);
+        $this->moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($this->moderator, $this->submissions);
+    }
+
+    private function createModeratorUser(): User
+    {
+        $moderator = new User();
+        $moderator->setData('givenName', 'Juan Carlo', $this->locale);
+        $moderator->setData('familyName', 'Rodriguez', $this->locale);
+
+        return $moderator;
     }
 
     private function createTestSubmissions(): array
@@ -62,7 +75,7 @@ class ModerationReminderEmailBuilderTest extends TestCase
         $this->assertEquals($expectedSubject, $email->getData('subject'));
 
         $bodyParams = [
-            'moderatorName' => 'Juan Carlo',
+            'moderatorName' => $this->moderator->getFullName(),
             'submissions' => $this->getSubmissionsString()
         ];
         $expectedBody = __('plugins.generic.scieloModerationStages.emails.moderationReminder.body', $bodyParams);
