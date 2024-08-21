@@ -39,18 +39,33 @@ class ModerationReminderEmailBuilderTest extends TestCase
         return [$firstSubmission, $secondSubmission];
     }
 
+    private function getSubmissionsString(): string
+    {
+        $request = Application::get()->getRequest();
+        $dispatcher = Application::get()->getDispatcher();
+        $request->setDispatcher($dispatcher);
+
+        $submissionsString = '<p>' . $request->getDispatcher()->url($request, ROUTE_PAGE, null, 'workflow', 'access', [$this->submissions[0]->getId()]);
+        $submissionsString .= ' - ' . __('plugins.generic.scieloModerationStages.submissionMade.nDaysAgo', ['numberOfDays' => 3]) . '</p>';
+
+        $submissionsString .= '<p>' . $request->getDispatcher()->url($request, ROUTE_PAGE, null, 'workflow', 'access', [$this->submissions[1]->getId()]);
+        $submissionsString .= ' - ' . __('plugins.generic.scieloModerationStages.submissionMade.lessThanADayAgo') . '</p>';
+
+        return $submissionsString;
+    }
+
     public function testModerationReminderEmailBuilting(): void
     {
         $email = $this->moderationReminderEmailBuilder->buildEmail();
 
-        $this->assertEquals(
-            __('plugins.generic.scieloModerationStages.emails.moderationReminder.subject'),
-            $email->getData('subject')
-        );
+        $expectedSubject = __('plugins.generic.scieloModerationStages.emails.moderationReminder.subject');
+        $this->assertEquals($expectedSubject, $email->getData('subject'));
 
-        $this->assertTrue(str_contains($email->getData('body'), '/access/123'));
-        $this->assertTrue(str_contains($email->getData('body'), __('plugins.generic.scieloModerationStages.submissionMade.lessThanADayAgo')));
-        $this->assertTrue(str_contains($email->getData('body'), '/access/124'));
-        $this->assertTrue(str_contains($email->getData('body'), __('plugins.generic.scieloModerationStages.submissionMade.nDaysAgo')));
+        $bodyParams = [
+            'moderatorName' => 'Juan Carlo',
+            'submissions' => $this->getSubmissionsString()
+        ];
+        $expectedBody = __('plugins.generic.scieloModerationStages.emails.moderationReminder.body', $bodyParams);
+        $this->assertEquals($expectedBody, $email->getData('body'));
     }
 }
