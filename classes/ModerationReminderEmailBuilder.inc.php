@@ -20,6 +20,8 @@ class ModerationReminderEmailBuilder
         $email = new Mail();
 
         $email->setFrom($this->context->getContactEmail(), $this->context->getContactName());
+        $email->addRecipient($this->moderator->getEmail(), $this->moderator->getFullName());
+        $email->addCc($this->context->getContactEmail(), $this->context->getContactName());
 
         $email->setSubject(__('plugins.generic.scieloModerationStages.emails.moderationReminder.subject'));
 

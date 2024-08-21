@@ -87,6 +87,12 @@ class ModerationReminderEmailBuilderTest extends TestCase
         $expectedFrom = ['name' => $this->context->getContactName(), 'email' => $this->context->getContactEmail()];
         $this->assertEquals($expectedFrom, $email->getData('from'));
 
+        $expectedRecipients = [['name' => $this->moderator->getFullName(), 'email' => $this->moderator->getEmail()]];
+        $this->assertEquals($expectedRecipients, $email->getData('recipients'));
+
+        $expectedCc = [['name' => $this->context->getContactName(), 'email' => $this->context->getContactEmail()]];
+        $this->assertEquals($expectedCc, $email->getData('ccs'));
+
         $expectedSubject = __('plugins.generic.scieloModerationStages.emails.moderationReminder.subject');
         $this->assertEquals($expectedSubject, $email->getData('subject'));
 
