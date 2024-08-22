@@ -45,7 +45,7 @@ class ModerationReminderEmailBuilder
             $submissionLink = $request->getDispatcher()->url($request, ROUTE_PAGE, null, 'workflow', 'access', [$submission->getId()]);
             $submissionDaysString = $this->getSubmissionDaysString($submission);
 
-            $submissionsString .= "<p>$submissionLink - $submissionDaysString</p>";
+            $submissionsString .= "<p><a href=\"$submissionLink\">$submissionLink</a> - $submissionDaysString</p>";
         }
 
         return $submissionsString;

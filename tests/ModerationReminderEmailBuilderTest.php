@@ -71,11 +71,13 @@ class ModerationReminderEmailBuilderTest extends TestCase
         $dispatcher = Application::get()->getDispatcher();
         $request->setDispatcher($dispatcher);
 
-        $submissionsString = '<p>' . $request->getDispatcher()->url($request, ROUTE_PAGE, null, 'workflow', 'access', [$this->submissions[0]->getId()]);
-        $submissionsString .= ' - ' . __('plugins.generic.scieloModerationStages.submissionMade.nDaysAgo', ['numberOfDays' => 3]) . '</p>';
+        $firstSubmissionUrl = $request->getDispatcher()->url($request, ROUTE_PAGE, null, 'workflow', 'access', [$this->submissions[0]->getId()]);
+        $secondSubmissionUrl = $request->getDispatcher()->url($request, ROUTE_PAGE, null, 'workflow', 'access', [$this->submissions[1]->getId()]);
+        $firstSubmissionDaysCount = __('plugins.generic.scieloModerationStages.submissionMade.nDaysAgo', ['numberOfDays' => 3]);
+        $secondSubmissionDaysCount = __('plugins.generic.scieloModerationStages.submissionMade.lessThanADayAgo');
 
-        $submissionsString .= '<p>' . $request->getDispatcher()->url($request, ROUTE_PAGE, null, 'workflow', 'access', [$this->submissions[1]->getId()]);
-        $submissionsString .= ' - ' . __('plugins.generic.scieloModerationStages.submissionMade.lessThanADayAgo') . '</p>';
+        $submissionsString = "<p><a href=\"$firstSubmissionUrl\">$firstSubmissionUrl</a> - $firstSubmissionDaysCount</p>";
+        $submissionsString .= "<p><a href=\"$secondSubmissionUrl\">$secondSubmissionUrl</a> - $secondSubmissionDaysCount</p>";
 
         return $submissionsString;
     }
