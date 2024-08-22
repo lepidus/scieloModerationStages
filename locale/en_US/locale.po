@@ -115,3 +115,26 @@ msgstr "Area moderator assigned less than a day before declining"
 
 msgid "plugins.generic.scieloModerationStages.TimeAreaModerator.dateDeclined"
 msgstr "Area moderator assigned {$daysPassed} days before declining"
+
+
+msgid "plugins.generic.scieloModerationStages.submissionMade.lessThanADayAgo"
+msgstr "Submission made less than a day ago"
+
+msgid "plugins.generic.scieloModerationStages.submissionMade.aDayAgo"
+msgstr "Submission made a day ago"
+
+msgid "plugins.generic.scieloModerationStages.submissionMade.nDaysAgo"
+msgstr "Submission made {$numberOfDays} days ago"
+
+msgid "plugins.generic.scieloModerationStages.emails.moderationReminder.subject"
+msgstr "Manuscripts awaiting pre-moderation"
+
+msgid "plugins.generic.scieloModerationStages.emails.moderationReminder.body"
+msgstr ""
+"Hello, {$moderatorName}<br/>\n"
+"<br/>\n"
+"The manuscripts below await your moderation.<br/>\n"
+"<br/>\n"
+"{$submissions}"
+"<br/>\n"
+"This is an automatic email. If you have already sent your moderation for these manuscripts, please disregard this email."

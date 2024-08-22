@@ -115,3 +115,26 @@ msgstr "Moderador de área designado menos de un día antes del rechazo"
 
 msgid "plugins.generic.scieloModerationStages.TimeAreaModerator.dateDeclined"
 msgstr "Moderador de área designado {$daysPassed} días antes del rechazo"
+
+
+msgid "plugins.generic.scieloModerationStages.submissionMade.lessThanADayAgo"
+msgstr "Envío realizado hace menos de un día"
+
+msgid "plugins.generic.scieloModerationStages.submissionMade.aDayAgo"
+msgstr "Envío realizado hace un día"
+
+msgid "plugins.generic.scieloModerationStages.submissionMade.nDaysAgo"
+msgstr "Envío realizado hace {$numberOfDays} días"
+
+msgid "plugins.generic.scieloModerationStages.emails.moderationReminder.subject"
+msgstr "Manuscritos pendientes de moderación previa"
+
+msgid "plugins.generic.scieloModerationStages.emails.moderationReminder.body"
+msgstr ""
+"Hola, {$moderatorName}<br/>\n"
+"<br/>\n"
+"Los manuscritos que figuran a continuación esperan su moderación.<br/>\n"
+"<br/>\n"
+"{$submissions}"
+"<br/>\n"
+"Este es un correo electrónico automático. Si ya ha enviado su moderación para estos manuscritos, por favor ignore este correo electrónico."
