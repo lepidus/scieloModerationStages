@@ -117,6 +117,22 @@ msgid "plugins.generic.scieloModerationStages.TimeAreaModerator.dateDeclined"
 msgstr "Moderador de área designado {$daysPassed} días antes del rechazo"
 
 
+msgid "plugins.generic.scieloModerationStages.settings.title"
+msgstr "Configuración de Etapas de Moderación SciELO"
+
+msgid "plugins.generic.scieloModerationStages.settings.timeLimitsModerationReminder.label"
+msgstr "Límites de tiempo para enviar un recordatorio de moderación"
+
+msgid "plugins.generic.scieloModerationStages.settings.timeLimitsModerationReminder.description"
+msgstr "Háganos saber cuál debe ser el límite de días sin comentarios de los moderadores para poder enviarles un recordatorio."
+
+msgid "plugins.generic.scieloModerationStages.settings.preModerationTimeLimit"
+msgstr "Límite de tiempo de la moderación prévia (desde la fecha de envío)"
+
+msgid "plugins.generic.scieloModerationStages.settings.timeLimitError"
+msgstr "Introduzca un valor numérico mayor que cero"
+
+
 msgid "plugins.generic.scieloModerationStages.submissionMade.lessThanADayAgo"
 msgstr "Envío realizado hace menos de un día"
 

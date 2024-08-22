@@ -117,6 +117,22 @@ msgid "plugins.generic.scieloModerationStages.TimeAreaModerator.dateDeclined"
 msgstr "Area moderator assigned {$daysPassed} days before declining"
 
 
+msgid "plugins.generic.scieloModerationStages.settings.title"
+msgstr "SciELO Moderation Stages Settings"
+
+msgid "plugins.generic.scieloModerationStages.settings.timeLimitsModerationReminder.label"
+msgstr "Time limits for sending of moderation reminder"
+
+msgid "plugins.generic.scieloModerationStages.settings.timeLimitsModerationReminder.description"
+msgstr "Please let us know what should be the number of days without feedback from moderators so that a reminder can be sent to them."
+
+msgid "plugins.generic.scieloModerationStages.settings.preModerationTimeLimit"
+msgstr "Pre-moderation time limit (since date of submission)"
+
+msgid "plugins.generic.scieloModerationStages.settings.timeLimitError"
+msgstr "Enter a numeric value greater than zero"
+
+
 msgid "plugins.generic.scieloModerationStages.submissionMade.lessThanADayAgo"
 msgstr "Submission made less than a day ago"
 
