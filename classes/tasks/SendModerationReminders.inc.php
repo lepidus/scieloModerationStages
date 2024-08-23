@@ -21,6 +21,16 @@ class SendModerationReminders extends ScheduledTask
             return true;
         }
 
+        $usersWithOverduePreModeration = $this->getUsersWithOverduePreModeration($overduePreModerationAssignments);
+
+        foreach ($usersWithOverduePreModeration as $userId => $submissions) {
+            $moderator = DAORegistry::getDAO('UserDAO')->getById($userId);
+            $moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($context, $moderator, $submissions);
+
+            $reminderEmail = $moderationReminderEmailBuilder->buildEmail();
+            $reminderEmail->send();
+        }
+
         return true;
     }
 
@@ -57,13 +67,32 @@ class SendModerationReminders extends ScheduledTask
         foreach ($assignments as $assignment) {
             $submissionId = $assignment->getData('submissionId');
             $submissionModerationStage = $moderationStageDao->getSubmissionModerationStage($submissionId);
-            $moderationIsOverdue = $moderationStageDao->getModerationIsOverdue($submissionId, $preModerationTimeLimit);
+            $preModerationIsOverdue = $moderationStageDao->getPreModerationIsOverdue($submissionId, $preModerationTimeLimit);
 
-            if ($submissionModerationStage === SCIELO_MODERATION_STAGE_CONTENT and $moderationIsOverdue) {
+            if ($submissionModerationStage === SCIELO_MODERATION_STAGE_CONTENT and $preModerationIsOverdue) {
                 $overdueAssignments[] = $assignment;
             }
         }
 
         return $overdueAssignments;
+    }
+
+    private function getUsersWithOverduePreModeration($overduePreModerationAssignments)
+    {
+        $usersMap = [];
+        $submissionDao = DAORegistry::getDAO('SubmissionDAO');
+
+        foreach ($overduePreModerationAssignments as $assignment) {
+            $userId = $assignment->getData('userId');
+            $submission = $submissionDao->getById($assignment->getData('submissionId'));
+
+            if (isset($usersMap[$userId])) {
+                $usersMap[$userId] = array_merge($usersMap[$userId], [$submission]);
+            } else {
+                $usersMap[$userId] = [$submission];
+            }
+        }
+
+        return $usersMap;
     }
 }

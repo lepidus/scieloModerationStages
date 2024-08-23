@@ -27,8 +27,18 @@ class ModerationStageDAO extends DAO
         return !is_null($result) ? get_object_vars($result)['setting_value'] : null;
     }
 
-    public function getModerationIsOverdue(int $submissionId, int $timeLimit): bool
+    public function getPreModerationIsOverdue(int $submissionId, int $timeLimit): bool
     {
-        // to be continued
+        $result = Capsule::table('submissions')
+            ->where('submission_id', '=', $submissionId)
+            ->select('date_submitted')
+            ->first();
+        $dateSubmitted = get_object_vars($result)['date_submitted'];
+        $dateSubmitted = new DateTime($dateSubmitted);
+
+        $limitDaysAgo = new DateTime();
+        $limitDaysAgo->modify("-$timeLimit days");
+
+        return $dateSubmitted < $limitDaysAgo;
     }
 }
