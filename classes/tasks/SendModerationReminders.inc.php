@@ -1,25 +1,30 @@
 <?php
 
 import('lib.pkp.classes.scheduledTask.ScheduledTask');
+import('plugins.generic.scieloModerationStages.classes.ModerationStage');
+import('plugins.generic.scieloModerationStages.classes.ModerationStageDAO');
 
-class SendReadyEndorsements extends ScheduledTask
+class SendModerationReminders extends ScheduledTask
 {
+    private $plugin;
+
     public function executeActions()
     {
-        $context = Application::get()->getRequest()->getContext();
-        $responsibleUsers = $this->getResponsibleUsers($context->getId());
+        PluginRegistry::loadCategory('generic');
+        $this->plugin = PluginRegistry::getPlugin('generic', 'scielomoderationstagesplugin');
 
-        foreach ($responsibleUsers as $responsible) {
-            //obter as submissões ao qual está designado como tal
-            //para cada submissão, verificar se estourou o tempo limite
-            //dadas as submissões que estouraram o tempo, montar um e-mail lembrete
-            //enviar o e-mail
+        $context = Application::get()->getRequest()->getContext();
+        $responsibleAssignments = $this->getResponsiblesAssignments($context->getId());
+        $overduePreModerationAssignments = $this->filterOverduePreModerationAssignments($context->getId(), $responsibleAssignments);
+
+        if (empty($overduePreModerationAssignments)) {
+            return true;
         }
 
         return true;
     }
 
-    private function getResponsibleUsers(int $contextId)
+    private function getResponsiblesAssignments(int $contextId)
     {
         $userGroupDao = DAORegistry::getDAO('UserGroupDAO');
         $contextUserGroups = $userGroupDao->getByContextId($contextId);
@@ -37,6 +42,28 @@ class SendReadyEndorsements extends ScheduledTask
             return [];
         }
 
-        return $userGroupDao->getUsersById($responsiblesUserGroup->getId());
+        $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
+        $responsiblesAssignments = $stageAssignmentDao->getByUserGroupId($responsiblesUserGroup->getId(), $contextId);
+
+        return $responsiblesAssignments->toArray();
+    }
+
+    private function filterOverduePreModerationAssignments($contextId, $assignments): array
+    {
+        $overdueAssignments = [];
+        $preModerationTimeLimit = $this->plugin->getSetting($contextId, 'preModerationTimeLimit');
+        $moderationStageDao = new ModerationStageDAO();
+
+        foreach ($assignments as $assignment) {
+            $submissionId = $assignment->getData('submissionId');
+            $submissionModerationStage = $moderationStageDao->getSubmissionModerationStage($submissionId);
+            $moderationIsOverdue = $moderationStageDao->getModerationIsOverdue($submissionId, $preModerationTimeLimit);
+
+            if ($submissionModerationStage === SCIELO_MODERATION_STAGE_CONTENT and $moderationIsOverdue) {
+                $overdueAssignments[] = $assignment;
+            }
+        }
+
+        return $overdueAssignments;
     }
 }

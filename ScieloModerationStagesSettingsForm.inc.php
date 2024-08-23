@@ -5,7 +5,7 @@ import('lib.pkp.classes.form.Form');
 class ScieloModerationStagesSettingsForm extends Form
 {
     public const CONFIG_VARS = array(
-        'preModerationTimeLimit' => 'string',
+        'preModerationTimeLimit' => 'int',
     );
 
     public $contextId;
