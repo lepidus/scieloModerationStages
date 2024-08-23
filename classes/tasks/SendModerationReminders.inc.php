@@ -14,14 +14,15 @@ class SendModerationReminders extends ScheduledTask
         $this->plugin = PluginRegistry::getPlugin('generic', 'scielomoderationstagesplugin');
 
         $context = Application::get()->getRequest()->getContext();
-        $responsibleAssignments = $this->getResponsiblesAssignments($context->getId());
-        $overduePreModerationAssignments = $this->filterOverduePreModerationAssignments($context->getId(), $responsibleAssignments);
+        $responsiblesAssignments = $this->getResponsiblesAssignments($context->getId());
+        $preModerationAssignments = $this->filterPreModerationAssignments($responsiblesAssignments);
 
-        if (empty($overduePreModerationAssignments)) {
+        if (empty($preModerationAssignments)) {
             return true;
         }
 
-        $usersWithOverduePreModeration = $this->getUsersWithOverduePreModeration($overduePreModerationAssignments);
+        $usersWithOverduePreModeration = $this->getUsersWithOverduePreModeration($context->getId(), $preModerationAssignments);
+        $mapModeratorsAndOverdueSubmissions = $this->mapModeratorsAndOverdueSubmissions($usersWithOverduePreModeration, $preModerationAssignments);
 
         foreach ($usersWithOverduePreModeration as $userId => $submissions) {
             $moderator = DAORegistry::getDAO('UserDAO')->getById($userId);
@@ -58,41 +59,62 @@ class SendModerationReminders extends ScheduledTask
         return $responsiblesAssignments->toArray();
     }
 
-    private function filterOverduePreModerationAssignments($contextId, $assignments): array
+    private function filterPreModerationAssignments($responsiblesAssignments): array
     {
-        $overdueAssignments = [];
+        $moderationStageDao = new ModerationStageDAO();
+        $preModerationAssignments = [];
+
+        foreach ($responsiblesAssignments as $assignment) {
+            $submissionId = $assignment->getData('submissionId');
+            $submissionModerationStage = $moderationStageDao->getSubmissionModerationStage($submissionId);
+
+            if ($submissionModerationStage === SCIELO_MODERATION_STAGE_CONTENT) {
+                $preModerationAssignments[] = $assignment;
+            }
+        }
+
+        return $preModerationAssignments;
+    }
+
+    private function getUsersWithOverduePreModeration($contextId, $preModerationAssignments): array
+    {
+        $usersIds = [];
         $preModerationTimeLimit = $this->plugin->getSetting($contextId, 'preModerationTimeLimit');
         $moderationStageDao = new ModerationStageDAO();
 
-        foreach ($assignments as $assignment) {
+        foreach ($preModerationAssignments as $assignment) {
             $submissionId = $assignment->getData('submissionId');
-            $submissionModerationStage = $moderationStageDao->getSubmissionModerationStage($submissionId);
             $preModerationIsOverdue = $moderationStageDao->getPreModerationIsOverdue($submissionId, $preModerationTimeLimit);
 
-            if ($submissionModerationStage === SCIELO_MODERATION_STAGE_CONTENT and $preModerationIsOverdue) {
-                $overdueAssignments[] = $assignment;
+            if ($preModerationIsOverdue) {
+                $usersIds[] = $assignment->getData('userId');
             }
         }
 
-        return $overdueAssignments;
+        return $usersIds;
     }
 
-    private function getUsersWithOverduePreModeration($overduePreModerationAssignments)
+    private function mapModeratorsAndOverdueSubmissions($moderators, $preModerationAssignments)
     {
-        $usersMap = [];
+        $moderatorsMap = [];
         $submissionDao = DAORegistry::getDAO('SubmissionDAO');
 
-        foreach ($overduePreModerationAssignments as $assignment) {
-            $userId = $assignment->getData('userId');
-            $submission = $submissionDao->getById($assignment->getData('submissionId'));
+        foreach ($moderators as $moderatorId) {
+            foreach ($preModerationAssignments as $assignment) {
+                if ($moderatorId != $assignment->getData('userId')) {
+                    continue;
+                }
 
-            if (isset($usersMap[$userId])) {
-                $usersMap[$userId] = array_merge($usersMap[$userId], [$submission]);
-            } else {
-                $usersMap[$userId] = [$submission];
+                $submission = $submissionDao->getById($assignment->getData('submissionId'));
+
+                if (isset($moderatorsMap[$moderatorId])) {
+                    $moderatorsMap[$moderatorId] = array_merge($moderatorsMap[$moderatorId], [$submission]);
+                } else {
+                    $moderatorsMap[$moderatorId] = [$submission];
+                }
             }
         }
 
-        return $usersMap;
+        return $moderatorsMap;
     }
 }
