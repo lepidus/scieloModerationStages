@@ -3,6 +3,7 @@
 import('lib.pkp.classes.scheduledTask.ScheduledTask');
 import('plugins.generic.scieloModerationStages.classes.ModerationStage');
 import('plugins.generic.scieloModerationStages.classes.ModerationStageDAO');
+import('plugins.generic.scieloModerationStages.classes.ModerationReminderEmailBuilder');
 
 class SendModerationReminders extends ScheduledTask
 {
@@ -24,7 +25,7 @@ class SendModerationReminders extends ScheduledTask
         $usersWithOverduePreModeration = $this->getUsersWithOverduePreModeration($context->getId(), $preModerationAssignments);
         $mapModeratorsAndOverdueSubmissions = $this->mapModeratorsAndOverdueSubmissions($usersWithOverduePreModeration, $preModerationAssignments);
 
-        foreach ($usersWithOverduePreModeration as $userId => $submissions) {
+        foreach ($mapModeratorsAndOverdueSubmissions as $userId => $submissions) {
             $moderator = DAORegistry::getDAO('UserDAO')->getById($userId);
             $moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($context, $moderator, $submissions);
 
@@ -38,10 +39,10 @@ class SendModerationReminders extends ScheduledTask
     private function getResponsiblesAssignments(int $contextId)
     {
         $userGroupDao = DAORegistry::getDAO('UserGroupDAO');
-        $contextUserGroups = $userGroupDao->getByContextId($contextId);
+        $contextUserGroups = $userGroupDao->getByContextId($contextId)->toArray();
 
         foreach ($contextUserGroups as $userGroup) {
-            $userGroupAbbrev = $userGroupDao->getSetting($userGroup->getId(), 'abbrev', 'en_US');
+            $userGroupAbbrev = strtolower($userGroupDao->getSetting($userGroup->getId(), 'abbrev', 'en_US'));
 
             if ($userGroupAbbrev === 'resp') {
                 $responsiblesUserGroup = $userGroup;
