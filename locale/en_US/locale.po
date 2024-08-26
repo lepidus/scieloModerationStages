@@ -132,6 +132,9 @@ msgstr "days of submitting the manuscript"
 msgid "plugins.generic.scieloModerationStages.settings.timeLimitError"
 msgstr "Enter a numeric value greater than zero"
 
+msgid "plugins.generic.scieloModerationStages.settings.remindersDayOfWeek"
+msgstr "<strong>Note:</strong> Moderation reminders will be sent every Monday."
+
 
 msgid "plugins.generic.scieloModerationStages.submissionMade.lessThanADayAgo"
 msgstr "Submission made less than a day ago"

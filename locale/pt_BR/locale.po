@@ -132,6 +132,9 @@ msgstr "dias após a submissão do manuscrito"
 msgid "plugins.generic.scieloModerationStages.settings.timeLimitError"
 msgstr "Insira um valor númerico maior que zero"
 
+msgid "plugins.generic.scieloModerationStages.settings.remindersDayOfWeek"
+msgstr "<strong>Obs.:</strong> Os lembretes de moderação serão enviados todas as segundas-feiras."
+
 
 msgid "plugins.generic.scieloModerationStages.submissionMade.lessThanADayAgo"
 msgstr "Submissão realizada há menos de um dia"

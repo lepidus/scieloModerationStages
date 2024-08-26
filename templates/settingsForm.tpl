@@ -16,6 +16,10 @@
 
                 {fbvElement type="text" id="preModerationTimeLimit" class="preModerationTimeLimit" value=$preModerationTimeLimit required="true" label="plugins.generic.scieloModerationStages.settings.preModerationReminder.hint" size=$fbvStyles.size.SMALL}
             {/fbvFormSection}
+
+            <p style="margin-bottom: 0;">
+                {translate key="plugins.generic.scieloModerationStages.settings.remindersDayOfWeek"}
+            </p>
         {/fbvFormArea}
         {fbvFormButtons}
         <p><span class="formRequired">{translate key="common.requiredField"}</span></p>
