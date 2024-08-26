@@ -41,6 +41,8 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             HookRegistry::register('LoadComponentHandler', array($this, 'setupScieloModerationStagesHandler'));
 
             HookRegistry::register('TemplateManager::display', array($this, 'addJavaScriptAndStylesheet'));
+
+            HookRegistry::register('AcronPlugin::parseCronTab', array($this, 'addTasksToCrontab'));
             $this->addHandlerURLToJavaScript();
         }
 
@@ -72,6 +74,13 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         return false;
     }
 
+    public function addTasksToCrontab($hookName, $params)
+    {
+        $taskFilesPath = &$params[0];
+        $taskFilesPath[] = $this->getPluginPath() . DIRECTORY_SEPARATOR . 'scheduledTasks.xml';
+        return false;
+    }
+
     public function getDisplayName()
     {
         return __('plugins.generic.scieloModerationStages.displayName');
@@ -80,6 +89,49 @@ class ScieloModerationStagesPlugin extends GenericPlugin
     public function getDescription()
     {
         return __('plugins.generic.scieloModerationStages.description');
+    }
+
+    public function getActions($request, $actionArgs)
+    {
+        $router = $request->getRouter();
+        import('lib.pkp.classes.linkAction.request.AjaxModal');
+        return array_merge(
+            [
+                new LinkAction(
+                    'settings',
+                    new AjaxModal(
+                        $router->url($request, null, null, 'manage', null, ['verb' => 'settings', 'plugin' => $this->getName(), 'category' => 'generic']),
+                        __('plugins.generic.scieloModerationStages.settings.title')
+                    ),
+                    __('manager.plugins.settings'),
+                    null
+                ),
+            ],
+            parent::getActions($request, $actionArgs)
+        );
+    }
+
+    public function manage($args, $request)
+    {
+        $context = $request->getContext();
+        $contextId = ($context == null) ? 0 : $context->getId();
+
+        switch ($request->getUserVar('verb')) {
+            case 'settings':
+                $this->import('ScieloModerationStagesSettingsForm');
+                $form = new ScieloModerationStagesSettingsForm($this, $contextId);
+                if ($request->getUserVar('save')) {
+                    $form->readInputData();
+                    if ($form->validate()) {
+                        $form->execute();
+                        return new JSONMessage(true);
+                    }
+                } else {
+                    $form->initData();
+                }
+                return new JSONMessage(true, $form->fetch($request));
+        }
+        return parent::manage($args, $request);
     }
 
     public function setupScieloModerationStagesHandler($hookName, $params)

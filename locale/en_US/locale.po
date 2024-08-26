@@ -115,3 +115,45 @@ msgstr "Area moderator assigned less than a day before declining"
 
 msgid "plugins.generic.scieloModerationStages.TimeAreaModerator.dateDeclined"
 msgstr "Area moderator assigned {$daysPassed} days before declining"
+
+
+msgid "plugins.generic.scieloModerationStages.settings.title"
+msgstr "SciELO Moderation Stages Settings"
+
+msgid "plugins.generic.scieloModerationStages.settings.preModerationReminder.label"
+msgstr "Sending of pre-moderation reminder"
+
+msgid "plugins.generic.scieloModerationStages.settings.preModerationReminder.description"
+msgstr "Send a reminder to assigned responsibles if they have not sent an answer within"
+
+msgid "plugins.generic.scieloModerationStages.settings.preModerationReminder.hint"
+msgstr "days of submitting the manuscript"
+
+msgid "plugins.generic.scieloModerationStages.settings.timeLimitError"
+msgstr "Enter a numeric value greater than zero"
+
+msgid "plugins.generic.scieloModerationStages.settings.remindersDayOfWeek"
+msgstr "<strong>Note:</strong> Moderation reminders will be sent every Monday."
+
+
+msgid "plugins.generic.scieloModerationStages.submissionMade.lessThanADayAgo"
+msgstr "Submission made less than a day ago"
+
+msgid "plugins.generic.scieloModerationStages.submissionMade.aDayAgo"
+msgstr "Submission made a day ago"
+
+msgid "plugins.generic.scieloModerationStages.submissionMade.nDaysAgo"
+msgstr "Submission made {$numberOfDays} days ago"
+
+msgid "plugins.generic.scieloModerationStages.emails.moderationReminder.subject"
+msgstr "Manuscripts awaiting pre-moderation"
+
+msgid "plugins.generic.scieloModerationStages.emails.moderationReminder.body"
+msgstr ""
+"Hello, {$moderatorName}<br/>\n"
+"<br/>\n"
+"The manuscripts below await your moderation.<br/>\n"
+"<br/>\n"
+"{$submissions}"
+"<br/>\n"
+"This is an automatic email. If you have already sent your moderation for these manuscripts, please disregard this email."

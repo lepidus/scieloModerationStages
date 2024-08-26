@@ -16,7 +16,7 @@ use Illuminate\Support\Collection;
 
 class ModerationStageDAO extends DAO
 {
-    public function getSubmissionModerationStage($submissionId): ?int
+    public function getSubmissionModerationStage(int $submissionId): ?int
     {
         $result = Capsule::table('submission_settings')
             ->where('submission_id', $submissionId)
@@ -25,5 +25,20 @@ class ModerationStageDAO extends DAO
             ->first();
 
         return !is_null($result) ? get_object_vars($result)['setting_value'] : null;
+    }
+
+    public function getPreModerationIsOverdue(int $submissionId, int $timeLimit): bool
+    {
+        $result = Capsule::table('submissions')
+            ->where('submission_id', '=', $submissionId)
+            ->select('date_submitted')
+            ->first();
+        $dateSubmitted = get_object_vars($result)['date_submitted'];
+        $dateSubmitted = new DateTime($dateSubmitted);
+
+        $limitDaysAgo = new DateTime();
+        $limitDaysAgo->modify("-$timeLimit days");
+
+        return $dateSubmitted < $limitDaysAgo;
     }
 }
