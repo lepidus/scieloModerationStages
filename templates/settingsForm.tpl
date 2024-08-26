@@ -9,12 +9,12 @@
         {csrf}
         {include file="controllers/notification/inPlaceNotification.tpl" notificationId="scieloModerationStagesSettingsFormNotification"}
         {fbvFormArea id="orcidApiSettings"}
-            {fbvFormSection id="timeLimitsSection" label="plugins.generic.scieloModerationStages.settings.timeLimitsModerationReminder.label"}
+            {fbvFormSection id="timeLimitsSection" label="plugins.generic.scieloModerationStages.settings.preModerationReminder.label"}
                 <p style="margin-top: 0;">
-                    {translate key="plugins.generic.scieloModerationStages.settings.timeLimitsModerationReminder.description"}
+                    {translate key="plugins.generic.scieloModerationStages.settings.preModerationReminder.description"}
                 </p>
 
-                {fbvElement type="text" id="preModerationTimeLimit" class="preModerationTimeLimit" value=$preModerationTimeLimit required="true" label="plugins.generic.scieloModerationStages.settings.preModerationTimeLimit" size=$fbvStyles.size.MEDIUM}
+                {fbvElement type="text" id="preModerationTimeLimit" class="preModerationTimeLimit" value=$preModerationTimeLimit required="true" label="plugins.generic.scieloModerationStages.settings.preModerationReminder.hint" size=$fbvStyles.size.SMALL}
             {/fbvFormSection}
         {/fbvFormArea}
         {fbvFormButtons}
