@@ -4,6 +4,7 @@ import('lib.pkp.classes.scheduledTask.ScheduledTask');
 import('plugins.generic.scieloModerationStages.classes.ModerationStage');
 import('plugins.generic.scieloModerationStages.classes.ModerationStageDAO');
 import('plugins.generic.scieloModerationStages.classes.ModerationReminderEmailBuilder');
+import('plugins.generic.scieloModerationStages.classes.ModerationReminderHelper');
 
 class SendModerationReminders extends ScheduledTask
 {
@@ -15,7 +16,8 @@ class SendModerationReminders extends ScheduledTask
         $this->plugin = PluginRegistry::getPlugin('generic', 'scielomoderationstagesplugin');
 
         $context = Application::get()->getRequest()->getContext();
-        $responsiblesAssignments = $this->getResponsiblesAssignments($context->getId());
+        $moderationReminderHelper = new ModerationReminderHelper();
+        $responsiblesAssignments = $moderationReminderHelper->getResponsiblesAssignments($context->getId());
         $preModerationAssignments = $this->filterPreModerationAssignments($responsiblesAssignments);
 
         if (empty($preModerationAssignments)) {
@@ -34,30 +36,6 @@ class SendModerationReminders extends ScheduledTask
         }
 
         return true;
-    }
-
-    private function getResponsiblesAssignments(int $contextId)
-    {
-        $userGroupDao = DAORegistry::getDAO('UserGroupDAO');
-        $contextUserGroups = $userGroupDao->getByContextId($contextId)->toArray();
-
-        foreach ($contextUserGroups as $userGroup) {
-            $userGroupAbbrev = strtolower($userGroupDao->getSetting($userGroup->getId(), 'abbrev', 'en_US'));
-
-            if ($userGroupAbbrev === 'resp') {
-                $responsiblesUserGroup = $userGroup;
-                break;
-            }
-        }
-
-        if (!$responsiblesUserGroup) {
-            return [];
-        }
-
-        $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
-        $responsiblesAssignments = $stageAssignmentDao->getByUserGroupId($responsiblesUserGroup->getId(), $contextId);
-
-        return $responsiblesAssignments->toArray();
     }
 
     private function filterPreModerationAssignments($responsiblesAssignments): array
