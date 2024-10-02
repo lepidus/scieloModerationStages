@@ -139,6 +139,21 @@ msgstr "<strong>Obs.:</strong> Os lembretes de moderação serão enviados todas
 msgid "plugins.generic.scieloModerationStages.sendModerationReminder"
 msgstr "Enviar lembrete de moderação"
 
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.responsible.title"
+msgstr "Responsável"
+
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.responsible.description"
+msgstr "Selecione para qual responsável deve ser enviado o lembrete de moderação"
+
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.reminderBody.title"
+msgstr "Corpo do lembrete"
+
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.reminderBody.description"
+msgstr "Corpo da mensagem de lembrete a ser enviada"
+
+msgid "plugins.generic.scieloModerationStages.send"
+msgstr "Enviar"
+
 msgid "plugins.generic.scieloModerationStages.submissionMade.lessThanADayAgo"
 msgstr "Submissão realizada há menos de um dia"
 
