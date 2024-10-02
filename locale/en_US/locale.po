@@ -136,6 +136,9 @@ msgid "plugins.generic.scieloModerationStages.settings.remindersDayOfWeek"
 msgstr "<strong>Note:</strong> Moderation reminders will be sent every Monday."
 
 
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder"
+msgstr "Send moderation reminder"
+
 msgid "plugins.generic.scieloModerationStages.submissionMade.lessThanADayAgo"
 msgstr "Submission made less than a day ago"
 

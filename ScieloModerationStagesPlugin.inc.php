@@ -98,14 +98,21 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         return array_merge(
             [
                 new LinkAction(
+                    'sendModerationReminder',
+                    new AjaxModal(
+                        $router->url($request, null, null, 'manage', null, ['verb' => 'sendModerationReminder', 'plugin' => $this->getName(), 'category' => 'generic']),
+                        __('plugins.generic.scieloModerationStages.sendModerationReminder')
+                    ),
+                    __('plugins.generic.scieloModerationStages.sendModerationReminder')
+                ),
+                new LinkAction(
                     'settings',
                     new AjaxModal(
                         $router->url($request, null, null, 'manage', null, ['verb' => 'settings', 'plugin' => $this->getName(), 'category' => 'generic']),
                         __('plugins.generic.scieloModerationStages.settings.title')
                     ),
-                    __('manager.plugins.settings'),
-                    null
-                ),
+                    __('manager.plugins.settings')
+                )
             ],
             parent::getActions($request, $actionArgs)
         );
@@ -118,20 +125,27 @@ class ScieloModerationStagesPlugin extends GenericPlugin
 
         switch ($request->getUserVar('verb')) {
             case 'settings':
-                $this->import('ScieloModerationStagesSettingsForm');
-                $form = new ScieloModerationStagesSettingsForm($this, $contextId);
-                if ($request->getUserVar('save')) {
-                    $form->readInputData();
-                    if ($form->validate()) {
-                        $form->execute();
-                        return new JSONMessage(true);
-                    }
-                } else {
-                    $form->initData();
-                }
-                return new JSONMessage(true, $form->fetch($request));
+                return $this->handlePluginForm($request, $contextId, 'ScieloModerationStagesSettingsForm');
+            case 'sendModerationReminder':
+                return $this->handlePluginForm($request, $contextId, 'SendModerationReminderForm');
         }
         return parent::manage($args, $request);
+    }
+
+    private function handlePluginForm($request, $contextId, $formClass)
+    {
+        $this->import('form.'.$formClass);
+        $form = new $formClass($this, $contextId);
+        if ($request->getUserVar('save')) {
+            $form->readInputData();
+            if ($form->validate()) {
+                $form->execute();
+                return new JSONMessage(true);
+            }
+        } else {
+            $form->initData();
+        }
+        return new JSONMessage(true, $form->fetch($request));
     }
 
     public function setupScieloModerationStagesHandler($hookName, $params)

@@ -136,6 +136,9 @@ msgid "plugins.generic.scieloModerationStages.settings.remindersDayOfWeek"
 msgstr "<strong>Nota:</strong> Los recordatorios de moderación se enviarán todos los lunes."
 
 
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder"
+msgstr "Enviar recordatorio de moderación"
+
 msgid "plugins.generic.scieloModerationStages.submissionMade.lessThanADayAgo"
 msgstr "Envío realizado hace menos de un día"
 

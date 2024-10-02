@@ -136,6 +136,9 @@ msgid "plugins.generic.scieloModerationStages.settings.remindersDayOfWeek"
 msgstr "<strong>Obs.:</strong> Os lembretes de moderação serão enviados todas as segundas-feiras."
 
 
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder"
+msgstr "Enviar lembrete de moderação"
+
 msgid "plugins.generic.scieloModerationStages.submissionMade.lessThanADayAgo"
 msgstr "Submissão realizada há menos de um dia"
 
