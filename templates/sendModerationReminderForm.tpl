@@ -10,7 +10,7 @@
         {include file="controllers/notification/inPlaceNotification.tpl" notificationId="sendModerationReminderFormNotification"}
 
         {fbvFormSection id="responsibleSection" label="plugins.generic.scieloModerationStages.sendModerationReminder.responsible.title"}
-            {fbvElement type="select" id="responsible" name="responsible" from=$responsibles required="true" label="plugins.generic.scieloModerationStages.sendModerationReminder.responsible.description" size=$fbvStyles.size.MEDIUM}
+            {fbvElement type="select" id="responsible" name="responsible" from=$responsibles required="true" label="plugins.generic.scieloModerationStages.sendModerationReminder.responsible.description" translate=false size=$fbvStyles.size.MEDIUM}
         {/fbvFormSection}
 
         {fbvFormSection id="reminderBodySection" label="plugins.generic.scieloModerationStages.sendModerationReminder.reminderBody.title"}
