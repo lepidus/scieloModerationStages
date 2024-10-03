@@ -18,7 +18,7 @@ class SendModerationReminders extends ScheduledTask
         $context = Application::get()->getRequest()->getContext();
         $moderationReminderHelper = new ModerationReminderHelper();
         $responsiblesAssignments = $moderationReminderHelper->getResponsiblesAssignments($context->getId());
-        $preModerationAssignments = $moderationReminderHelper->filterPreModerationAssignments($responsiblesAssignments);
+        $preModerationAssignments = $moderationReminderHelper->filterAssignmentsOfSubmissionsOnPreModeration($responsiblesAssignments);
 
         if (empty($preModerationAssignments)) {
             return true;

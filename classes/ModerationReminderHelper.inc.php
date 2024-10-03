@@ -40,7 +40,7 @@ class ModerationReminderHelper
         return $responsiblesAssignments->toArray();
     }
 
-    public function filterPreModerationAssignments(array $assignments): array
+    public function filterAssignmentsOfSubmissionsOnPreModeration(array $assignments): array
     {
         $preModerationAssignments = [];
 
@@ -54,5 +54,21 @@ class ModerationReminderHelper
         }
 
         return $preModerationAssignments;
+    }
+
+    public function getUsersFromAssignments(array $assignments): array
+    {
+        $users = [];
+        $userDao = DAORegistry::getDAO('UserDAO');
+
+        foreach ($assignments as $assignment) {
+            $user = $userDao->getById($assignment->getUserId());
+
+            if ($user and !isset($users[$user->getId()])) {
+                $users[$user->getId()] = $user;
+            }
+        }
+
+        return $users;
     }
 }
