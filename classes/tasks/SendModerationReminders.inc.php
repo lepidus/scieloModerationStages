@@ -18,7 +18,7 @@ class SendModerationReminders extends ScheduledTask
         $context = Application::get()->getRequest()->getContext();
         $moderationReminderHelper = new ModerationReminderHelper();
         $responsiblesAssignments = $moderationReminderHelper->getResponsiblesAssignments($context->getId());
-        $preModerationAssignments = $this->filterPreModerationAssignments($responsiblesAssignments);
+        $preModerationAssignments = $moderationReminderHelper->filterPreModerationAssignments($responsiblesAssignments);
 
         if (empty($preModerationAssignments)) {
             return true;
@@ -36,23 +36,6 @@ class SendModerationReminders extends ScheduledTask
         }
 
         return true;
-    }
-
-    private function filterPreModerationAssignments($responsiblesAssignments): array
-    {
-        $moderationStageDao = new ModerationStageDAO();
-        $preModerationAssignments = [];
-
-        foreach ($responsiblesAssignments as $assignment) {
-            $submissionId = $assignment->getData('submissionId');
-            $submissionModerationStage = $moderationStageDao->getSubmissionModerationStage($submissionId);
-
-            if ($submissionModerationStage === SCIELO_MODERATION_STAGE_CONTENT) {
-                $preModerationAssignments[] = $assignment;
-            }
-        }
-
-        return $preModerationAssignments;
     }
 
     private function getUsersWithOverduePreModeration($contextId, $preModerationAssignments): array

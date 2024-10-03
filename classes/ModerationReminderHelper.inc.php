@@ -11,6 +11,11 @@ class ModerationReminderHelper
         $this->moderationStageDao = new ModerationStageDAO();
     }
 
+    public function setModerationStageDao($moderationStageDao)
+    {
+        $this->moderationStageDao = $moderationStageDao;
+    }
+
     public function getResponsiblesAssignments(int $contextId): array
     {
         $userGroupDao = DAORegistry::getDAO('UserGroupDAO');
@@ -33,5 +38,21 @@ class ModerationReminderHelper
         $responsiblesAssignments = $stageAssignmentDao->getByUserGroupId($responsiblesUserGroup->getId(), $contextId);
 
         return $responsiblesAssignments->toArray();
+    }
+
+    public function filterPreModerationAssignments(array $assignments): array
+    {
+        $preModerationAssignments = [];
+
+        foreach ($assignments as $assignment) {
+            $submissionId = $assignment->getData('submissionId');
+            $submissionModerationStage = $this->moderationStageDao->getSubmissionModerationStage($submissionId);
+
+            if ($submissionModerationStage === SCIELO_MODERATION_STAGE_CONTENT) {
+                $preModerationAssignments[] = $assignment;
+            }
+        }
+
+        return $preModerationAssignments;
     }
 }
