@@ -22,3 +22,26 @@
     </div>
 </form>
 
+{capture assign=getReminderBodyUrl}{url router=$smarty.const.ROUTE_COMPONENT component="plugins.generic.scieloModerationStages.controllers.ScieloModerationStagesHandler" op="getReminderBody" escape=false}{/capture}
+<script>
+    function updateReminderBody(response){ldelim}
+        let reminderBodyTextarea = $('textarea[name=reminderBody]');
+        let tinyTextarea = tinyMCE.EditorManager.get(reminderBodyTextarea.attr('id'));
+
+        response = JSON.parse(response);
+        tinyTextarea.setContent(response['reminderBody']);
+    {rdelim}
+
+    $(function(){ldelim}
+        $('#responsible').change(function () {
+            let responsibleId = $('#responsible').val();
+            $.get(
+                "{$getReminderBodyUrl}",
+                {ldelim}
+                    responsible: responsibleId,
+                {rdelim},
+                updateReminderBody
+            );
+        });
+    {rdelim});
+</script>

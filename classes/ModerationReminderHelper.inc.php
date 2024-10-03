@@ -16,7 +16,7 @@ class ModerationReminderHelper
         $this->moderationStageDao = $moderationStageDao;
     }
 
-    public function getResponsiblesAssignments(int $contextId): array
+    public function getResponsiblesUserGroup(int $contextId)
     {
         $userGroupDao = DAORegistry::getDAO('UserGroupDAO');
         $contextUserGroups = $userGroupDao->getByContextId($contextId)->toArray();
@@ -30,6 +30,11 @@ class ModerationReminderHelper
             }
         }
 
+        return $responsiblesUserGroup;
+    }
+
+    public function getResponsibleAssignments($responsiblesUserGroup, $contextId): array
+    {
         if (!$responsiblesUserGroup) {
             return [];
         }
@@ -70,5 +75,29 @@ class ModerationReminderHelper
         }
 
         return $users;
+    }
+
+    private function mapUsersAndSubmissions($users, $assignments)
+    {
+        $usersMap = [];
+        $submissionDao = DAORegistry::getDAO('SubmissionDAO');
+
+        foreach ($users as $userId) {
+            foreach ($assignments as $assignment) {
+                if ($userId != $assignment->getData('userId')) {
+                    continue;
+                }
+
+                $submission = $submissionDao->getById($assignment->getData('submissionId'));
+
+                if (isset($usersMap[$userId])) {
+                    $usersMap[$userId] = array_merge($usersMap[$userId], [$submission]);
+                } else {
+                    $usersMap[$userId] = [$submission];
+                }
+            }
+        }
+
+        return $usersMap;
     }
 }

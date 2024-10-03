@@ -17,15 +17,16 @@ class SendModerationReminders extends ScheduledTask
 
         $context = Application::get()->getRequest()->getContext();
         $moderationReminderHelper = new ModerationReminderHelper();
-        $responsiblesAssignments = $moderationReminderHelper->getResponsiblesAssignments($context->getId());
-        $preModerationAssignments = $moderationReminderHelper->filterAssignmentsOfSubmissionsOnPreModeration($responsiblesAssignments);
+        $responsiblesUserGroup = $moderationReminderHelper->getResponsiblesUserGroup($context->getId());
+        $responsibleAssignments = $moderationReminderHelper->getResponsibleAssignments($responsiblesUserGroup, $context->getId());
+        $preModerationAssignments = $moderationReminderHelper->filterAssignmentsOfSubmissionsOnPreModeration($responsibleAssignments);
 
         if (empty($preModerationAssignments)) {
             return true;
         }
 
         $usersWithOverduePreModeration = $this->getUsersWithOverduePreModeration($context->getId(), $preModerationAssignments);
-        $mapModeratorsAndOverdueSubmissions = $this->mapModeratorsAndOverdueSubmissions($usersWithOverduePreModeration, $preModerationAssignments);
+        $mapModeratorsAndOverdueSubmissions = $moderationReminderHelper->mapUsersAndSubmissions($usersWithOverduePreModeration, $preModerationAssignments);
 
         foreach ($mapModeratorsAndOverdueSubmissions as $userId => $submissions) {
             $moderator = DAORegistry::getDAO('UserDAO')->getById($userId);
@@ -54,29 +55,5 @@ class SendModerationReminders extends ScheduledTask
         }
 
         return $usersIds;
-    }
-
-    private function mapModeratorsAndOverdueSubmissions($moderators, $preModerationAssignments)
-    {
-        $moderatorsMap = [];
-        $submissionDao = DAORegistry::getDAO('SubmissionDAO');
-
-        foreach ($moderators as $moderatorId) {
-            foreach ($preModerationAssignments as $assignment) {
-                if ($moderatorId != $assignment->getData('userId')) {
-                    continue;
-                }
-
-                $submission = $submissionDao->getById($assignment->getData('submissionId'));
-
-                if (isset($moderatorsMap[$moderatorId])) {
-                    $moderatorsMap[$moderatorId] = array_merge($moderatorsMap[$moderatorId], [$submission]);
-                } else {
-                    $moderatorsMap[$moderatorId] = [$submission];
-                }
-            }
-        }
-
-        return $moderatorsMap;
     }
 }

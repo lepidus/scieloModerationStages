@@ -18,7 +18,8 @@ class SendModerationReminderForm extends Form
     private function getResponsibles(int $contextId): array
     {
         $moderationReminderHelper = new ModerationReminderHelper();
-        $responsibleAssignments = $moderationReminderHelper->getResponsiblesAssignments($contextId);
+        $responsiblesUserGroup = $moderationReminderHelper->getResponsiblesUserGroup($contextId);
+        $responsibleAssignments = $moderationReminderHelper->getResponsibleAssignments($responsiblesUserGroup, $contextId);
 
         if (empty($responsibleAssignments)) {
             return [];
