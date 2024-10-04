@@ -5,11 +5,38 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 import('classes.handler.Handler');
 import('classes.workflow.EditorDecisionActionsManager');
 import('plugins.generic.scieloModerationStages.classes.ModerationStageDAO');
+import('plugins.generic.scieloModerationStages.classes.ModerationReminderHelper');
+import('plugins.generic.scieloModerationStages.classes.ModerationReminderEmailBuilder');
 
 class ScieloModerationStagesHandler extends Handler
 {
     private const SUBMISSION_STAGE_ID = 5;
     private const THRESHOLD_TIME_EXHIBITORS = 2;
+
+    public function getReminderBody($args, $request)
+    {
+        $responsible = DAORegistry::getDAO('UserDAO')->getById((int) $args['responsible']);
+
+        $moderationReminderHelper = new ModerationReminderHelper();
+        $context = $request->getContext();
+        $responsiblesUserGroup = $moderationReminderHelper->getResponsiblesUserGroup($context->getId());
+        $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
+        $assignments = $stageAssignmentDao->_getByIds(null, null, $responsiblesUserGroup->getId(), $responsible->getId())->toArray();
+
+        $submissions = [];
+        foreach ($assignments as $assignment) {
+            $submission = DAORegistry::getDAO('SubmissionDAO')->getById($assignment->getSubmissionId());
+
+            if ($submission) {
+                $submissions[] = $submission;
+            }
+        }
+
+        $moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($context, $responsible, $submissions);
+        $reminderEmail = $moderationReminderEmailBuilder->buildEmail();
+
+        return json_encode(['reminderBody' => $reminderEmail->getBody()]);
+    }
 
     public function updateSubmissionStageData($args, $request)
     {
