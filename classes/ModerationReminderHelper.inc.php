@@ -77,7 +77,7 @@ class ModerationReminderHelper
         return $users;
     }
 
-    private function mapUsersAndSubmissions($users, $assignments)
+    public function mapUsersAndSubmissions($users, $assignments)
     {
         $usersMap = [];
         $submissionDao = DAORegistry::getDAO('SubmissionDAO');

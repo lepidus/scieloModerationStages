@@ -2,6 +2,7 @@
 
 import('lib.pkp.classes.form.Form');
 import('plugins.generic.scieloModerationStages.classes.ModerationReminderHelper');
+import('plugins.generic.scieloModerationStages.classes.ModerationReminderEmailBuilder');
 
 class SendModerationReminderForm extends Form
 {
@@ -60,7 +61,16 @@ class SendModerationReminderForm extends Form
 
     public function execute(...$functionArgs)
     {
-        error_log($this->getData('responsible'));
-        error_log($this->getData('reminderBody'));
+        $responsibleUserId = $this->getData('responsible');
+        $reminderBody = $this->getData('reminderBody');
+
+        $responsible = DAORegistry::getDAO('UserDAO')->getById($responsibleUserId);
+        $context = Application::get()->getRequest()->getContext();
+
+        $moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($context, $responsible, []);
+        $reminderEmail = $moderationReminderEmailBuilder->buildEmail();
+        $reminderEmail->setBody($reminderBody);
+
+        $reminderEmail->send();
     }
 }
