@@ -16,16 +16,22 @@ class ScieloModerationStagesHandler extends Handler
     public function getReminderBody($args, $request)
     {
         $responsible = DAORegistry::getDAO('UserDAO')->getById((int) $args['responsible']);
+        $context = $request->getContext();
 
         $moderationReminderHelper = new ModerationReminderHelper();
-        $context = $request->getContext();
         $responsiblesUserGroup = $moderationReminderHelper->getResponsiblesUserGroup($context->getId());
-        $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
-        $assignments = $stageAssignmentDao->_getByIds(null, null, $responsiblesUserGroup->getId(), $responsible->getId())->toArray();
+
+        $moderationStageDao = new ModerationStageDAO();
+        $assignments = $moderationStageDao->getAssignmentsByUserGroupAndModerationStage(
+            $responsiblesUserGroup->getId(),
+            SCIELO_MODERATION_STAGE_CONTENT,
+            $responsible->getId()
+        );
 
         $submissions = [];
+        $submissionDao = DAORegistry::getDAO('SubmissionDAO');
         foreach ($assignments as $assignment) {
-            $submission = DAORegistry::getDAO('SubmissionDAO')->getById($assignment->getSubmissionId());
+            $submission = $submissionDao->getById($assignment['submissionId']);
 
             if ($submission) {
                 $submissions[] = $submission;
