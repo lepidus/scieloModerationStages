@@ -84,11 +84,11 @@ class ModerationReminderHelper
 
         foreach ($users as $userId) {
             foreach ($assignments as $assignment) {
-                if ($userId != $assignment->getData('userId')) {
+                if ($userId != $assignment['userId']) {
                     continue;
                 }
 
-                $submission = $submissionDao->getById($assignment->getData('submissionId'));
+                $submission = $submissionDao->getById($assignment['submissionId']);
 
                 if (isset($usersMap[$userId])) {
                     $usersMap[$userId] = array_merge($usersMap[$userId], [$submission]);
