@@ -10,6 +10,7 @@
         {include file="controllers/notification/inPlaceNotification.tpl" notificationId="sendModerationReminderFormNotification"}
 
         {fbvFormSection id="responsibleSection" label="plugins.generic.scieloModerationStages.sendModerationReminder.responsible.title"}
+            <input type="hidden" id="responsiblesUserGroupId" name="responsiblesUserGroupId" value="{$responsiblesUserGroupId|escape}" />
             {fbvElement type="select" id="responsible" name="responsible" from=$responsibles required="true" label="plugins.generic.scieloModerationStages.sendModerationReminder.responsible.description" translate=false size=$fbvStyles.size.MEDIUM}
         {/fbvFormSection}
 
@@ -34,11 +35,13 @@
 
     $(function(){ldelim}
         $('#responsible').change(function () {
+            let responsiblesUserGroupId = $('#responsiblesUserGroupId').val();
             let responsibleId = $('#responsible').val();
             $.get(
                 "{$getReminderBodyUrl}",
                 {ldelim}
                     responsible: responsibleId,
+                    responsiblesUserGroup: responsiblesUserGroupId
                 {rdelim},
                 updateReminderBody
             );

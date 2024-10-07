@@ -5,7 +5,6 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 import('classes.handler.Handler');
 import('classes.workflow.EditorDecisionActionsManager');
 import('plugins.generic.scieloModerationStages.classes.ModerationStageDAO');
-import('plugins.generic.scieloModerationStages.classes.ModerationReminderHelper');
 import('plugins.generic.scieloModerationStages.classes.ModerationReminderEmailBuilder');
 
 class ScieloModerationStagesHandler extends Handler
@@ -15,15 +14,13 @@ class ScieloModerationStagesHandler extends Handler
 
     public function getReminderBody($args, $request)
     {
+        $responsiblesUserGroupId = (int) $args['responsiblesUserGroup'];
         $responsible = DAORegistry::getDAO('UserDAO')->getById((int) $args['responsible']);
         $context = $request->getContext();
 
-        $moderationReminderHelper = new ModerationReminderHelper();
-        $responsiblesUserGroup = $moderationReminderHelper->getResponsiblesUserGroup($context->getId());
-
         $moderationStageDao = new ModerationStageDAO();
         $assignments = $moderationStageDao->getAssignmentsByUserGroupAndModerationStage(
-            $responsiblesUserGroup->getId(),
+            $responsiblesUserGroupId,
             SCIELO_MODERATION_STAGE_CONTENT,
             $responsible->getId()
         );
