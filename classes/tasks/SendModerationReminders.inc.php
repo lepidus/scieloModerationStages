@@ -18,15 +18,19 @@ class SendModerationReminders extends ScheduledTask
         $context = Application::get()->getRequest()->getContext();
         $moderationReminderHelper = new ModerationReminderHelper();
         $responsiblesUserGroup = $moderationReminderHelper->getResponsiblesUserGroup($context->getId());
-        $responsibleAssignments = $moderationReminderHelper->getResponsibleAssignments($responsiblesUserGroup, $context->getId());
-        $preModerationAssignments = $moderationReminderHelper->filterAssignmentsOfSubmissionsOnPreModeration($responsibleAssignments);
 
-        if (empty($preModerationAssignments)) {
+        $moderationStageDao = new ModerationStageDAO();
+        $responsibleAssignments = $moderationStageDao->getAssignmentsByUserGroupAndModerationStage(
+            $responsiblesUserGroup->getId(),
+            SCIELO_MODERATION_STAGE_CONTENT
+        );
+
+        if (empty($responsibleAssignments)) {
             return true;
         }
 
-        $usersWithOverduePreModeration = $this->getUsersWithOverduePreModeration($context->getId(), $preModerationAssignments);
-        $mapModeratorsAndOverdueSubmissions = $moderationReminderHelper->mapUsersAndSubmissions($usersWithOverduePreModeration, $preModerationAssignments);
+        $usersWithOverduePreModeration = $this->getUsersWithOverduePreModeration($context->getId(), $responsibleAssignments);
+        $mapModeratorsAndOverdueSubmissions = $moderationReminderHelper->mapUsersAndSubmissions($usersWithOverduePreModeration, $responsibleAssignments);
 
         foreach ($mapModeratorsAndOverdueSubmissions as $userId => $submissions) {
             $moderator = DAORegistry::getDAO('UserDAO')->getById($userId);
@@ -39,18 +43,18 @@ class SendModerationReminders extends ScheduledTask
         return true;
     }
 
-    private function getUsersWithOverduePreModeration($contextId, $preModerationAssignments): array
+    private function getUsersWithOverduePreModeration($contextId, $assignments): array
     {
         $usersIds = [];
         $preModerationTimeLimit = $this->plugin->getSetting($contextId, 'preModerationTimeLimit');
         $moderationStageDao = new ModerationStageDAO();
 
-        foreach ($preModerationAssignments as $assignment) {
-            $submissionId = $assignment->getData('submissionId');
+        foreach ($assignments as $assignment) {
+            $submissionId = $assignment['submissionId'];
             $preModerationIsOverdue = $moderationStageDao->getPreModerationIsOverdue($submissionId, $preModerationTimeLimit);
 
-            if ($preModerationIsOverdue) {
-                $usersIds[] = $assignment->getData('userId');
+            if ($preModerationIsOverdue and !isset($usersIds[$assignment['userId']])) {
+                $usersIds[$assignment['userId']] = $assignment['userId'];
             }
         }
 

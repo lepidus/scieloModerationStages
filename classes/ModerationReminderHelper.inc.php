@@ -33,50 +33,6 @@ class ModerationReminderHelper
         return $responsiblesUserGroup;
     }
 
-    public function getResponsibleAssignments($responsiblesUserGroup, $contextId): array
-    {
-        if (!$responsiblesUserGroup) {
-            return [];
-        }
-
-        $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
-        $responsiblesAssignments = $stageAssignmentDao->getByUserGroupId($responsiblesUserGroup->getId(), $contextId);
-
-        return $responsiblesAssignments->toArray();
-    }
-
-    public function filterAssignmentsOfSubmissionsOnPreModeration(array $assignments): array
-    {
-        $preModerationAssignments = [];
-
-        foreach ($assignments as $assignment) {
-            $submissionId = $assignment->getData('submissionId');
-            $submissionModerationStage = $this->moderationStageDao->getSubmissionModerationStage($submissionId);
-
-            if ($submissionModerationStage === SCIELO_MODERATION_STAGE_CONTENT) {
-                $preModerationAssignments[] = $assignment;
-            }
-        }
-
-        return $preModerationAssignments;
-    }
-
-    public function getUsersFromAssignments(array $assignments): array
-    {
-        $users = [];
-        $userDao = DAORegistry::getDAO('UserDAO');
-
-        foreach ($assignments as $assignment) {
-            $user = $userDao->getById($assignment->getUserId());
-
-            if ($user and !isset($users[$user->getId()])) {
-                $users[$user->getId()] = $user;
-            }
-        }
-
-        return $users;
-    }
-
     public function mapUsersAndSubmissions($users, $assignments)
     {
         $usersMap = [];
@@ -84,11 +40,11 @@ class ModerationReminderHelper
 
         foreach ($users as $userId) {
             foreach ($assignments as $assignment) {
-                if ($userId != $assignment->getData('userId')) {
+                if ($userId != $assignment['userId']) {
                     continue;
                 }
 
-                $submission = $submissionDao->getById($assignment->getData('submissionId'));
+                $submission = $submissionDao->getById($assignment['submissionId']);
 
                 if (isset($usersMap[$userId])) {
                     $usersMap[$userId] = array_merge($usersMap[$userId], [$submission]);
