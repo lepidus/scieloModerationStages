@@ -41,4 +41,23 @@ class ModerationStageDAO extends DAO
 
         return $dateSubmitted < $limitDaysAgo;
     }
+
+    public function getAssignmentsByUserGroupAndModerationStage(int $userGroupId, int $moderationStage): array
+    {
+        $result = Capsule::table('stage_assignments AS sa')
+            ->leftJoin('submission_settings AS sub_s', 'sa.submission_id', '=', 'sub_s.submission_id')
+            ->where('sub_s.setting_name', 'currentModerationStage')
+            ->where('sub_s.setting_value', '=', $moderationStage)
+            ->where('sa.user_group_id', '=', $userGroupId)
+            ->select('sa.user_id', 'sa.submission_id')
+            ->get();
+
+        $assignments = [];
+        foreach ($result as $row) {
+            $row = get_object_vars($row);
+            $assignments[] = ['userId' => $row['user_id'], 'submissionId' => $row['submission_id']];
+        }
+
+        return $assignments;
+    }
 }
