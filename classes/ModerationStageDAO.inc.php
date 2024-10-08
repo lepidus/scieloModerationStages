@@ -10,6 +10,7 @@
  */
 
 import('lib.pkp.classes.db.DAO');
+import('classes.submission.Submission');
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Support\Collection;
@@ -44,8 +45,15 @@ class ModerationStageDAO extends DAO
 
     public function getAssignmentsByUserGroupAndModerationStage(int $userGroupId, int $moderationStage, ?int $userId = null): array
     {
+        $submissionsSubQuery = Capsule::table('submissions AS s')
+            ->leftJoin('publications AS p', 's.current_publication_id', '=', 'p.publication_id')
+            ->where('s.status', STATUS_QUEUED)
+            ->where('p.version', 1)
+            ->select('s.submission_id');
+
         $query = Capsule::table('stage_assignments AS sa')
             ->leftJoin('submission_settings AS sub_s', 'sa.submission_id', '=', 'sub_s.submission_id')
+            ->whereIn('sub_s.submission_id', $submissionsSubQuery)
             ->where('sub_s.setting_name', 'currentModerationStage')
             ->where('sub_s.setting_value', '=', $moderationStage)
             ->where('sa.user_group_id', '=', $userGroupId)
