@@ -21,7 +21,7 @@ class ModerationReminderEmailBuilderTest extends TestCase
         $this->context = $this->createTestContext();
         $this->moderator = $this->createModeratorUser();
         $this->submissions = $this->createTestSubmissions();
-        $this->moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($this->context, $this->moderator, $this->submissions);
+        $this->moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($this->context, $this->moderator, $this->submissions, $this->locale);
     }
 
     private function createTestContext()

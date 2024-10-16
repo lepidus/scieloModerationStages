@@ -35,7 +35,8 @@ class ScieloModerationStagesHandler extends Handler
             }
         }
 
-        $moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($context, $responsible, $submissions);
+        $locale = AppLocale::getLocale();
+        $moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($context, $responsible, $submissions, $locale);
         $reminderEmail = $moderationReminderEmailBuilder->buildEmail();
 
         return json_encode(['reminderBody' => $reminderEmail->getBody()]);

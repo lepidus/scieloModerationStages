@@ -7,12 +7,14 @@ class ModerationReminderEmailBuilder
     private $context;
     private $moderator;
     private $submissions;
+    private $locale;
 
-    public function __construct($context, $moderator, $submissions)
+    public function __construct($context, $moderator, $submissions, $locale)
     {
         $this->context = $context;
         $this->moderator = $moderator;
         $this->submissions = $submissions;
+        $this->locale = $locale;
     }
 
     public function buildEmail(): Mail
@@ -23,13 +25,13 @@ class ModerationReminderEmailBuilder
         $email->addRecipient($this->moderator->getEmail(), $this->moderator->getFullName());
         $email->addCc($this->context->getContactEmail(), $this->context->getContactName());
 
-        $email->setSubject(__('plugins.generic.scieloModerationStages.emails.moderationReminder.subject'));
+        $email->setSubject(__('plugins.generic.scieloModerationStages.emails.moderationReminder.subject', [], $this->locale));
 
         $bodyParams = [
             'moderatorName' => $this->moderator->getFullName(),
             'submissions' => $this->getSubmissionsString()
         ];
-        $email->setBody(__('plugins.generic.scieloModerationStages.emails.moderationReminder.body', $bodyParams));
+        $email->setBody(__('plugins.generic.scieloModerationStages.emails.moderationReminder.body', $bodyParams, $this->locale));
 
         return $email;
     }
@@ -58,13 +60,13 @@ class ModerationReminderEmailBuilder
         $daysBetween = (int) $today->diff($dateSubmitted)->format('%a');
 
         if ($daysBetween < 1) {
-            return __('plugins.generic.scieloModerationStages.submissionMade.lessThanADayAgo');
+            return __('plugins.generic.scieloModerationStages.submissionMade.lessThanADayAgo', [], $this->locale);
         }
 
         if ($daysBetween == 1) {
-            return __('plugins.generic.scieloModerationStages.submissionMade.aDayAgo');
+            return __('plugins.generic.scieloModerationStages.submissionMade.aDayAgo', [], $this->locale);
         }
 
-        return __('plugins.generic.scieloModerationStages.submissionMade.nDaysAgo', ['numberOfDays' => $daysBetween]);
+        return __('plugins.generic.scieloModerationStages.submissionMade.nDaysAgo', ['numberOfDays' => $daysBetween, $this->locale]);
     }
 }

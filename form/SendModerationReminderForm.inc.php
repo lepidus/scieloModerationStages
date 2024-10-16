@@ -82,7 +82,8 @@ class SendModerationReminderForm extends Form
         $responsible = DAORegistry::getDAO('UserDAO')->getById($responsibleUserId);
         $context = Application::get()->getRequest()->getContext();
 
-        $moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($context, $responsible, []);
+        $locale = AppLocale::getLocale();
+        $moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($context, $responsible, [], $locale);
         $reminderEmail = $moderationReminderEmailBuilder->buildEmail();
         $reminderEmail->setBody($reminderBody);
 
