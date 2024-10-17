@@ -160,8 +160,11 @@ msgstr "Submission made less than a day ago"
 msgid "plugins.generic.scieloModerationStages.submissionMade.aDayAgo"
 msgstr "Submission made a day ago"
 
-msgid "plugins.generic.scieloModerationStages.submissionMade.nDaysAgo"
+msgid "plugins.generic.scieloModerationStages.submissionMade.nDaysAgo.regular"
 msgstr "Submission made {$numberOfDays} days ago"
+
+msgid "plugins.generic.scieloModerationStages.submissionMade.nDaysAgo.bold"
+msgstr "<strong>Submission made {$numberOfDays} days ago</strong>"
 
 msgid "plugins.generic.scieloModerationStages.emails.moderationReminder.subject"
 msgstr "Manuscripts awaiting pre-moderation"
