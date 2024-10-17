@@ -14,6 +14,7 @@ class ModerationReminderEmailBuilderTest extends TestCase
     private $context;
     private $moderator;
     private $submissions;
+    private $preModerationTimeLimit = 2;
     private $moderationReminderEmailBuilder;
 
     public function setUp(): void
@@ -21,7 +22,7 @@ class ModerationReminderEmailBuilderTest extends TestCase
         $this->context = $this->createTestContext();
         $this->moderator = $this->createModeratorUser();
         $this->submissions = $this->createTestSubmissions();
-        $this->moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($this->context, $this->moderator, $this->submissions, $this->locale);
+        $this->moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($this->context, $this->moderator, $this->submissions, $this->locale, $this->preModerationTimeLimit);
     }
 
     private function createTestContext()
@@ -73,7 +74,7 @@ class ModerationReminderEmailBuilderTest extends TestCase
 
         $firstSubmissionUrl = $request->getDispatcher()->url($request, ROUTE_PAGE, null, 'workflow', 'access', [$this->submissions[0]->getId()]);
         $secondSubmissionUrl = $request->getDispatcher()->url($request, ROUTE_PAGE, null, 'workflow', 'access', [$this->submissions[1]->getId()]);
-        $firstSubmissionDaysCount = __('plugins.generic.scieloModerationStages.submissionMade.nDaysAgo', ['numberOfDays' => 3]);
+        $firstSubmissionDaysCount = __('plugins.generic.scieloModerationStages.submissionMade.nDaysAgo.bold', ['numberOfDays' => 3]);
         $secondSubmissionDaysCount = __('plugins.generic.scieloModerationStages.submissionMade.lessThanADayAgo');
 
         $submissionsString = "<p><a href=\"$firstSubmissionUrl\">$firstSubmissionUrl</a> - $firstSubmissionDaysCount</p>";

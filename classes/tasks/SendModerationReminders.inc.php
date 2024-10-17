@@ -34,10 +34,11 @@ class SendModerationReminders extends ScheduledTask
 
         $locale = $context->getPrimaryLocale();
         $this->plugin->addLocaleData($locale);
+        $preModerationTimeLimit = $this->plugin->getSetting($context->getId(), 'preModerationTimeLimit');
 
         foreach ($mapModeratorsAndOverdueSubmissions as $userId => $submissions) {
             $moderator = DAORegistry::getDAO('UserDAO')->getById($userId);
-            $moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($context, $moderator, $submissions, $locale);
+            $moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($context, $moderator, $submissions, $locale, $preModerationTimeLimit);
 
             $reminderEmail = $moderationReminderEmailBuilder->buildEmail();
             $reminderEmail->send();

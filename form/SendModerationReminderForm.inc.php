@@ -83,7 +83,9 @@ class SendModerationReminderForm extends Form
         $context = Application::get()->getRequest()->getContext();
 
         $locale = AppLocale::getLocale();
-        $moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($context, $responsible, [], $locale);
+        $preModerationTimeLimit = $this->plugin->getSetting($this->contextId, 'preModerationTimeLimit');
+
+        $moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($context, $responsible, [], $locale, $preModerationTimeLimit);
         $reminderEmail = $moderationReminderEmailBuilder->buildEmail();
         $reminderEmail->setBody($reminderBody);
 

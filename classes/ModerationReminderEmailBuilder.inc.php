@@ -8,13 +8,15 @@ class ModerationReminderEmailBuilder
     private $moderator;
     private $submissions;
     private $locale;
+    private $preModerationTimeLimit;
 
-    public function __construct($context, $moderator, $submissions, $locale)
+    public function __construct($context, $moderator, $submissions, $locale, $preModerationTimeLimit)
     {
         $this->context = $context;
         $this->moderator = $moderator;
         $this->submissions = $submissions;
         $this->locale = $locale;
+        $this->preModerationTimeLimit = $preModerationTimeLimit;
     }
 
     public function buildEmail(): Mail
@@ -43,12 +45,9 @@ class ModerationReminderEmailBuilder
         $dispatcher = Application::get()->getDispatcher();
         $request->setDispatcher($dispatcher);
 
-        $plugin = PluginRegistry::getPlugin('generic', 'scielomoderationstagesplugin');
-        $preModerationTimeLimit = $plugin->getSetting($request->getContext()->getId(), 'preModerationTimeLimit');
-
         foreach ($this->submissions as $submission) {
             $submissionLink = $request->getDispatcher()->url($request, ROUTE_PAGE, null, 'workflow', 'access', [$submission->getId()]);
-            $submissionDaysString = $this->getSubmissionDaysString($submission, $preModerationTimeLimit);
+            $submissionDaysString = $this->getSubmissionDaysString($submission);
 
             $submissionsString .= "<p><a href=\"$submissionLink\">$submissionLink</a> - $submissionDaysString</p>";
         }
@@ -56,7 +55,7 @@ class ModerationReminderEmailBuilder
         return $submissionsString;
     }
 
-    private function getSubmissionDaysString($submission, $preModerationTimeLimit): string
+    private function getSubmissionDaysString($submission): string
     {
         $dateSubmitted = new DateTime($submission->getData('dateSubmitted'));
         $today = new DateTime();
@@ -70,7 +69,7 @@ class ModerationReminderEmailBuilder
             return __('plugins.generic.scieloModerationStages.submissionMade.aDayAgo', [], $this->locale);
         }
 
-        if ($daysBetween > $preModerationTimeLimit) {
+        if ($daysBetween > $this->preModerationTimeLimit) {
             return __('plugins.generic.scieloModerationStages.submissionMade.nDaysAgo.bold', ['numberOfDays' => $daysBetween], $this->locale);
         }
 
