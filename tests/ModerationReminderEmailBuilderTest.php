@@ -14,7 +14,7 @@ class ModerationReminderEmailBuilderTest extends TestCase
     private $context;
     private $moderator;
     private $submissions;
-    private $preModerationTimeLimit = 2;
+    private $moderationTimeLimit = 2;
     private $moderationReminderEmailBuilder;
 
     public function setUp(): void
@@ -22,7 +22,14 @@ class ModerationReminderEmailBuilderTest extends TestCase
         $this->context = $this->createTestContext();
         $this->moderator = $this->createModeratorUser();
         $this->submissions = $this->createTestSubmissions();
-        $this->moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($this->context, $this->moderator, $this->submissions, $this->locale, $this->preModerationTimeLimit);
+        $this->moderationReminderEmailBuilder = new ModerationReminderEmailBuilder(
+            $this->context,
+            $this->moderator,
+            $this->submissions,
+            $this->locale,
+            REMINDER_TYPE_PRE_MODERATION,
+            $this->moderationTimeLimit
+        );
     }
 
     private function createTestContext()

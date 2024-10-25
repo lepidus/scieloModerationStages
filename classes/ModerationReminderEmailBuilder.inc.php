@@ -2,21 +2,26 @@
 
 import('lib.pkp.classes.mail.Mail');
 
+define('REMINDER_TYPE_PRE_MODERATION', 'moderation');
+define('REMINDER_TYPE_AREA_MODERATION', 'areaModeration');
+
 class ModerationReminderEmailBuilder
 {
     private $context;
     private $moderator;
     private $submissions;
     private $locale;
-    private $preModerationTimeLimit;
+    private $reminderType;
+    private $moderationTimeLimit;
 
-    public function __construct($context, $moderator, $submissions, $locale, $preModerationTimeLimit)
+    public function __construct($context, $moderator, $submissions, $locale, $reminderType, $moderationTimeLimit)
     {
         $this->context = $context;
         $this->moderator = $moderator;
         $this->submissions = $submissions;
         $this->locale = $locale;
-        $this->preModerationTimeLimit = $preModerationTimeLimit;
+        $this->reminderType = $reminderType;
+        $this->moderationTimeLimit = $moderationTimeLimit;
     }
 
     public function buildEmail(): Mail
@@ -69,7 +74,7 @@ class ModerationReminderEmailBuilder
             return __('plugins.generic.scieloModerationStages.submissionMade.aDayAgo', [], $this->locale);
         }
 
-        if ($daysBetween > $this->preModerationTimeLimit) {
+        if ($daysBetween > $this->moderationTimeLimit) {
             return __('plugins.generic.scieloModerationStages.submissionMade.nDaysAgo.bold', ['numberOfDays' => $daysBetween], $this->locale);
         }
 
