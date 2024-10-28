@@ -18,19 +18,28 @@ class ModerationReminderHelper
 
     public function getResponsiblesUserGroup(int $contextId)
     {
+        return $this->getUserGroupByAbbrev($contextId, 'resp');
+    }
+
+    public function getAreaModeratorsUserGroup(int $contextId)
+    {
+        return $this->getUserGroupByAbbrev($contextId, 'am');
+    }
+
+    private function getUserGroupByAbbrev(int $contextId, string $abbrev)
+    {
         $userGroupDao = DAORegistry::getDAO('UserGroupDAO');
         $contextUserGroups = $userGroupDao->getByContextId($contextId)->toArray();
 
         foreach ($contextUserGroups as $userGroup) {
             $userGroupAbbrev = strtolower($userGroupDao->getSetting($userGroup->getId(), 'abbrev', 'en_US'));
 
-            if ($userGroupAbbrev === 'resp') {
-                $responsiblesUserGroup = $userGroup;
-                break;
+            if ($userGroupAbbrev === $abbrev) {
+                return $userGroup;
             }
         }
 
-        return $responsiblesUserGroup;
+        return null;
     }
 
     public function mapUsersAndSubmissions($users, $assignments)

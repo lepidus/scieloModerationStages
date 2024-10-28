@@ -73,4 +73,15 @@ class ModerationStageDAO extends DAO
 
         return $assignments;
     }
+
+    public function getDateOfUserAssignment(int $userId, int $submissionId): ?string
+    {
+        $result = Capsule::table('stage_assignments AS sa')
+            ->where('user_id', $userId)
+            ->where('submission_id', $submissionId)
+            ->select('date_assigned')
+            ->first();
+
+        return $result ? get_object_vars($result)['date_assigned'] : null;
+    }
 }

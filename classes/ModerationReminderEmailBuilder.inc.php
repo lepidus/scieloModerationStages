@@ -77,7 +77,7 @@ class ModerationReminderEmailBuilder
     private function getSubmissionDaysString($submission): string
     {
         $dateSubmitted = new DateTime($submission->getData('dateSubmitted'));
-        $dateModeratorAssigned = new DateTime($this->moderationStageDao->getDateOfUserAssignment($this->moderator, $submission->getId()));
+        $dateModeratorAssigned = new DateTime($this->moderationStageDao->getDateOfUserAssignment($this->moderator->getId(), $submission->getId()));
 
         $today = new DateTime();
         $daysSinceSubmission = (int) $today->diff($dateSubmitted)->format('%a');

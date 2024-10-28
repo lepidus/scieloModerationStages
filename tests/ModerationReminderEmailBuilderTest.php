@@ -47,6 +47,7 @@ class ModerationReminderEmailBuilderTest extends TestCase
     private function createModeratorUser(): User
     {
         $moderator = new User();
+        $moderator->setData('id', 2024);
         $moderator->setData('email', 'juancarlo.rodriguez@gmail.com');
         $moderator->setData('givenName', 'Juan Carlo', $this->locale);
         $moderator->setData('familyName', 'Rodriguez', $this->locale);
