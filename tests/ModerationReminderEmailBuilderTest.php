@@ -7,6 +7,7 @@ import('lib.pkp.classes.user.User');
 import('classes.submission.Submission');
 import('classes.publication.Publication');
 import('plugins.generic.scieloModerationStages.classes.ModerationReminderEmailBuilder');
+import('plugins.generic.scieloModerationStages.classes.ModerationStageDAO');
 
 class ModerationReminderEmailBuilderTest extends TestCase
 {
@@ -25,11 +26,13 @@ class ModerationReminderEmailBuilderTest extends TestCase
         $this->moderationReminderEmailBuilder = new ModerationReminderEmailBuilder(
             $this->context,
             $this->moderator,
-            REMINDER_TYPE_PRE_MODERATION,
-            $this->moderationTimeLimit,
             $this->submissions,
             $this->locale,
+            REMINDER_TYPE_PRE_MODERATION,
+            $this->moderationTimeLimit
         );
+        $mockedModerationStageDao = $this->crateMockModerationStageDao();
+        $this->moderationReminderEmailBuilder->setModerationStageDao($mockedModerationStageDao);
     }
 
     private function createTestContext()
@@ -53,7 +56,9 @@ class ModerationReminderEmailBuilderTest extends TestCase
 
     private function createTestSubmissions(): array
     {
-        $fiveDaysAgo = $threeDaysAgo = $today = new DateTime();
+        $fiveDaysAgo = new DateTime();
+        $threeDaysAgo = new DateTime();
+        $today = new DateTime();
         $fiveDaysAgo = $fiveDaysAgo->modify('-5 days')->format('Y-m-d H:i:s');
         $threeDaysAgo = $threeDaysAgo->modify('-3 days')->format('Y-m-d H:i:s');
         $today = $today->format('Y-m-d') . ' 00:00:00';
@@ -79,6 +84,25 @@ class ModerationReminderEmailBuilderTest extends TestCase
         return [$firstSubmission, $secondSubmission, $thirdSubmission];
     }
 
+    private function crateMockModerationStageDao()
+    {
+        $threeDaysAgo = new DateTime();
+        $yesterday = new DateTime();
+        $today = new DateTime();
+        $threeDaysAgo = $threeDaysAgo->modify('-3 days')->format('Y-m-d H:i:s');
+        $yesterday = $yesterday->modify('-1 days')->format('Y-m-d H:i:s');
+        $today = $today->format('Y-m-d') . ' 00:00:00';
+
+        $mockModerationStageDao = $this->getMockBuilder(ModerationStageDAO::class)
+            ->setMethods(['getDateOfUserAssignment'])
+            ->getMock();
+        $mockModerationStageDao->expects($this->any())
+            ->method('getDateOfUserAssignment')
+            ->will($this->onConsecutiveCalls($yesterday, $threeDaysAgo, $today));
+
+        return $mockModerationStageDao;
+    }
+
     private function getSubmissionsString($reminderType): string
     {
         $request = Application::get()->getRequest();
@@ -89,15 +113,10 @@ class ModerationReminderEmailBuilderTest extends TestCase
         $secondSubmissionUrl = $request->getDispatcher()->url($request, ROUTE_PAGE, null, 'workflow', 'access', [$this->submissions[1]->getId()]);
         $thirdSubmissionUrl = $request->getDispatcher()->url($request, ROUTE_PAGE, null, 'workflow', 'access', [$this->submissions[2]->getId()]);
 
-        if ($reminderType == REMINDER_TYPE_PRE_MODERATION) {
-            $firstSubmissionDaysCount = __('plugins.generic.scieloModerationStages.submissionMade.nDaysAgo.bold', ['numberOfDays' => 5]);
-            $firstSubmissionDaysCount = __('plugins.generic.scieloModerationStages.submissionMade.nDaysAgo.bold', ['numberOfDays' => 3]);
-            $thirdSubmissionDaysCount = __('plugins.generic.scieloModerationStages.submissionMade.lessThanADayAgo');
-        } elseif ($reminderType == REMINDER_TYPE_AREA_MODERATION) {
-            $firstSubmissionDaysCount = __('plugins.generic.scieloModerationStages.submissionMade.nDaysAgo.regular', ['numberOfDays' => 5]);
-            $firstSubmissionDaysCount = __('plugins.generic.scieloModerationStages.submissionMade.nDaysAgo.bold', ['numberOfDays' => 3]);
-            $thirdSubmissionDaysCount = __('plugins.generic.scieloModerationStages.submissionMade.lessThanADayAgo');
-        }
+        $firstSubmissionFontWeight = ($reminderType == REMINDER_TYPE_PRE_MODERATION ? 'bold' : 'regular');
+        $firstSubmissionDaysCount = __('plugins.generic.scieloModerationStages.submissionMade.nDaysAgo.' . $firstSubmissionFontWeight, ['numberOfDays' => 5]);
+        $secondSubmissionDaysCount = __('plugins.generic.scieloModerationStages.submissionMade.nDaysAgo.bold', ['numberOfDays' => 3]);
+        $thirdSubmissionDaysCount = __('plugins.generic.scieloModerationStages.submissionMade.lessThanADayAgo');
 
         $submissionsString = "<p><a href=\"$firstSubmissionUrl\">$firstSubmissionUrl</a> - $firstSubmissionDaysCount</p>";
         $submissionsString .= "<p><a href=\"$secondSubmissionUrl\">$secondSubmissionUrl</a> - $secondSubmissionDaysCount</p>";
@@ -132,15 +151,7 @@ class ModerationReminderEmailBuilderTest extends TestCase
 
     public function testAreaModerationReminderEmailBuilting(): void
     {
-        // create mock of moderation stage dao, to return date of assignment (?)
-        $this->moderationReminderEmailBuilder = new ModerationReminderEmailBuilder(
-            $this->context,
-            $this->moderator,
-            REMINDER_TYPE_AREA_MODERATION,
-            $this->moderationTimeLimit,
-            $this->submissions,
-            $this->locale,
-        );
+        $this->moderationReminderEmailBuilder->setReminderType(REMINDER_TYPE_AREA_MODERATION);
 
         $email = $this->moderationReminderEmailBuilder->buildEmail();
 
