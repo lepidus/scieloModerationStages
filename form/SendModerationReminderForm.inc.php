@@ -18,37 +18,44 @@ class SendModerationReminderForm extends Form
         parent::__construct($plugin->getTemplateResource('sendModerationReminderForm.tpl'));
     }
 
-    private function getResponsiblesUserGroupId(int $contextId): int
+    private function getResponsiblesUserGroupId($contextId)
     {
         $moderationReminderHelper = new ModerationReminderHelper();
         $responsiblesUserGroup = $moderationReminderHelper->getResponsiblesUserGroup($contextId);
 
-        return $responsiblesUserGroup->getId();
+        return ($responsiblesUserGroup ? $responsiblesUserGroup->getId() : null);
     }
 
-    private function getResponsibles(int $responsiblesUserGroupId): array
+    private function getAreaModeratorsUserGroupId($contextId)
+    {
+        $moderationReminderHelper = new ModerationReminderHelper();
+        $areaModeratorsUserGroup = $moderationReminderHelper->getAreaModeratorsUserGroup($contextId);
+
+        return ($areaModeratorsUserGroup ? $areaModeratorsUserGroup->getId() : null);
+    }
+
+    private function getUsersAssignedByGroupAndModerationStage(int $userGroupId, int $moderationStage): array
     {
         $moderationStageDao = new ModerationStageDAO();
-        $responsibleAssignments = $moderationStageDao->getAssignmentsByUserGroupAndModerationStage(
-            $responsiblesUserGroupId,
-            SCIELO_MODERATION_STAGE_CONTENT
+        $userAssignments = $moderationStageDao->getAssignmentsByUserGroupAndModerationStage(
+            $userGroupId,
+            $moderationStage
         );
 
-        if (empty($responsibleAssignments)) {
+        if (empty($userAssignments)) {
             return [];
         }
 
-        $responsibles = [null => null];
+        $usersAssigned = [null => null];
         $userDao = DAORegistry::getDAO('UserDAO');
-        foreach ($responsibleAssignments as $assignment) {
+        foreach ($userAssignments as $assignment) {
             $user = $userDao->getById($assignment['userId']);
-            $fullName = $user->getFullName();
-            $responsibles[$user->getId()] = $fullName;
+            $usersAssigned[$user->getId()] = $user->getFullName();
         }
 
-        asort($responsibles, SORT_STRING);
+        asort($usersAssigned, SORT_STRING);
 
-        return $responsibles;
+        return $usersAssigned;
     }
 
     public function fetch($request, $template = null, $display = false)
@@ -57,11 +64,24 @@ class SendModerationReminderForm extends Form
         $contextId = $request->getContext()->getId();
 
         $responsiblesUserGroupId = $this->getResponsiblesUserGroupId($contextId);
-        $responsibles = $this->getResponsibles($responsiblesUserGroupId);
+        if (!is_null($responsiblesUserGroupId)) {
+            $responsibles = $this->getUsersAssignedByGroupAndModerationStage($responsiblesUserGroupId, SCIELO_MODERATION_STAGE_CONTENT);
+            $templateMgr->assign([
+                'responsiblesUserGroupId' => $responsiblesUserGroupId,
+                'responsibles' => $responsibles
+            ]);
+        }
+
+        $areaModeratorsUserGroupId = $this->getAreaModeratorsUserGroupId($contextId);
+        if (!is_null($areaModeratorsUserGroupId)) {
+            $areaModerators = $this->getUsersAssignedByGroupAndModerationStage($areaModeratorsUserGroupId, SCIELO_MODERATION_STAGE_AREA);
+            $templateMgr->assign([
+                'areaModeratorsUserGroupId' => $areaModeratorsUserGroupId,
+                'areaModerators' => $areaModerators
+            ]);
+        }
 
         $templateMgr->assign([
-            'responsiblesUserGroupId' => $responsiblesUserGroupId,
-            'responsibles' => $responsibles,
             'pluginName' => $this->plugin->getName(),
             'applicationName' => Application::get()->getName()
         ]);
