@@ -97,21 +97,33 @@ class SendModerationReminderForm extends Form
 
     public function readInputData()
     {
-        $this->readUserVars(['responsible', 'reminderBody']);
+        $this->readUserVars(['reminderRole', 'responsible', 'areaModerator', 'reminderBody']);
     }
 
     public function execute(...$functionArgs)
     {
-        $responsibleUserId = $this->getData('responsible');
+        $reminderRole = $this->getData('reminderRole');
+        $locale = AppLocale::getLocale();
+        $context = Application::get()->getRequest()->getContext();
         $reminderBody = $this->getData('reminderBody');
 
-        $responsible = DAORegistry::getDAO('UserDAO')->getById($responsibleUserId);
-        $context = Application::get()->getRequest()->getContext();
+        if ($reminderRole == REMINDER_TYPE_PRE_MODERATION) {
+            $userId = $this->getData('responsible');
+            $moderationTimeLimit = $this->plugin->getSetting($this->contextId, 'preModerationTimeLimit');
+        } elseif ($reminderRole == REMINDER_TYPE_AREA_MODERATION) {
+            $userId = $this->getData('areaModerator');
+            $moderationTimeLimit = $this->plugin->getSetting($this->contextId, 'areaModerationTimeLimit');
+        }
 
-        $locale = AppLocale::getLocale();
-        $preModerationTimeLimit = $this->plugin->getSetting($this->contextId, 'preModerationTimeLimit');
-
-        $moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($context, $responsible, [], $locale, $preModerationTimeLimit);
+        $user = DAORegistry::getDAO('UserDAO')->getById($userId);
+        $moderationReminderEmailBuilder = new ModerationReminderEmailBuilder(
+            $context,
+            $user,
+            [],
+            $locale,
+            $reminderRole,
+            $moderationTimeLimit
+        );
         $reminderEmail = $moderationReminderEmailBuilder->buildEmail();
         $reminderEmail->setBody($reminderBody);
 
