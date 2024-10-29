@@ -139,11 +139,23 @@ msgstr "<strong>Nota:</strong> Los recordatorios de moderación se enviarán tod
 msgid "plugins.generic.scieloModerationStages.sendModerationReminder"
 msgstr "Enviar recordatorio de moderación"
 
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.role.title"
+msgstr "Rol"
+
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.role.description"
+msgstr "Seleccione a qué rol desea enviar el recordatorio"
+
 msgid "plugins.generic.scieloModerationStages.sendModerationReminder.responsible.title"
 msgstr "Responsable"
 
 msgid "plugins.generic.scieloModerationStages.sendModerationReminder.responsible.description"
-msgstr "Seleccione a quién debe enviarse el recordatorio de moderación"
+msgstr "Seleccione a qué responsable debe enviarse el recordatorio de moderación"
+
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.areaModerator.title"
+msgstr "Moderador/a de área"
+
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.areaModerator.description"
+msgstr "Seleccione a qué moderador/a de área debe enviarse el recordatorio de moderación"
 
 msgid "plugins.generic.scieloModerationStages.sendModerationReminder.reminderBody.title"
 msgstr "Cuerpo del recordatorio"

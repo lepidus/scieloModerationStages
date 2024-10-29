@@ -3,7 +3,7 @@
 import('lib.pkp.classes.mail.Mail');
 import('plugins.generic.scieloModerationStages.classes.ModerationStageDAO');
 
-define('REMINDER_TYPE_PRE_MODERATION', 'moderation');
+define('REMINDER_TYPE_PRE_MODERATION', 'preModeration');
 define('REMINDER_TYPE_AREA_MODERATION', 'areaModeration');
 
 class ModerationReminderEmailBuilder

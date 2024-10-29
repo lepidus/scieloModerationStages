@@ -14,15 +14,15 @@ class ScieloModerationStagesHandler extends Handler
 
     public function getReminderBody($args, $request)
     {
-        $responsiblesUserGroupId = (int) $args['responsiblesUserGroup'];
-        $responsible = DAORegistry::getDAO('UserDAO')->getById((int) $args['responsible']);
+        $userGroupId = (int) $args['userGroup'];
+        $userToRemind = DAORegistry::getDAO('UserDAO')->getById((int) $args['user']);
         $context = $request->getContext();
 
         $moderationStageDao = new ModerationStageDAO();
         $assignments = $moderationStageDao->getAssignmentsByUserGroupAndModerationStage(
-            $responsiblesUserGroupId,
+            $userGroupId,
             SCIELO_MODERATION_STAGE_CONTENT,
-            $responsible->getId()
+            $userToRemind->getId()
         );
 
         $submissions = [];
@@ -41,7 +41,7 @@ class ScieloModerationStagesHandler extends Handler
 
         $moderationReminderEmailBuilder = new ModerationReminderEmailBuilder(
             $context,
-            $responsible,
+            $userToRemind,
             $submissions,
             $locale,
             REMINDER_TYPE_PRE_MODERATION,

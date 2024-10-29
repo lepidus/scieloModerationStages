@@ -139,11 +139,23 @@ msgstr "<strong>Note:</strong> Moderation reminders will be sent every Monday."
 msgid "plugins.generic.scieloModerationStages.sendModerationReminder"
 msgstr "Send moderation reminder"
 
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.role.title"
+msgstr "Role"
+
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.role.description"
+msgstr "Select to which role you want to send the reminder"
+
 msgid "plugins.generic.scieloModerationStages.sendModerationReminder.responsible.title"
 msgstr "Responsible"
 
 msgid "plugins.generic.scieloModerationStages.sendModerationReminder.responsible.description"
-msgstr "Select to which responsible person the moderation reminder should be sent"
+msgstr "Select to which responsible the moderation reminder should be sent"
+
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.areaModerator.title"
+msgstr "Area moderator"
+
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.areaModerator.description"
+msgstr "Select to which area moderator the moderation reminder should be sent"
 
 msgid "plugins.generic.scieloModerationStages.sendModerationReminder.reminderBody.title"
 msgstr "Reminder body"

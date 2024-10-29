@@ -63,6 +63,11 @@ class SendModerationReminderForm extends Form
         $templateMgr = TemplateManager::getManager($request);
         $contextId = $request->getContext()->getId();
 
+        $roles = [
+            REMINDER_TYPE_PRE_MODERATION => __('plugins.generic.scieloModerationStages.sendModerationReminder.responsible.title'),
+            REMINDER_TYPE_AREA_MODERATION => __('plugins.generic.scieloModerationStages.sendModerationReminder.areaModerator.title')
+        ];
+
         $responsiblesUserGroupId = $this->getResponsiblesUserGroupId($contextId);
         if (!is_null($responsiblesUserGroupId)) {
             $responsibles = $this->getUsersAssignedByGroupAndModerationStage($responsiblesUserGroupId, SCIELO_MODERATION_STAGE_CONTENT);
@@ -82,6 +87,7 @@ class SendModerationReminderForm extends Form
         }
 
         $templateMgr->assign([
+            'roles' => $roles,
             'pluginName' => $this->plugin->getName(),
             'applicationName' => Application::get()->getName()
         ]);
