@@ -6,6 +6,7 @@ class ScieloModerationStagesSettingsForm extends Form
 {
     public const CONFIG_VARS = array(
         'preModerationTimeLimit' => 'int',
+        'areaModerationTimeLimit' => 'int'
     );
 
     public $contextId;
@@ -18,6 +19,9 @@ class ScieloModerationStagesSettingsForm extends Form
         parent::__construct($plugin->getTemplateResource('settingsForm.tpl'));
 
         $this->addCheck(new FormValidatorCustom($this, 'preModerationTimeLimit', 'required', 'plugins.generic.scieloModerationStages.settings.timeLimitError', function ($timeLimit) {
+            return is_numeric($timeLimit) && intval($timeLimit) > 0;
+        }));
+        $this->addCheck(new FormValidatorCustom($this, 'areaModerationTimeLimit', 'required', 'plugins.generic.scieloModerationStages.settings.timeLimitError', function ($timeLimit) {
             return is_numeric($timeLimit) && intval($timeLimit) > 0;
         }));
     }

@@ -15,13 +15,25 @@ class ScieloModerationStagesHandler extends Handler
     public function getReminderBody($args, $request)
     {
         $userGroupId = (int) $args['userGroup'];
+        $role = $args['role'];
         $userToRemind = DAORegistry::getDAO('UserDAO')->getById((int) $args['user']);
+
         $context = $request->getContext();
+        $locale = AppLocale::getLocale();
+        $plugin = PluginRegistry::getPlugin('generic', 'scielomoderationstagesplugin');
+
+        if ($role == REMINDER_TYPE_PRE_MODERATION) {
+            $moderationStage = SCIELO_MODERATION_STAGE_CONTENT;
+            $moderationTimeLimit = $plugin->getSetting($context->getId(), 'preModerationTimeLimit');
+        } elseif ($role == REMINDER_TYPE_AREA_MODERATION) {
+            $moderationStage = SCIELO_MODERATION_STAGE_AREA;
+            $moderationTimeLimit = $plugin->getSetting($context->getId(), 'areaModerationTimeLimit');
+        }
 
         $moderationStageDao = new ModerationStageDAO();
         $assignments = $moderationStageDao->getAssignmentsByUserGroupAndModerationStage(
             $userGroupId,
-            SCIELO_MODERATION_STAGE_CONTENT,
+            $moderationStage,
             $userToRemind->getId()
         );
 
@@ -35,17 +47,13 @@ class ScieloModerationStagesHandler extends Handler
             }
         }
 
-        $locale = AppLocale::getLocale();
-        $plugin = PluginRegistry::getPlugin('generic', 'scielomoderationstagesplugin');
-        $preModerationTimeLimit = $plugin->getSetting($context->getId(), 'preModerationTimeLimit');
-
         $moderationReminderEmailBuilder = new ModerationReminderEmailBuilder(
             $context,
             $userToRemind,
             $submissions,
             $locale,
-            REMINDER_TYPE_PRE_MODERATION,
-            $preModerationTimeLimit
+            $role,
+            $moderationTimeLimit
         );
         $reminderEmail = $moderationReminderEmailBuilder->buildEmail();
 
