@@ -129,6 +129,15 @@ msgstr "Send a reminder to assigned responsibles if they have not sent an answer
 msgid "plugins.generic.scieloModerationStages.settings.preModerationReminder.hint"
 msgstr "days of submitting the manuscript"
 
+msgid "plugins.generic.scieloModerationStages.settings.areaModerationReminder.label"
+msgstr "Sending of area moderation reminder"
+
+msgid "plugins.generic.scieloModerationStages.settings.areaModerationReminder.description"
+msgstr "Send a reminder to assigned area moderators if they have not sent an answer within"
+
+msgid "plugins.generic.scieloModerationStages.settings.areaModerationReminder.hint"
+msgstr "days after their assignment to the manuscript"
+
 msgid "plugins.generic.scieloModerationStages.settings.timeLimitError"
 msgstr "Enter a numeric value greater than zero"
 

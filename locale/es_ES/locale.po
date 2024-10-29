@@ -129,6 +129,15 @@ msgstr "Enviar un recordatorio a los responsables designados si no han enviado u
 msgid "plugins.generic.scieloModerationStages.settings.preModerationReminder.hint"
 msgstr "días siguientes a la presentación del manuscrito"
 
+msgid "plugins.generic.scieloModerationStages.settings.areaModerationReminder.label"
+msgstr "Envío de un recordatorio de moderación de área"
+
+msgid "plugins.generic.scieloModerationStages.settings.areaModerationReminder.description"
+msgstr "Enviar un recordatorio a los moderadores de área designados si no han enviado una respuesta en los"
+
+msgid "plugins.generic.scieloModerationStages.settings.areaModerationReminder.hint"
+msgstr "días siguientes a su asignación al manuscrito"
+
 msgid "plugins.generic.scieloModerationStages.settings.timeLimitError"
 msgstr "Introduzca un valor numérico mayor que cero"
 
