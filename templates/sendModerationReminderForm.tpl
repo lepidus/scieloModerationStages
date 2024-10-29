@@ -63,7 +63,7 @@
         });
         $('#areaModerator').change(function () {
             let areaModeratorsUserGroupId = $('#areaModeratorsUserGroupId').val();
-            let areaModeratorId = $('#responsible').val();
+            let areaModeratorId = $('#areaModerator').val();
             getReminderBody(areaModeratorId, areaModeratorsUserGroupId);
         });
 
