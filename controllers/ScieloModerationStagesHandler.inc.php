@@ -14,15 +14,27 @@ class ScieloModerationStagesHandler extends Handler
 
     public function getReminderBody($args, $request)
     {
-        $responsiblesUserGroupId = (int) $args['responsiblesUserGroup'];
-        $responsible = DAORegistry::getDAO('UserDAO')->getById((int) $args['responsible']);
+        $userGroupId = (int) $args['userGroup'];
+        $role = $args['role'];
+        $userToRemind = DAORegistry::getDAO('UserDAO')->getById((int) $args['user']);
+
         $context = $request->getContext();
+        $locale = AppLocale::getLocale();
+        $plugin = PluginRegistry::getPlugin('generic', 'scielomoderationstagesplugin');
+
+        if ($role == REMINDER_TYPE_PRE_MODERATION) {
+            $moderationStage = SCIELO_MODERATION_STAGE_CONTENT;
+            $moderationTimeLimit = $plugin->getSetting($context->getId(), 'preModerationTimeLimit');
+        } elseif ($role == REMINDER_TYPE_AREA_MODERATION) {
+            $moderationStage = SCIELO_MODERATION_STAGE_AREA;
+            $moderationTimeLimit = $plugin->getSetting($context->getId(), 'areaModerationTimeLimit');
+        }
 
         $moderationStageDao = new ModerationStageDAO();
         $assignments = $moderationStageDao->getAssignmentsByUserGroupAndModerationStage(
-            $responsiblesUserGroupId,
-            SCIELO_MODERATION_STAGE_CONTENT,
-            $responsible->getId()
+            $userGroupId,
+            $moderationStage,
+            $userToRemind->getId()
         );
 
         $submissions = [];
@@ -35,11 +47,14 @@ class ScieloModerationStagesHandler extends Handler
             }
         }
 
-        $locale = AppLocale::getLocale();
-        $plugin = PluginRegistry::getPlugin('generic', 'scielomoderationstagesplugin');
-        $preModerationTimeLimit = $plugin->getSetting($context->getId(), 'preModerationTimeLimit');
-
-        $moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($context, $responsible, $submissions, $locale, $preModerationTimeLimit);
+        $moderationReminderEmailBuilder = new ModerationReminderEmailBuilder(
+            $context,
+            $userToRemind,
+            $submissions,
+            $locale,
+            $role,
+            $moderationTimeLimit
+        );
         $reminderEmail = $moderationReminderEmailBuilder->buildEmail();
 
         return json_encode(['reminderBody' => $reminderEmail->getBody()]);

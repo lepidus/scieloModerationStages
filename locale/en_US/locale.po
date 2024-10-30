@@ -129,6 +129,15 @@ msgstr "Send a reminder to assigned responsibles if they have not sent an answer
 msgid "plugins.generic.scieloModerationStages.settings.preModerationReminder.hint"
 msgstr "days of submitting the manuscript"
 
+msgid "plugins.generic.scieloModerationStages.settings.areaModerationReminder.label"
+msgstr "Sending of area moderation reminder"
+
+msgid "plugins.generic.scieloModerationStages.settings.areaModerationReminder.description"
+msgstr "Send a reminder to assigned area moderators if they have not sent an answer within"
+
+msgid "plugins.generic.scieloModerationStages.settings.areaModerationReminder.hint"
+msgstr "days after their assignment to the manuscript"
+
 msgid "plugins.generic.scieloModerationStages.settings.timeLimitError"
 msgstr "Enter a numeric value greater than zero"
 
@@ -139,11 +148,23 @@ msgstr "<strong>Note:</strong> Moderation reminders will be sent every Monday."
 msgid "plugins.generic.scieloModerationStages.sendModerationReminder"
 msgstr "Send moderation reminder"
 
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.role.title"
+msgstr "Role"
+
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.role.description"
+msgstr "Select to which role you want to send the reminder"
+
 msgid "plugins.generic.scieloModerationStages.sendModerationReminder.responsible.title"
 msgstr "Responsible"
 
 msgid "plugins.generic.scieloModerationStages.sendModerationReminder.responsible.description"
-msgstr "Select to which responsible person the moderation reminder should be sent"
+msgstr "Select to which responsible the moderation reminder should be sent"
+
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.areaModerator.title"
+msgstr "Area moderator"
+
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.areaModerator.description"
+msgstr "Select to which area moderator the moderation reminder should be sent"
 
 msgid "plugins.generic.scieloModerationStages.sendModerationReminder.reminderBody.title"
 msgstr "Reminder body"
@@ -166,10 +187,23 @@ msgstr "Submission made {$numberOfDays} days ago"
 msgid "plugins.generic.scieloModerationStages.submissionMade.nDaysAgo.bold"
 msgstr "<strong>Submission made {$numberOfDays} days ago</strong>"
 
-msgid "plugins.generic.scieloModerationStages.emails.moderationReminder.subject"
+msgid "plugins.generic.scieloModerationStages.emails.preModerationReminder.subject"
 msgstr "Manuscripts awaiting pre-moderation"
 
-msgid "plugins.generic.scieloModerationStages.emails.moderationReminder.body"
+msgid "plugins.generic.scieloModerationStages.emails.preModerationReminder.body"
+msgstr ""
+"Hello, {$moderatorName}<br/>\n"
+"<br/>\n"
+"The manuscripts below await your moderation.<br/>\n"
+"<br/>\n"
+"{$submissions}"
+"<br/>\n"
+"This is an automatic email. If you have already sent your moderation for these manuscripts, please disregard this email."
+
+msgid "plugins.generic.scieloModerationStages.emails.areaModerationReminder.subject"
+msgstr "Manuscripts awaiting area moderation"
+
+msgid "plugins.generic.scieloModerationStages.emails.areaModerationReminder.body"
 msgstr ""
 "Hello, {$moderatorName}<br/>\n"
 "<br/>\n"
