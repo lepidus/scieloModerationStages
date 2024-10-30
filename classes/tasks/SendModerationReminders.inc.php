@@ -38,7 +38,14 @@ class SendModerationReminders extends ScheduledTask
 
         foreach ($mapModeratorsAndOverdueSubmissions as $userId => $submissions) {
             $moderator = DAORegistry::getDAO('UserDAO')->getById($userId);
-            $moderationReminderEmailBuilder = new ModerationReminderEmailBuilder($context, $moderator, $submissions, $locale, $preModerationTimeLimit);
+            $moderationReminderEmailBuilder = new ModerationReminderEmailBuilder(
+                $context,
+                $moderator,
+                $submissions,
+                $locale,
+                REMINDER_TYPE_PRE_MODERATION,
+                $preModerationTimeLimit
+            );
 
             $reminderEmail = $moderationReminderEmailBuilder->buildEmail();
             $reminderEmail->send();
