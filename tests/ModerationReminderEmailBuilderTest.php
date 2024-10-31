@@ -31,7 +31,7 @@ class ModerationReminderEmailBuilderTest extends TestCase
             ModerationReminderEmailBuilder::REMINDER_TYPE_PRE_MODERATION,
             $this->moderationTimeLimit
         );
-        $mockedModerationStageDao = $this->crateMockModerationStageDao();
+        $mockedModerationStageDao = $this->createMockModerationStageDao();
         $this->moderationReminderEmailBuilder->setModerationStageDao($mockedModerationStageDao);
     }
 
@@ -85,7 +85,7 @@ class ModerationReminderEmailBuilderTest extends TestCase
         return [$firstSubmission, $secondSubmission, $thirdSubmission];
     }
 
-    private function crateMockModerationStageDao()
+    private function createMockModerationStageDao()
     {
         $threeDaysAgo = new DateTime();
         $yesterday = new DateTime();
@@ -130,24 +130,24 @@ class ModerationReminderEmailBuilderTest extends TestCase
     {
         $email = $this->moderationReminderEmailBuilder->buildEmail();
 
-        $expectedFrom = ['name' => $this->context->getContactName(), 'email' => $this->context->getContactEmail()];
-        $this->assertEquals($expectedFrom, $email->getData('from'));
+        $expectedFrom = ['name' => $this->context->getContactName(), 'address' => $this->context->getContactEmail()];
+        $this->assertEquals($expectedFrom, $email->from[0]);
 
-        $expectedRecipients = [['name' => $this->moderator->getFullName(), 'email' => $this->moderator->getEmail()]];
-        $this->assertEquals($expectedRecipients, $email->getData('recipients'));
+        $expectedTo = [['name' => $this->moderator->getFullName(), 'address' => $this->moderator->getEmail()]];
+        $this->assertEquals($expectedTo, $email->to);
 
-        $expectedCc = [['name' => $this->context->getContactName(), 'email' => $this->context->getContactEmail()]];
-        $this->assertEquals($expectedCc, $email->getData('ccs'));
+        $expectedCc = [['name' => $this->context->getContactName(), 'address' => $this->context->getContactEmail()]];
+        $this->assertEquals($expectedCc, $email->cc);
 
         $expectedSubject = __('plugins.generic.scieloModerationStages.emails.preModerationReminder.subject');
-        $this->assertEquals($expectedSubject, $email->getData('subject'));
+        $this->assertEquals($expectedSubject, $email->subject);
 
         $bodyParams = [
             'moderatorName' => $this->moderator->getFullName(),
             'submissions' => $this->getSubmissionsString(ModerationReminderEmailBuilder::REMINDER_TYPE_PRE_MODERATION)
         ];
         $expectedBody = __('plugins.generic.scieloModerationStages.emails.preModerationReminder.body', $bodyParams);
-        $this->assertEquals($expectedBody, $email->getData('body'));
+        $this->assertEquals($expectedBody, $email->view);
     }
 
     public function testAreaModerationReminderEmailBuilting(): void
@@ -156,23 +156,23 @@ class ModerationReminderEmailBuilderTest extends TestCase
 
         $email = $this->moderationReminderEmailBuilder->buildEmail();
 
-        $expectedFrom = ['name' => $this->context->getContactName(), 'email' => $this->context->getContactEmail()];
-        $this->assertEquals($expectedFrom, $email->getData('from'));
+        $expectedFrom = ['name' => $this->context->getContactName(), 'address' => $this->context->getContactEmail()];
+        $this->assertEquals($expectedFrom, $email->from[0]);
 
-        $expectedRecipients = [['name' => $this->moderator->getFullName(), 'email' => $this->moderator->getEmail()]];
-        $this->assertEquals($expectedRecipients, $email->getData('recipients'));
+        $expectedTo = [['name' => $this->moderator->getFullName(), 'address' => $this->moderator->getEmail()]];
+        $this->assertEquals($expectedTo, $email->to);
 
-        $expectedCc = [['name' => $this->context->getContactName(), 'email' => $this->context->getContactEmail()]];
-        $this->assertEquals($expectedCc, $email->getData('ccs'));
+        $expectedCc = [['name' => $this->context->getContactName(), 'address' => $this->context->getContactEmail()]];
+        $this->assertEquals($expectedCc, $email->cc);
 
         $expectedSubject = __('plugins.generic.scieloModerationStages.emails.areaModerationReminder.subject');
-        $this->assertEquals($expectedSubject, $email->getData('subject'));
+        $this->assertEquals($expectedSubject, $email->subject);
 
         $bodyParams = [
             'moderatorName' => $this->moderator->getFullName(),
             'submissions' => $this->getSubmissionsString(ModerationReminderEmailBuilder::REMINDER_TYPE_AREA_MODERATION)
         ];
         $expectedBody = __('plugins.generic.scieloModerationStages.emails.areaModerationReminder.body', $bodyParams);
-        $this->assertEquals($expectedBody, $email->getData('body'));
+        $this->assertEquals($expectedBody, $email->view);
     }
 }
