@@ -56,6 +56,8 @@ class ScieloModerationStagesPlugin extends GenericPlugin
 
             Hook::add('TemplateManager::display', [$this, 'addJavaScriptAndStylesheet']);
 
+            Hook::add('AcronPlugin::parseCronTab', [$this, 'addTasksToCrontab']);
+
             $this->addHandlerURLToJavaScript();
         }
         return $success;
@@ -83,6 +85,13 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             $templateMgr->addJavascript('ModerationStagesPlugin', $jsUrl, ['contexts' => 'backend']);
             $templateMgr->addStyleSheet('ModerationStagesExhibitor', $styleUrl, ['contexts' => 'backend']);
         }
+        return false;
+    }
+
+    public function addTasksToCrontab($hookName, $params)
+    {
+        $taskFilesPath = &$params[0];
+        $taskFilesPath[] = $this->getPluginPath() . DIRECTORY_SEPARATOR . 'scheduledTasks.xml';
         return false;
     }
 

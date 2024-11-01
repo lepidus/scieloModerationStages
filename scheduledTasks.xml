@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE scheduled_tasks SYSTEM "../../../lib/pkp/dtd/scheduledTasks.dtd">
+
+<scheduled_tasks>
+	<task class="APP\plugins\generic\scieloModerationStages\classes\tasks\SendModerationReminders">
+		<descr>Send moderation reminders to moderators whose moderation is overdue</descr>
+		<frequency dayofweek="1"/>
+	</task>
+</scheduled_tasks>

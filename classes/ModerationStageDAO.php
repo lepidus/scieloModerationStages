@@ -11,6 +11,7 @@
 
 namespace APP\plugins\generic\scieloModerationStages\classes;
 
+use DateTime;
 use PKP\db\DAO;
 use APP\submission\Submission;
 use Illuminate\Support\Facades\DB;
