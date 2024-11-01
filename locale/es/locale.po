@@ -7,8 +7,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2022-05-27T08:00:00+02:00\n"
-"PO-Revision-Date: 2022-05-27T08:00:00+02:00\n"
+"POT-Creation-Date: 2022-05-27T08:00:0002:00\n"
+"PO-Revision-Date: 2022-05-27T08:00:0002:00\n"
 "Language: Español\n"
 
 msgid "plugins.generic.scieloModerationStages.displayName"
@@ -115,3 +115,100 @@ msgstr "Moderador de área designado menos de un día antes del rechazo"
 
 msgid "plugins.generic.scieloModerationStages.TimeAreaModerator.dateDeclined"
 msgstr "Moderador de área designado {$daysPassed} días antes del rechazo"
+
+
+msgid "plugins.generic.scieloModerationStages.settings.title"
+msgstr "Configuración de Etapas de Moderación SciELO"
+
+msgid "plugins.generic.scieloModerationStages.settings.preModerationReminder.label"
+msgstr "Envío de un recordatorio de moderación previa"
+
+msgid "plugins.generic.scieloModerationStages.settings.preModerationReminder.description"
+msgstr "Enviar un recordatorio a los responsables designados si no han enviado una respuesta en los"
+
+msgid "plugins.generic.scieloModerationStages.settings.preModerationReminder.hint"
+msgstr "días siguientes a la presentación del manuscrito"
+
+msgid "plugins.generic.scieloModerationStages.settings.areaModerationReminder.label"
+msgstr "Envío de un recordatorio de moderación de área"
+
+msgid "plugins.generic.scieloModerationStages.settings.areaModerationReminder.description"
+msgstr "Enviar un recordatorio a los moderadores de área designados si no han enviado una respuesta en los"
+
+msgid "plugins.generic.scieloModerationStages.settings.areaModerationReminder.hint"
+msgstr "días siguientes a su asignación al manuscrito"
+
+msgid "plugins.generic.scieloModerationStages.settings.timeLimitError"
+msgstr "Introduzca un valor numérico mayor que cero"
+
+msgid "plugins.generic.scieloModerationStages.settings.remindersDayOfWeek"
+msgstr "<strong>Nota:</strong> Los recordatorios de moderación se enviarán todos los lunes."
+
+
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder"
+msgstr "Enviar recordatorio de moderación"
+
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.role.title"
+msgstr "Rol"
+
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.role.description"
+msgstr "Seleccione a qué rol desea enviar el recordatorio"
+
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.responsible.title"
+msgstr "Responsable"
+
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.responsible.description"
+msgstr "Seleccione a qué responsable debe enviarse el recordatorio de moderación"
+
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.areaModerator.title"
+msgstr "Moderador/a de área"
+
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.areaModerator.description"
+msgstr "Seleccione a qué moderador/a de área debe enviarse el recordatorio de moderación"
+
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.reminderBody.title"
+msgstr "Cuerpo del recordatorio"
+
+msgid "plugins.generic.scieloModerationStages.sendModerationReminder.reminderBody.description"
+msgstr "Cuerpo del mensaje de recordatorio que se enviará"
+
+msgid "plugins.generic.scieloModerationStages.send"
+msgstr "Enviar"
+
+msgid "plugins.generic.scieloModerationStages.submissionMade.lessThanADayAgo"
+msgstr "Envío realizado hace menos de un día"
+
+msgid "plugins.generic.scieloModerationStages.submissionMade.aDayAgo"
+msgstr "Envío realizado hace un día"
+
+msgid "plugins.generic.scieloModerationStages.submissionMade.nDaysAgo.regular"
+msgstr "Envío realizado hace {$numberOfDays} días"
+
+msgid "plugins.generic.scieloModerationStages.submissionMade.nDaysAgo.bold"
+msgstr "<strong>Envío realizado hace {$numberOfDays} días</strong>"
+
+msgid "plugins.generic.scieloModerationStages.emails.preModerationReminder.subject"
+msgstr "Manuscritos pendientes de moderación previa"
+
+msgid "plugins.generic.scieloModerationStages.emails.preModerationReminder.body"
+msgstr ""
+"Hola, {$moderatorName}<br/>\n"
+"<br/>\n"
+"Los manuscritos que figuran a continuación esperan su moderación.<br/>\n"
+"<br/>\n"
+"{$submissions}"
+"<br/>\n"
+"Este es un correo electrónico automático. Si ya ha enviado su moderación para estos manuscritos, por favor ignore este correo electrónico."
+
+msgid "plugins.generic.scieloModerationStages.emails.areaModerationReminder.subject"
+msgstr "Manuscritos pendientes de moderación de área"
+
+msgid "plugins.generic.scieloModerationStages.emails.areaModerationReminder.body"
+msgstr ""
+"Estimado/a Prof./a {$moderatorName},<br/>\n"
+"<br/>\n"
+"El (los) manuscrito(s) siguiente(s) está(n) esperando su moderación:<br/>\n"
+"<br/>\n"
+"{$submissions}"
+"<br/>\n"
+"Este es un correo electrónico automático. Si ya ha enviado su moderación para estos manuscritos, por favor ignore este correo electrónico."
