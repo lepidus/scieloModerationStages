@@ -7,6 +7,7 @@ use PKP\facades\Locale;
 use APP\facades\Repo;
 use APP\template\TemplateManager;
 use APP\core\Application;
+use Illuminate\Support\Facades\Mail;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationReminderHelper;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationReminderEmailBuilder;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageDAO;
@@ -130,8 +131,8 @@ class SendModerationReminderForm extends Form
             $moderationTimeLimit
         );
         $reminderEmail = $moderationReminderEmailBuilder->buildEmail();
-        $reminderEmail->setBody($reminderBody);
+        $reminderEmail->body($reminderBody);
 
-        $reminderEmail->send();
+        Mail::send($reminderEmail);
     }
 }

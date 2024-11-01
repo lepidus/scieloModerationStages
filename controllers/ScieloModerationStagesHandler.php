@@ -1,8 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\DB;
+use PKP\plugins\PluginRegistry;
 use APP\core\Application;
 use APP\handler\Handler;
+use PKP\facades\Locale;
 use APP\facades\Repo;
 use PKP\security\Role;
 use PKP\db\DAORegistry;
@@ -11,11 +13,59 @@ use APP\decision\Decision;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageRegister;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageDAO;
+use APP\plugins\generic\scieloModerationStages\classes\ModerationReminderEmailBuilder;
 
 class ScieloModerationStagesHandler extends Handler
 {
     private const SUBMISSION_STAGE_ID = 5;
     private const THRESHOLD_TIME_EXHIBITORS = 2;
+
+    public function getReminderBody($args, $request)
+    {
+        $userGroupId = (int) $args['userGroup'];
+        $role = $args['role'];
+        $userToRemind = Repo::user()->get((int) $args['user']);
+
+        $context = $request->getContext();
+        $locale = Locale::getLocale();
+        $plugin = PluginRegistry::getPlugin('generic', 'scielomoderationstagesplugin');
+
+        if ($role == ModerationReminderEmailBuilder::REMINDER_TYPE_PRE_MODERATION) {
+            $moderationStage = ModerationStage::SCIELO_MODERATION_STAGE_CONTENT;
+            $moderationTimeLimit = $plugin->getSetting($context->getId(), 'preModerationTimeLimit');
+        } elseif ($role == ModerationReminderEmailBuilder::REMINDER_TYPE_AREA_MODERATION) {
+            $moderationStage = ModerationStage::SCIELO_MODERATION_STAGE_AREA;
+            $moderationTimeLimit = $plugin->getSetting($context->getId(), 'areaModerationTimeLimit');
+        }
+
+        $moderationStageDao = new ModerationStageDAO();
+        $assignments = $moderationStageDao->getAssignmentsByUserGroupAndModerationStage(
+            $userGroupId,
+            $moderationStage,
+            $userToRemind->getId()
+        );
+
+        $submissions = [];
+        foreach ($assignments as $assignment) {
+            $submission = Repo::submission()->get($assignment['submissionId']);
+
+            if ($submission) {
+                $submissions[] = $submission;
+            }
+        }
+
+        $moderationReminderEmailBuilder = new ModerationReminderEmailBuilder(
+            $context,
+            $userToRemind,
+            $submissions,
+            $locale,
+            $role,
+            $moderationTimeLimit
+        );
+        $reminderEmail = $moderationReminderEmailBuilder->buildEmail();
+
+        return json_encode(['reminderBody' => $reminderEmail->view]);
+    }
 
     public function updateSubmissionStageData($args, $request)
     {
