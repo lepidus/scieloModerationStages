@@ -12,11 +12,12 @@
 namespace APP\plugins\generic\scieloModerationStages\classes;
 
 use PKP\db\DAO;
+use APP\submission\Submission;
 use Illuminate\Support\Facades\DB;
 
 class ModerationStageDAO extends DAO
 {
-    public function getSubmissionModerationStage($submissionId): ?int
+    public function getSubmissionModerationStage(int $submissionId): ?int
     {
         $result = DB::table('submission_settings')
             ->where('submission_id', $submissionId)
@@ -25,5 +26,62 @@ class ModerationStageDAO extends DAO
             ->first();
 
         return !is_null($result) ? get_object_vars($result)['setting_value'] : null;
+    }
+
+    public function getPreModerationIsOverdue(int $submissionId, int $timeLimit): bool
+    {
+        $result = DB::table('submissions')
+            ->where('submission_id', '=', $submissionId)
+            ->select('date_submitted')
+            ->first();
+        $dateSubmitted = get_object_vars($result)['date_submitted'];
+        $dateSubmitted = new DateTime($dateSubmitted);
+
+        $limitDaysAgo = new DateTime();
+        $limitDaysAgo->modify("-$timeLimit days");
+
+        return $dateSubmitted < $limitDaysAgo;
+    }
+
+    public function getAssignmentsByUserGroupAndModerationStage(int $userGroupId, int $moderationStage, ?int $userId = null): array
+    {
+        $submissionsSubQuery = DB::table('submissions AS s')
+            ->leftJoin('publications AS p', 's.current_publication_id', '=', 'p.publication_id')
+            ->where('s.status', Submission::STATUS_QUEUED)
+            ->where('p.version', 1)
+            ->select('s.submission_id');
+
+        $query = DB::table('stage_assignments AS sa')
+            ->leftJoin('submission_settings AS sub_s', 'sa.submission_id', '=', 'sub_s.submission_id')
+            ->whereIn('sub_s.submission_id', $submissionsSubQuery)
+            ->where('sub_s.setting_name', 'currentModerationStage')
+            ->where('sub_s.setting_value', '=', $moderationStage)
+            ->where('sa.user_group_id', '=', $userGroupId)
+            ->select('sa.user_id', 'sa.submission_id');
+
+        if ($userId) {
+            $query = $query->where('sa.user_id', '=', $userId);
+        }
+
+        $result = $query->get();
+        $assignments = [];
+
+        foreach ($result as $row) {
+            $row = get_object_vars($row);
+            $assignments[] = ['userId' => $row['user_id'], 'submissionId' => $row['submission_id']];
+        }
+
+        return $assignments;
+    }
+
+    public function getDateOfUserAssignment(int $userId, int $submissionId): ?string
+    {
+        $result = DB::table('stage_assignments AS sa')
+            ->where('user_id', $userId)
+            ->where('submission_id', $submissionId)
+            ->select('date_assigned')
+            ->first();
+
+        return $result ? get_object_vars($result)['date_assigned'] : null;
     }
 }
