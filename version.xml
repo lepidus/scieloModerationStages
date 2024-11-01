@@ -13,7 +13,7 @@
 	<application>scieloModerationStages</application>
 	<type>plugins.generic</type>
 	<lazy-load>0</lazy-load>
-	<release>2.0.0.0</release>
-	<date>2024-02-01</date>
+	<release>2.1.0.0</release>
+	<date>2024-11-01</date>
   <class>ScieloModerationStagesPlugin</class>
 </version>
