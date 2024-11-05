@@ -2,6 +2,7 @@
 
 namespace APP\plugins\generic\scieloModerationStages\classes\tasks;
 
+use DateTime;
 use PKP\scheduledTask\ScheduledTask;
 use PKP\plugins\PluginRegistry;
 use APP\core\Application;
@@ -22,6 +23,20 @@ class SendModerationReminders extends ScheduledTask
         $this->plugin = PluginRegistry::getPlugin('generic', 'scielomoderationstagesplugin');
 
         $context = Application::get()->getRequest()->getContext();
+        $locale = $context->getPrimaryLocale();
+        $this->plugin->addLocaleData($locale);
+
+        $preModerationTimeLimit = $this->plugin->getSetting($context->getId(), 'preModerationTimeLimit');
+        $this->sendResponsiblesReminders($context, $preModerationTimeLimit, $locale);
+
+        $areaModerationTimeLimit = $this->plugin->getSetting($context->getId(), 'areaModerationTimeLimit');
+        $this->sendAreaModeratorsReminders($context, $areaModerationTimeLimit, $locale);
+
+        return true;
+    }
+
+    private function sendResponsiblesReminders($context, $preModerationTimeLimit, $locale)
+    {
         $moderationReminderHelper = new ModerationReminderHelper();
         $responsiblesUserGroup = $moderationReminderHelper->getResponsiblesUserGroup($context->getId());
 
@@ -32,15 +47,11 @@ class SendModerationReminders extends ScheduledTask
         );
 
         if (empty($responsibleAssignments)) {
-            return true;
+            return;
         }
 
-        $usersWithOverduePreModeration = $this->getUsersWithOverduePreModeration($context->getId(), $responsibleAssignments);
+        $usersWithOverduePreModeration = $this->getUsersWithOverduePreModeration($responsibleAssignments, $preModerationTimeLimit);
         $mapModeratorsAndOverdueSubmissions = $moderationReminderHelper->mapUsersAndSubmissions($usersWithOverduePreModeration, $responsibleAssignments);
-
-        $locale = $context->getPrimaryLocale();
-        $this->plugin->addLocaleData($locale);
-        $preModerationTimeLimit = $this->plugin->getSetting($context->getId(), 'preModerationTimeLimit');
 
         foreach ($mapModeratorsAndOverdueSubmissions as $userId => $submissions) {
             $moderator = Repo::user()->get($userId);
@@ -56,14 +67,45 @@ class SendModerationReminders extends ScheduledTask
             $reminderEmail = $moderationReminderEmailBuilder->buildEmail();
             Mail::send($reminderEmail);
         }
-
-        return true;
     }
 
-    private function getUsersWithOverduePreModeration($contextId, $assignments): array
+    private function sendAreaModeratorsReminders($context, $areaModerationTimeLimit, $locale)
+    {
+        $moderationReminderHelper = new ModerationReminderHelper();
+        $areaModeratorsUserGroup = $moderationReminderHelper->getAreaModeratorsUserGroup($context->getId());
+
+        $moderationStageDao = new ModerationStageDAO();
+        $areaModeratorAssignments = $moderationStageDao->getAssignmentsByUserGroupAndModerationStage(
+            $areaModeratorsUserGroup->getId(),
+            ModerationStage::SCIELO_MODERATION_STAGE_AREA
+        );
+
+        if (empty($areaModeratorAssignments)) {
+            return;
+        }
+
+        $usersWithOverdueAreaModeration = $this->getUsersWithOverdueAreaModeration($areaModeratorAssignments, $areaModerationTimeLimit);
+        $mapModeratorsAndOverdueSubmissions = $moderationReminderHelper->mapUsersAndSubmissions($usersWithOverdueAreaModeration, $areaModeratorAssignments);
+
+        foreach ($mapModeratorsAndOverdueSubmissions as $userId => $submissions) {
+            $moderator = Repo::user()->get($userId);
+            $moderationReminderEmailBuilder = new ModerationReminderEmailBuilder(
+                $context,
+                $moderator,
+                $submissions,
+                $locale,
+                ModerationReminderEmailBuilder::REMINDER_TYPE_AREA_MODERATION,
+                $areaModerationTimeLimit
+            );
+
+            $reminderEmail = $moderationReminderEmailBuilder->buildEmail();
+            Mail::send($reminderEmail);
+        }
+    }
+
+    private function getUsersWithOverduePreModeration($assignments, $preModerationTimeLimit): array
     {
         $usersIds = [];
-        $preModerationTimeLimit = $this->plugin->getSetting($contextId, 'preModerationTimeLimit');
         $moderationStageDao = new ModerationStageDAO();
 
         foreach ($assignments as $assignment) {
@@ -71,6 +113,22 @@ class SendModerationReminders extends ScheduledTask
             $preModerationIsOverdue = $moderationStageDao->getPreModerationIsOverdue($submissionId, $preModerationTimeLimit);
 
             if ($preModerationIsOverdue and !isset($usersIds[$assignment['userId']])) {
+                $usersIds[$assignment['userId']] = $assignment['userId'];
+            }
+        }
+
+        return $usersIds;
+    }
+
+    private function getUsersWithOverdueAreaModeration($assignments, $areaModerationTimeLimit): array
+    {
+        $usersIds = [];
+        $limitDaysAgo = (new DateTime())->modify("-$areaModerationTimeLimit days");
+
+        foreach ($assignments as $assignment) {
+            $dateAssigned = new DateTime($assignment['dateAssigned']);
+
+            if ($dateAssigned < $limitDaysAgo and !isset($usersIds[$assignment['userId']])) {
                 $usersIds[$assignment['userId']] = $assignment['userId'];
             }
         }
