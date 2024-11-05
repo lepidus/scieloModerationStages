@@ -22,7 +22,7 @@ class SendModerationReminders extends ScheduledTask
         $preModerationTimeLimit = $this->plugin->getSetting($context->getId(), 'preModerationTimeLimit');
         $this->sendResponsiblesReminders($context, $preModerationTimeLimit, $locale);
 
-        $areaModerationTimeLimit = $plugin->getSetting($context->getId(), 'areaModerationTimeLimit');
+        $areaModerationTimeLimit = $this->plugin->getSetting($context->getId(), 'areaModerationTimeLimit');
         $this->sendAreaModeratorsReminders($context, $areaModerationTimeLimit, $locale);
 
         return true;
@@ -77,8 +77,8 @@ class SendModerationReminders extends ScheduledTask
             return;
         }
 
-        $usersWithOverduePreModeration = $this->getUsersWithOverdueAreaModeration($context->getId(), $responsibleAssignments);
-        $mapModeratorsAndOverdueSubmissions = $moderationReminderHelper->mapUsersAndSubmissions($usersWithOverduePreModeration, $areaModeratorAssignments);
+        $usersWithOverdueAreaModeration = $this->getUsersWithOverdueAreaModeration($areaModeratorAssignments, $areaModerationTimeLimit);
+        $mapModeratorsAndOverdueSubmissions = $moderationReminderHelper->mapUsersAndSubmissions($usersWithOverdueAreaModeration, $areaModeratorAssignments);
 
         foreach ($mapModeratorsAndOverdueSubmissions as $userId => $submissions) {
             $moderator = DAORegistry::getDAO('UserDAO')->getById($userId);
