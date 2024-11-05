@@ -5,6 +5,6 @@
 <scheduled_tasks>
 	<task class="APP\plugins\generic\scieloModerationStages\classes\tasks\SendModerationReminders">
 		<descr>Send moderation reminders to moderators whose moderation is overdue</descr>
-		<frequency dayofweek="1"/>
+		<frequency minute="47"/>
 	</task>
 </scheduled_tasks>
