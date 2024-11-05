@@ -58,7 +58,7 @@ class ModerationStageDAO extends DAO
             ->where('sub_s.setting_name', 'currentModerationStage')
             ->where('sub_s.setting_value', '=', $moderationStage)
             ->where('sa.user_group_id', '=', $userGroupId)
-            ->select('sa.user_id', 'sa.submission_id');
+            ->select('sa.user_id', 'sa.submission_id', 'sa.date_assigned');
 
         if ($userId) {
             $query = $query->where('sa.user_id', '=', $userId);
@@ -69,7 +69,11 @@ class ModerationStageDAO extends DAO
 
         foreach ($result as $row) {
             $row = get_object_vars($row);
-            $assignments[] = ['userId' => $row['user_id'], 'submissionId' => $row['submission_id']];
+            $assignments[] = [
+                'userId' => $row['user_id'],
+                'submissionId' => $row['submission_id'],
+                'dateAssigned' => $row['date_assigned']
+            ];
         }
 
         return $assignments;
