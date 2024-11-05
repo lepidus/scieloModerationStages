@@ -16,6 +16,17 @@ class SendModerationReminders extends ScheduledTask
         $this->plugin = PluginRegistry::getPlugin('generic', 'scielomoderationstagesplugin');
 
         $context = Application::get()->getRequest()->getContext();
+        $locale = $context->getPrimaryLocale();
+        $this->plugin->addLocaleData($locale);
+
+        $preModerationTimeLimit = $this->plugin->getSetting($context->getId(), 'preModerationTimeLimit');
+        $this->sendResponsiblesReminders($context, $preModerationTimeLimit, $locale);
+
+        return true;
+    }
+
+    private function sendResponsiblesReminders($context, $preModerationTimeLimit, $locale)
+    {
         $moderationReminderHelper = new ModerationReminderHelper();
         $responsiblesUserGroup = $moderationReminderHelper->getResponsiblesUserGroup($context->getId());
 
@@ -26,15 +37,11 @@ class SendModerationReminders extends ScheduledTask
         );
 
         if (empty($responsibleAssignments)) {
-            return true;
+            return;
         }
 
         $usersWithOverduePreModeration = $this->getUsersWithOverduePreModeration($context->getId(), $responsibleAssignments);
         $mapModeratorsAndOverdueSubmissions = $moderationReminderHelper->mapUsersAndSubmissions($usersWithOverduePreModeration, $responsibleAssignments);
-
-        $locale = $context->getPrimaryLocale();
-        $this->plugin->addLocaleData($locale);
-        $preModerationTimeLimit = $this->plugin->getSetting($context->getId(), 'preModerationTimeLimit');
 
         foreach ($mapModeratorsAndOverdueSubmissions as $userId => $submissions) {
             $moderator = DAORegistry::getDAO('UserDAO')->getById($userId);
@@ -50,8 +57,6 @@ class SendModerationReminders extends ScheduledTask
             $reminderEmail = $moderationReminderEmailBuilder->buildEmail();
             $reminderEmail->send();
         }
-
-        return true;
     }
 
     private function getUsersWithOverduePreModeration($contextId, $assignments): array
