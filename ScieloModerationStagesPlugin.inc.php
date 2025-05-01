@@ -41,6 +41,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             HookRegistry::register('LoadComponentHandler', array($this, 'setupScieloModerationStagesHandler'));
 
             HookRegistry::register('TemplateManager::display', array($this, 'addJavaScriptAndStylesheet'));
+            HookRegistry::register('TemplateManager::display', array($this, 'addStagesFilterToSubmissionsPanels'));
 
             HookRegistry::register('AcronPlugin::parseCronTab', array($this, 'addTasksToCrontab'));
             $this->addHandlerURLToJavaScript();
@@ -362,6 +363,46 @@ class ScieloModerationStagesPlugin extends GenericPlugin
 
             $templateMgr->assign('allParticipants', $newParticipantsList);
         }
+
+        return false;
+    }
+
+    public function addStagesFilterToSubmissionsPanels($hookName, $params)
+    {
+        $templateMgr = $params[0];
+        $template = $params[1];
+
+        if ($template !== 'dashboard/index.tpl') {
+            return false;
+        }
+
+        $submissionsListPanels = $templateMgr->getState('components');
+        $processedListPanels = array_map(function ($listPanel) {
+            $moderationStagesFilters = [
+                [
+                    'param' => 'moderationStage',
+                    'value' => SCIELO_MODERATION_STAGE_FORMAT,
+                    'title' => __('plugins.generic.scieloModerationStages.stages.formatStage'),
+                ],
+                [
+                    'param' => 'moderationStage',
+                    'value' => SCIELO_MODERATION_STAGE_CONTENT,
+                    'title' => __('plugins.generic.scieloModerationStages.stages.contentStage'),
+                ],
+                [
+                    'param' => 'moderationStage',
+                    'value' => SCIELO_MODERATION_STAGE_AREA,
+                    'title' => __('plugins.generic.scieloModerationStages.stages.areaStage'),
+                ]
+            ];
+            $listPanel['filters'][] = [
+                'heading' => __('plugins.generic.scieloModerationStages.displayNameWorkflow'),
+                'filters' => $moderationStagesFilters
+            ];
+            return $listPanel;
+        }, $submissionsListPanels);
+
+        $templateMgr->setState(['components' => $processedListPanels]);
 
         return false;
     }
