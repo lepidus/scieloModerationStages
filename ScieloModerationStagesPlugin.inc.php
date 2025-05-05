@@ -40,13 +40,24 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             HookRegistry::register('Template::Workflow', array($this, 'addCurrentStageStatus'));
             HookRegistry::register('LoadComponentHandler', array($this, 'setupScieloModerationStagesHandler'));
 
-            HookRegistry::register('TemplateManager::display', array($this, 'addJavaScriptAndStylesheet'));
-
             HookRegistry::register('AcronPlugin::parseCronTab', array($this, 'addTasksToCrontab'));
             $this->addHandlerURLToJavaScript();
+            $this->loadDispatcherClasses();
         }
 
         return $success;
+    }
+
+    private function loadDispatcherClasses(): void
+    {
+        $dispatcherClasses = [
+            'DashboardDispatcher',
+        ];
+
+        foreach ($dispatcherClasses as $dispatcherClass) {
+            $this->import('classes.dispatchers.' . $dispatcherClass);
+            $dispatcher = new $dispatcherClass($this);
+        }
     }
 
     public function addHandlerURLToJavaScript()
@@ -57,21 +68,6 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         $data = ['moderationStagesHandlerUrl' => $handlerUrl];
 
         $templateMgr->addJavaScript('ModerationStagesHandler', 'app = ' . json_encode($data) . ';', ['contexts' => 'backend', 'inline' => true]);
-    }
-
-    public function addJavaScriptAndStylesheet($hookName, $params)
-    {
-        if ($params[1] == 'dashboard/index.tpl') {
-            $templateMgr = $params[0];
-            $request = Application::get()->getRequest();
-
-            $jsUrl = $request->getBaseUrl() . '/' . $this->getPluginPath() . '/js/load.js';
-            $styleUrl = $request->getBaseUrl() . '/' . $this->getPluginPath() . '/styles/stageExhibitor.css';
-
-            $templateMgr->addJavascript('ModerationStagesPlugin', $jsUrl, ['contexts' => 'backend']);
-            $templateMgr->addStyleSheet('ModerationStagesExhibitor', $styleUrl, ['contexts' => 'backend']);
-        }
-        return false;
     }
 
     public function addTasksToCrontab($hookName, $params)
