@@ -50,6 +50,7 @@ describe('SciELO Moderation Stages - Features on submissions page', function () 
         cy.login('dbarnes', null, 'publicknowledge');
 
         cy.get('#active-button').click();
+        cy.wait(1000);
         cy.contains('.pkpButton', 'Filters').click();
         cy.contains('h4', 'Moderation Stages');
 
