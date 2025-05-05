@@ -55,6 +55,8 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             Hook::add('LoadComponentHandler', [$this, 'setupScieloModerationStagesHandler']);
 
             Hook::add('TemplateManager::display', [$this, 'addJavaScriptAndStylesheet']);
+            Hook::add('TemplateManager::display', [$this, 'addStagesFilterToSubmissionsPanels']);
+            Hook::add('Submission::Collector', [$this, 'addFiltersToSubmissionCollector']);
 
             Hook::add('AcronPlugin::parseCronTab', [$this, 'addTasksToCrontab']);
 
@@ -367,5 +369,58 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         }
 
         return false;
+    }
+
+    public function addStagesFilterToSubmissionsPanels($hookName, $params)
+    {
+        $templateMgr = $params[0];
+        $template = $params[1];
+
+        if ($template !== 'dashboard/index.tpl') {
+            return Hook::CONTINUE;
+        }
+
+        $submissionsListPanels = $templateMgr->getState('components');
+        $processedListPanels = array_map(function ($listPanel) {
+            $moderationStagesFilters = [
+                [
+                    'param' => 'moderationStages',
+                    'value' => ModerationStage::SCIELO_MODERATION_STAGE_FORMAT,
+                    'title' => __('plugins.generic.scieloModerationStages.stages.formatStage'),
+                ],
+                [
+                    'param' => 'moderationStages',
+                    'value' => ModerationStage::SCIELO_MODERATION_STAGE_CONTENT,
+                    'title' => __('plugins.generic.scieloModerationStages.stages.contentStage'),
+                ],
+                [
+                    'param' => 'moderationStages',
+                    'value' => ModerationStage::SCIELO_MODERATION_STAGE_AREA,
+                    'title' => __('plugins.generic.scieloModerationStages.stages.areaStage'),
+                ]
+            ];
+            $listPanel['filters'][] = [
+                'heading' => __('plugins.generic.scieloModerationStages.displayNameWorkflow'),
+                'filters' => $moderationStagesFilters
+            ];
+            return $listPanel;
+        }, $submissionsListPanels);
+
+        $templateMgr->setState(['components' => $processedListPanels]);
+
+        return Hook::CONTINUE;
+    }
+
+    public function addFiltersToSubmissionCollector($hookName, $params)
+    {
+        $query = &$params[0];
+        $request = Application::get()->getRequest();
+        $moderationStages = $request->getUserVar('moderationStages');
+
+        if ($moderationStages) {
+            $query->leftJoin('submission_settings as sub_s', 's.submission_id', '=', 'sub_s.submission_id')
+                ->where('sub_s.setting_name', 'currentModerationStage')
+                ->whereIn('sub_s.setting_value', $moderationStages);
+        }
     }
 }
