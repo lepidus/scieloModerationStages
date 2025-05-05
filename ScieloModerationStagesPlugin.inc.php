@@ -40,15 +40,24 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             HookRegistry::register('Template::Workflow', array($this, 'addCurrentStageStatus'));
             HookRegistry::register('LoadComponentHandler', array($this, 'setupScieloModerationStagesHandler'));
 
-            HookRegistry::register('TemplateManager::display', array($this, 'addJavaScriptAndStylesheet'));
-            HookRegistry::register('TemplateManager::display', array($this, 'addStagesFilterToSubmissionsPanels'));
-            HookRegistry::register('Submission::getMany::queryBuilder', array($this, 'addFiltersToSubmissionQueryBuilder'));
-
             HookRegistry::register('AcronPlugin::parseCronTab', array($this, 'addTasksToCrontab'));
             $this->addHandlerURLToJavaScript();
+            $this->loadDispatcherClasses();
         }
 
         return $success;
+    }
+
+    private function loadDispatcherClasses(): void
+    {
+        $dispatcherClasses = [
+            'DashboardDispatcher',
+        ];
+
+        foreach ($dispatcherClasses as $dispatcherClass) {
+            $this->import('classes.dispatchers.' . $dispatcherClass);
+            $dispatcher = new $dispatcherClass($this);
+        }
     }
 
     public function addHandlerURLToJavaScript()
@@ -59,21 +68,6 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         $data = ['moderationStagesHandlerUrl' => $handlerUrl];
 
         $templateMgr->addJavaScript('ModerationStagesHandler', 'app = ' . json_encode($data) . ';', ['contexts' => 'backend', 'inline' => true]);
-    }
-
-    public function addJavaScriptAndStylesheet($hookName, $params)
-    {
-        if ($params[1] == 'dashboard/index.tpl') {
-            $templateMgr = $params[0];
-            $request = Application::get()->getRequest();
-
-            $jsUrl = $request->getBaseUrl() . '/' . $this->getPluginPath() . '/js/load.js';
-            $styleUrl = $request->getBaseUrl() . '/' . $this->getPluginPath() . '/styles/stageExhibitor.css';
-
-            $templateMgr->addJavascript('ModerationStagesPlugin', $jsUrl, ['contexts' => 'backend']);
-            $templateMgr->addStyleSheet('ModerationStagesExhibitor', $styleUrl, ['contexts' => 'backend']);
-        }
-        return false;
     }
 
     public function addTasksToCrontab($hookName, $params)
@@ -366,81 +360,5 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         }
 
         return false;
-    }
-
-    public function addStagesFilterToSubmissionsPanels($hookName, $params)
-    {
-        $templateMgr = $params[0];
-        $template = $params[1];
-
-        if ($template !== 'dashboard/index.tpl') {
-            return false;
-        }
-
-        $submissionsListPanels = $templateMgr->getState('components');
-        $processedListPanels = array_map(function ($listPanel) {
-            $moderationStagesFilters = [
-                [
-                    'param' => 'moderationStages',
-                    'value' => SCIELO_MODERATION_STAGE_FORMAT,
-                    'title' => __('plugins.generic.scieloModerationStages.stages.formatStage'),
-                ],
-                [
-                    'param' => 'moderationStages',
-                    'value' => SCIELO_MODERATION_STAGE_CONTENT,
-                    'title' => __('plugins.generic.scieloModerationStages.stages.contentStage'),
-                ],
-                [
-                    'param' => 'moderationStages',
-                    'value' => SCIELO_MODERATION_STAGE_AREA,
-                    'title' => __('plugins.generic.scieloModerationStages.stages.areaStage'),
-                ]
-            ];
-            $listPanel['filters'][] = [
-                'heading' => __('plugins.generic.scieloModerationStages.displayNameWorkflow'),
-                'filters' => $moderationStagesFilters
-            ];
-            return $listPanel;
-        }, $submissionsListPanels);
-
-        $templateMgr->setState(['components' => $processedListPanels]);
-
-        return false;
-    }
-
-    public function addFiltersToSubmissionQueryBuilder($hookName, $params)
-    {
-        $submissionQB = &$params[0];
-        $requestArgs = $params[1];
-
-        if (empty($requestArgs['moderationStages'])) {
-            error_log('No moderationStages, returning');
-            return;
-        }
-
-        $this->import('classes.services.queryBuilders.ModerationStageQueryBuilder');
-        $submissionQB = new ModerationStageQueryBuilder();
-        $submissionQB
-            ->filterByContext($requestArgs['contextId'])
-            ->orderBy($requestArgs['orderBy'], $requestArgs['orderDirection'])
-            ->assignedTo($requestArgs['assignedTo'])
-            ->filterByStatus($requestArgs['status'])
-            ->filterByStageIds($requestArgs['stageIds'])
-            ->filterByIncomplete($requestArgs['isIncomplete'])
-            ->filterByOverdue($requestArgs['isOverdue'])
-            ->filterByDaysInactive($requestArgs['daysInactive'])
-            ->filterByCategories(isset($requestArgs['categoryIds']) ? $requestArgs['categoryIds'] : null)
-            ->filterByModerationStages($requestArgs['moderationStages'])
-            ->searchPhrase($requestArgs['searchPhrase']);
-
-        if (isset($requestArgs['count'])) {
-            $submissionQB->limitTo($requestArgs['count']);
-        }
-
-        if (isset($requestArgs['offset'])) {
-            $submissionQB->offsetBy($requestArgs['count']);
-        }
-
-        error_log('Modified query builder');
     }
 }
