@@ -9,7 +9,7 @@ describe('SciELO Moderation Stages - Features on submissions page', function () 
         Cypress.config('defaultCommandTimeout', 10000);
     });
 
-    /*it("Authors can only view submissions' moderation stage", function () {
+    it("Authors can only view submissions' moderation stage", function () {
         cy.login('fpaglieri', null, 'publicknowledge');
 
         cy.waitJQuery();
@@ -45,7 +45,7 @@ describe('SciELO Moderation Stages - Features on submissions page', function () 
 
                 cy.contains('Submission made less than a day ago');
             });
-    });*/
+    });
     it("Editor can filter submissions by moderation stage", function () {
         cy.login('dbarnes', null, 'publicknowledge');
 
