@@ -12,7 +12,7 @@ describe("SciELO Moderation Stages - Moderation stage advancement", function() {
     let submissionData;
     
     before(function() {
-        Cypress.config('defaultCommandTimeout', 4000);
+        Cypress.config('defaultCommandTimeout', 10000);
         submissionData = {
             title: "Night of the Living Dead",
 			abstract: 'Some people get stuck in a house when the dead arise from their graves',

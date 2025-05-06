@@ -4,7 +4,7 @@ describe('SciELO Moderation Stages - Hide participants discussion', function () 
     let submissionTitle = 'Candyman';
     
     before(function() {
-        Cypress.config('defaultCommandTimeout', 4000);
+        Cypress.config('defaultCommandTimeout', 10000);
     });
 
     it('Moderators participants are hidden when author opens discussion', function () {

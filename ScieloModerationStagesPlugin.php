@@ -54,13 +54,24 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             Hook::add('Template::Workflow', [$this, 'addCurrentStageStatusToWorkflow']);
             Hook::add('LoadComponentHandler', [$this, 'setupScieloModerationStagesHandler']);
 
-            Hook::add('TemplateManager::display', [$this, 'addJavaScriptAndStylesheet']);
-
             Hook::add('AcronPlugin::parseCronTab', [$this, 'addTasksToCrontab']);
 
             $this->addHandlerURLToJavaScript();
+            $this->loadDispatcherClasses();
         }
         return $success;
+    }
+
+    private function loadDispatcherClasses(): void
+    {
+        $dispatcherClasses = [
+            'DashboardDispatcher'
+        ];
+
+        foreach ($dispatcherClasses as $dispatcherClass) {
+            $dispatcherClass = 'APP\plugins\generic\scieloModerationStages\classes\dispatchers\\' . $dispatcherClass;
+            $dispatcher = new $dispatcherClass($this);
+        }
     }
 
     public function addHandlerURLToJavaScript()
@@ -71,21 +82,6 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         $data = ['moderationStagesHandlerUrl' => $handlerUrl];
 
         $templateMgr->addJavaScript('ModerationStagesHandler', 'app = ' . json_encode($data) . ';', ['contexts' => 'backend', 'inline' => true]);
-    }
-
-    public function addJavaScriptAndStylesheet($hookName, $params)
-    {
-        if ($params[1] == 'dashboard/index.tpl') {
-            $templateMgr = $params[0];
-            $request = Application::get()->getRequest();
-
-            $jsUrl = $request->getBaseUrl() . '/' . $this->getPluginPath() . '/js/load.js';
-            $styleUrl = $request->getBaseUrl() . '/' . $this->getPluginPath() . '/styles/stageExhibitor.css';
-
-            $templateMgr->addJavascript('ModerationStagesPlugin', $jsUrl, ['contexts' => 'backend']);
-            $templateMgr->addStyleSheet('ModerationStagesExhibitor', $styleUrl, ['contexts' => 'backend']);
-        }
-        return false;
     }
 
     public function addTasksToCrontab($hookName, $params)

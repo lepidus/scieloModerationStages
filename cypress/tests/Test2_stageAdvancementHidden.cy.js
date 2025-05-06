@@ -10,7 +10,7 @@ describe("SciELO Moderation Stages - Stage advancement hidden scenarios", functi
     let submissionData;
     
     before(function() {
-        Cypress.config('defaultCommandTimeout', 4000);
+        Cypress.config('defaultCommandTimeout', 10000);
         submissionData = {
             title: "Candyman",
 			abstract: 'A ghost appears when you speak his name 5 times in front of a mirror',

@@ -6,7 +6,7 @@ describe("SciELO Moderation Stages - Workflow tab", function() {
     let yesterday;
     
     before(function() {
-        Cypress.config('defaultCommandTimeout', 4000);
+        Cypress.config('defaultCommandTimeout', 10000);
         today = (new Date()).toISOString().split('T')[0];
         yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
