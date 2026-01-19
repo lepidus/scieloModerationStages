@@ -101,8 +101,8 @@ async function addSubmissionExhibitors() {
         app.moderationStagesHandlerUrl + 'get-user-is-author'
     );
 
-    var submissionSubtitle = document.getElementsByClassName('listPanel__itemSubtitle');
-    for (let subtitle of submissionSubtitle) {
+    let submissionSubtitles = document.getElementsByClassName('listPanel__itemSubtitle');
+    for (let subtitle of submissionSubtitles) {
         const hasExhibitors = subtitle.parentNode.getElementsByClassName('listPanel__itemModerationStage').length > 0;
         if(!hasExhibitors) {
             const submissionId = getSubmissionIdFromDiv(subtitle.parentNode);
