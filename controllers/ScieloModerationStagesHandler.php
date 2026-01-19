@@ -98,7 +98,7 @@ class ScieloModerationStagesHandler extends Handler
 
     public function getSubmissionExhibitData($args, $request)
     {
-        $submissionId = $args['submissionId'];
+        $submissionId = (int) $args['submissionId'];
         $exhibitData = $this->getSubmissionModerationStage($submissionId);
 
         if ($args['userIsAuthor'] == 0) {

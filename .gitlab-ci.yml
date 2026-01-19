@@ -8,3 +8,7 @@ include:
       - 'templates/groups/pkp_plugin.yml'
       - 'templates/groups/ops/unit_tests.yml'
       - 'templates/groups/ops/cypress_tests.yml'
+
+ops_integration_tests:
+  rules:
+    - when: never
