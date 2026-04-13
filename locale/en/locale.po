@@ -17,6 +17,9 @@ msgstr "SciELO Moderation Stages"
 msgid "plugins.generic.scieloModerationStages.displayNameWorkflow"
 msgstr "Moderation Stages"
 
+msgid "plugins.generic.scieloModerationStages.moderation"
+msgstr "Moderation"
+
 msgid "plugins.generic.scieloModerationStages.description"
 msgstr "This plugin adds the stages of moderation defined by SciELO to OPS"
 
@@ -189,8 +192,8 @@ msgstr "<strong>Submission made {$numberOfDays} days ago</strong>"
 
 msgid "plugins.generic.scieloModerationStages.assignedFirstStage"
 msgstr ""
-"The moderation of your submission has been initiated and it has been forwarded to the Format Pre-Moderation stage, where it will undergo a screening process.<br/>"
-"Please wait for a response from the editorial team or an update on the status of your submission."
+"<p>The moderation of your submission has been initiated and it has been forwarded to the Format Pre-Moderation stage, where it will undergo a screening process.</p>"
+"<p>Please wait for a response from the editorial team or an update on the status of your submission.</p>"
 
 msgid "plugins.generic.scieloModerationStages.emails.preModerationReminder.subject"
 msgstr "Manuscripts awaiting pre-moderation"

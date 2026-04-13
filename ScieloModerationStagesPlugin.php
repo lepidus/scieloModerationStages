@@ -55,6 +55,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             Hook::add('LoadComponentHandler', [$this, 'setupScieloModerationStagesHandler']);
 
             Hook::add('AcronPlugin::parseCronTab', [$this, 'addTasksToCrontab']);
+            Hook::add('TemplateManager::display', [$this, 'addMessageToSubmissionComplete']);
 
             $this->addHandlerURLToJavaScript();
             $this->loadDispatcherClasses();
@@ -288,6 +289,31 @@ class ScieloModerationStagesPlugin extends GenericPlugin
 
             $output = substr_replace($output, $currentStageStatus, $posMatch, 0);
             $templateMgr->unregisterFilter('output', array($this, 'addCurrentStageStatusToWorkflowFilter'));
+        }
+        return $output;
+    }
+
+    public function addMessageToSubmissionComplete($hookName, $params)
+    {
+        $template = &$params[1];
+        if ($template === 'submission/complete.tpl') {
+            $templateMgr = $params[0];
+            $templateMgr->registerFilter('output', [$this, 'addMessageToSubmissionCompleteFilter']);
+        }
+        return false;
+    }
+
+    public function addMessageToSubmissionCompleteFilter($output, $templateMgr)
+    {
+        if (preg_match('/class="app__contentPanel"/', $output, $matches, PREG_OFFSET_CAPTURE)) {
+            $contentPanelPos = $matches[0][1];
+            $afterContentPanel = substr($output, $contentPanelPos);
+            if (preg_match('/<\/div>/', $afterContentPanel, $divMatches, PREG_OFFSET_CAPTURE)) {
+                $insertPos = $contentPanelPos + $divMatches[0][1];
+                $submissionCompleteMsg = $templateMgr->fetch($this->getTemplateResource('submissionCompleteMsg.tpl'));
+                $output = substr_replace($output, $submissionCompleteMsg, $insertPos, 0);
+                $templateMgr->unregisterFilter('output', [$this, 'addMessageToSubmissionCompleteFilter']);
+            }
         }
         return $output;
     }

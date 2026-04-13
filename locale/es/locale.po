@@ -17,6 +17,9 @@ msgstr "Etapas de Moderación SciELO"
 msgid "plugins.generic.scieloModerationStages.displayNameWorkflow"
 msgstr "Etapas de Moderación"
 
+msgid "plugins.generic.scieloModerationStages.moderation"
+msgstr "Moderación"
+
 msgid "plugins.generic.scieloModerationStages.description"
 msgstr "Este módulo agrega las etapas de moderación definidas por SciELO a OPS"
 
@@ -192,8 +195,8 @@ msgstr "Manuscritos pendientes de moderación previa"
 
 msgid "plugins.generic.scieloModerationStages.assignedFirstStage"
 msgstr ""
-"La moderación de su envío ha sido iniciada y ha sido enviada a la etapa de Moderación Previa del Formato, donde pasará por un proceso de cribado.<br/>"
-"Por favor, espere una respuesta del equipo editorial o una actualización sobre el estado de su envío."
+"<p>La moderación de su envío ha sido iniciada y ha sido enviada a la etapa de Moderación Previa del Formato, donde pasará por un proceso de cribado.</p>"
+"<p>Por favor, espere una respuesta del equipo editorial o una actualización sobre el estado de su envío.</p>"
 
 msgid "plugins.generic.scieloModerationStages.emails.preModerationReminder.body"
 msgstr ""
