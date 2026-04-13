@@ -187,6 +187,11 @@ msgstr "Submission made {$numberOfDays} days ago"
 msgid "plugins.generic.scieloModerationStages.submissionMade.nDaysAgo.bold"
 msgstr "<strong>Submission made {$numberOfDays} days ago</strong>"
 
+msgid "plugins.generic.scieloModerationStages.assignedFirstStage"
+msgstr ""
+"The moderation of your submission has been initiated and it has been forwarded to the Format Pre-Moderation stage, where it will undergo a screening process.<br/>"
+"Please wait for a response from the editorial team or an update on the status of your submission."
+
 msgid "plugins.generic.scieloModerationStages.emails.preModerationReminder.subject"
 msgstr "Manuscripts awaiting pre-moderation"
 

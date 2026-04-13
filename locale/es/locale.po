@@ -190,6 +190,11 @@ msgstr "<strong>Envío realizado hace {$numberOfDays} días</strong>"
 msgid "plugins.generic.scieloModerationStages.emails.preModerationReminder.subject"
 msgstr "Manuscritos pendientes de moderación previa"
 
+msgid "plugins.generic.scieloModerationStages.assignedFirstStage"
+msgstr ""
+"La moderación de su envío ha sido iniciada y ha sido enviada a la etapa de Moderación Previa del Formato, donde pasará por un proceso de cribado.<br/>"
+"Por favor, espere una respuesta del equipo editorial o una actualización sobre el estado de su envío."
+
 msgid "plugins.generic.scieloModerationStages.emails.preModerationReminder.body"
 msgstr ""
 "Hola, {$moderatorName}<br/>\n"

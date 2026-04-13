@@ -40,7 +40,7 @@ describe("SciELO Moderation Stages - Moderation stage advancement", function() {
         cy.login('fpaglieri', null, 'publicknowledge');
         cy.createSubmission(submissionData);
         cy.contains('The moderation of your submission has been initiated and it has been forwarded to the Format Pre-Moderation stage, where it will undergo a screening process');
-        cy.contains('Please await feedback from the editorial team or an update on the submission status');
+        cy.contains('Please wait for a response from the editorial team or an update on the status of your submission');
     });
     it("Checks submission is set to first moderation stage", function() {
         cy.login('fpaglieri', null, 'publicknowledge');
