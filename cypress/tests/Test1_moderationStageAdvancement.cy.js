@@ -82,7 +82,7 @@ describe("SciELO Moderation Stages - Moderation stage advancement", function() {
         cy.contains('Your submission has been forwarded to the Manuscript Type Pre-Moderation stage');
         cy.contains('To facilitate the moderation process, please provide an up-to-date ORCID that includes the most recent scholarly work for at least one of the authors listed in the submission');
         cy.contains('Optionally, you may also provide an endorsement for the preprint, if you have one');
-        cy.contains('For more information, we recommend reading our FAQs #10 and #19.');
+        cy.contains('For more information, we recommend reading our FAQs #10 and #19');
     });
     it("Checks stage advancing not present in last stage", function() {
         cy.login('dbarnes', null, 'publicknowledge');

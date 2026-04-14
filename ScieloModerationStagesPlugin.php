@@ -102,6 +102,11 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         return __('plugins.generic.scieloModerationStages.description');
     }
 
+    public function getInstallEmailTemplatesFile()
+    {
+        return $this->getPluginPath() . '/emailTemplates.xml';
+    }
+
     public function getActions($request, $actionArgs)
     {
         $router = $request->getRouter();
