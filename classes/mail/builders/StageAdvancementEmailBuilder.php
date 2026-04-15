@@ -3,6 +3,7 @@
 namespace APP\plugins\generic\scieloModerationStages\classes\mail\builders;
 
 use APP\core\Application;
+use APP\facades\Repo;
 use APP\submission\Submission;
 use PKP\mail\Mailable;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
