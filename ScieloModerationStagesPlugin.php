@@ -47,7 +47,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         if ($success && $this->getEnabled($mainContextId)) {
             Event::subscribe(new AssignFirstModerationStage());
 
-            Hook::add('Schema::get::submission', [$this, 'addOurFieldsToSubmissionSchema']);
+            Hook::add('Schema::get::submission', [$this, 'addNewPropsToSubmissionSchema']);
             Hook::add('addparticipantform::display', [$this, 'addStageAdvanceToAssignForm']);
             Hook::add('addparticipantform::execute', [$this, 'sendSubmissionToNextModerationStage']);
             Hook::add('queryform::display', [$this, 'hideParticipantsOnDiscussionOpening']);
@@ -174,35 +174,24 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         return false;
     }
 
-    public function addOurFieldsToSubmissionSchema($hookName, $params)
+    public function addNewPropsToSubmissionSchema($hookName, $params)
     {
         $schema = &$params[0];
+        $newProperties = [
+            'currentModerationStage',
+            'lastModerationStageChange',
+            'formatStageEntryDate',
+            'contentStageEntryDate',
+            'areaStageEntryDate'
+        ];
 
-        $schema->properties->{'currentModerationStage'} = (object) [
-            'type' => 'string',
-            'apiSummary' => true,
-            'validation' => ['nullable'],
-        ];
-        $schema->properties->{'lastModerationStageChange'} = (object) [
-            'type' => 'string',
-            'apiSummary' => true,
-            'validation' => ['nullable'],
-        ];
-        $schema->properties->{'formatStageEntryDate'} = (object) [
-            'type' => 'string',
-            'apiSummary' => true,
-            'validation' => ['nullable'],
-        ];
-        $schema->properties->{'contentStageEntryDate'} = (object) [
-            'type' => 'string',
-            'apiSummary' => true,
-            'validation' => ['nullable'],
-        ];
-        $schema->properties->{'areaStageEntryDate'} = (object) [
-            'type' => 'string',
-            'apiSummary' => true,
-            'validation' => ['nullable'],
-        ];
+        foreach ($newProperties as $property) {
+            $schema->properties->{$property} = (object) [
+                'type' => 'string',
+                'apiSummary' => true,
+                'validation' => ['nullable'],
+            ];
+        }
 
         return false;
     }
