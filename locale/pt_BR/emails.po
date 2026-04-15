@@ -34,3 +34,24 @@ msgstr ""
 "<br>\n"
 "Para mais informações, recomendamos a leitura de nossas <a href=\"{$faqUrl}\">FAQs n°10 e 19.</a><br>\n"
 "<br>\n"
+
+
+msgid "emails.sentToAreaModerationStage.name"
+msgstr "Notificação de avanço na moderação para Moderação de Área"
+
+msgid "emails.sentToAreaModerationStage.description"
+msgstr "Modelo de e-mail usado para notificar sobre o avanço de uma submissão para o estágio de Moderação de Área."
+
+msgid "emails.sentToAreaModerationStage.subject"
+msgstr "Avanço na Moderação de Submissão"
+
+msgid "emails.sentToAreaModerationStage.body"
+msgstr ""
+"Prezado(a) {$authorName},<br>\n"
+"<br>\n"
+"A sua submissão foi encaminhada para o estágio de Moderação de Área, onde está sendo moderada por um editor de periódico SciELO.<br>\n"
+"<br>\n"
+"Por favor, aguarde retorno da nossa equipe.<br>\n"
+"<br>\n"
+"Para mais informações, recomendamos a leitura da nossa <a href=\"{$faqUrl}\">FAQ n°19.</a><br>\n"
+"<br>\n"

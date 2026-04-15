@@ -7,7 +7,10 @@ use APP\facades\Repo;
 use APP\submission\Submission;
 use PKP\mail\Mailable;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
-use APP\plugins\generic\scieloModerationStages\classes\mail\mailables\SentToTypeModerationStage;
+use APP\plugins\generic\scieloModerationStages\classes\mail\mailables\{
+    SentToAreaModerationStage,
+    SentToTypeModerationStage
+};
 
 class StageAdvancementEmailBuilder
 {
@@ -70,6 +73,7 @@ class StageAdvancementEmailBuilder
     {
         $moderationStageEmailTemplateMap = [
             ModerationStage::SCIELO_MODERATION_STAGE_CONTENT => ['SENT_TO_TYPE_MODERATION_STAGE', SentToTypeModerationStage::class],
+            ModerationStage::SCIELO_MODERATION_STAGE_AREA => ['SENT_TO_AREA_MODERATION_STAGE', SentToAreaModerationStage::class],
         ];
 
         return $moderationStageEmailTemplateMap[$moderationStage] ?? null;

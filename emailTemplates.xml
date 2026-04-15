@@ -11,10 +11,17 @@
     -->
 <emails>
 	<email
-        key="SENT_TO_TYPE_MODERATION_STAGE"
-        name="emails.sentToTypeModerationStage.name"
-        description="emails.sentToTypeModerationStage.description"
-        subject="emails.sentToTypeModerationStage.subject"
-        body="emails.sentToTypeModerationStage.body"
-    />
+    key="SENT_TO_TYPE_MODERATION_STAGE"
+    name="emails.sentToTypeModerationStage.name"
+    description="emails.sentToTypeModerationStage.description"
+    subject="emails.sentToTypeModerationStage.subject"
+    body="emails.sentToTypeModerationStage.body"
+  />
+  <email
+    key="SENT_TO_AREA_MODERATION_STAGE"
+    name="emails.sentToAreaModerationStage.name"
+    description="emails.sentToAreaModerationStage.description"
+    subject="emails.sentToAreaModerationStage.subject"
+    body="emails.sentToAreaModerationStage.body"
+  />
 </emails>

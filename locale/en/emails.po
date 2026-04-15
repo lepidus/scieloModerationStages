@@ -12,7 +12,7 @@ msgstr ""
 "Language: English\n"
 
 msgid "emails.sentToTypeModerationStage.name"
-msgstr "Moderation advancement notification to Type Pre-moderation"
+msgstr "Notification of Advancement in Moderation to Type Pre-moderation"
 
 msgid "emails.sentToTypeModerationStage.description"
 msgstr "Email template used to notify about the advancement of a submission to the Type Pre-moderation."
@@ -33,4 +33,25 @@ msgstr ""
 "Optionally, you may also provide an endorsement for the preprint, if you have one.<br>\n"
 "<br>\n"
 "For more information, we recommend reading our <a href=\"{$faqUrl}\">FAQs #10 and #19.</a><br>\n"
+"<br>\n"
+
+
+msgid "emails.sentToAreaModerationStage.name"
+msgstr "Notification of Advancement in Moderation to Area Moderation"
+
+msgid "emails.sentToAreaModerationStage.description"
+msgstr "Email template used to notify about the advancement of a submission to the Area Moderation."
+
+msgid "emails.sentToAreaModerationStage.subject"
+msgstr "Advancement in Submission Moderation"
+
+msgid "emails.sentToAreaModerationStage.body"
+msgstr ""
+"Dear {$authorName},<br>\n"
+"<br>\n"
+"Your submission has been forwarded to the Area Moderation stage, where it is being reviewed by a SciELO journal editor.<br>\n"
+"<br>\n"
+"Please wait for a response from our team.<br>\n"
+"<br>\n"
+"For more information, we recommend reading our <a href=\"{$faqUrl}\">FAQ #19.</a><br>\n"
 "<br>\n"

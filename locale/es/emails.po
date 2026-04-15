@@ -34,3 +34,24 @@ msgstr ""
 "<br>\n"
 "Para más información, le recomendamos la lectura de nuestras <a href=\"{$faqUrl}\">FAQs n°10 y 19.</a><br>\n"
 "<br>\n"
+
+
+msgid "emails.sentToAreaModerationStage.name"
+msgstr "Notificación de avance en la moderación para Moderación del Área"
+
+msgid "emails.sentToAreaModerationStage.description"
+msgstr "Plantilla de correo electrónico utilizada para notificar sobre el avance de una publicación a la etapa de Moderación del Área."
+
+msgid "emails.sentToAreaModerationStage.subject"
+msgstr "Avance en la Moderación de Publicación"
+
+msgid "emails.sentToAreaModerationStage.body"
+msgstr ""
+"Estimado(a) {$authorName},<br>\n"
+"<br>\n"
+"Su artículo ha sido remitido a la fase de Moderación del Área, donde está siendo revisado por un editor de una revista de SciELO.<br>\n"
+"<br>\n"
+"Por favor, espere a recibir noticias de nuestro equipo.<br>\n"
+"<br>\n"
+"Para más información, le recomendamos la lectura de nuestra <a href=\"{$faqUrl}\">FAQ n°19.</a><br>\n"
+"<br>\n"
