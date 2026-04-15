@@ -33,7 +33,7 @@ describe("SciELO Moderation Stages - Stage advancement hidden scenarios", functi
             ]
 		};
     });
-    
+
     it("Author creates submission", function() {
         cy.login('fpaglieri', null, 'publicknowledge');
         cy.createSubmission(submissionData);

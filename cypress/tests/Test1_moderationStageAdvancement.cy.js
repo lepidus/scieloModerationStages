@@ -68,7 +68,7 @@ describe("SciELO Moderation Stages - Moderation stage advancement", function() {
         cy.contains('button', 'Activity Log').click();
         cy.contains('The submission has been sent to the Manuscript Type Pre-Moderation stage');
     });
-    it("Checks sending of email notification after sending to next moderation stage", function() {
+    it("Checks sending of email notification after advancing moderation stage", function() {
         cy.visit('localhost:8025');
         cy.get('b:contains("Advancement in Submission Moderation")').should('have.length', 1);
         cy.contains('b', 'Advancement in Submission Moderation')
