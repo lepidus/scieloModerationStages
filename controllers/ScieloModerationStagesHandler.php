@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use PKP\plugins\PluginRegistry;
 use APP\core\Application;
 use APP\handler\Handler;
@@ -14,6 +15,7 @@ use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageRegister;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageDAO;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationReminderEmailBuilder;
+use APP\plugins\generic\scieloModerationStages\classes\mail\builders\StageAdvancementEmailBuilder;
 
 class ScieloModerationStagesHandler extends Handler
 {
@@ -90,6 +92,12 @@ class ScieloModerationStagesHandler extends Handler
             $moderationStageRegister = new ModerationStageRegister();
             $moderationStageRegister->registerModerationStageOnDatabase($moderationStage);
             $moderationStageRegister->registerModerationStageOnSubmissionLog($moderationStage);
+
+            $emailBuilder = new StageAdvancementEmailBuilder();
+            $email = $emailBuilder->setSubmission($submission)
+                ->buildEmailParams()
+                ->build();
+            Mail::send($email);
         }
 
         Repo::submission()->edit($submission, []);
