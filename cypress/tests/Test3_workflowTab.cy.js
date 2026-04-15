@@ -44,6 +44,9 @@ describe("SciELO Moderation Stages - Workflow tab", function() {
         cy.findSubmission('myQueue', submissionData.title);
 
         cy.get('#scieloModerationStages-button').click();
+
+        cy.contains('Your submission is currently at the Format Pre-Moderation stage, where it is undergoing a screening process');
+        cy.contains('Please wait for a response from the editorial team or an update on the status of your submission');
         cy.get('#formatStageEntryDateDiv').within(() => {
             cy.contains('label', 'Format Pre-Moderation');
             cy.contains('label', 'The submission has entered in this moderation stage in the following data');
