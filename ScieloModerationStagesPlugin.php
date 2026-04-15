@@ -48,6 +48,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             Event::subscribe(new AssignFirstModerationStage());
 
             Hook::add('Schema::get::submission', [$this, 'addNewPropsToSubmissionSchema']);
+            Hook::add('Schema::get::eventLog', [$this, 'addNewPropsToEventLogSchema']);
             Hook::add('addparticipantform::display', [$this, 'addStageAdvanceToAssignForm']);
             Hook::add('addparticipantform::execute', [$this, 'sendSubmissionToNextModerationStage']);
             Hook::add('queryform::display', [$this, 'hideParticipantsOnDiscussionOpening']);
@@ -178,22 +179,40 @@ class ScieloModerationStagesPlugin extends GenericPlugin
     {
         $schema = &$params[0];
         $newProperties = [
-            'currentModerationStage',
-            'lastModerationStageChange',
-            'formatStageEntryDate',
-            'contentStageEntryDate',
-            'areaStageEntryDate'
+            'currentModerationStage' => 'string',
+            'lastModerationStageChange' => 'string',
+            'formatStageEntryDate' => 'string',
+            'contentStageEntryDate' => 'string',
+            'areaStageEntryDate' => 'string'
         ];
 
-        foreach ($newProperties as $property) {
+        foreach ($newProperties as $property => $type) {
             $schema->properties->{$property} = (object) [
-                'type' => 'string',
+                'type' => $type,
                 'apiSummary' => true,
                 'validation' => ['nullable'],
             ];
         }
 
-        return false;
+        return Hook::CONTINUE;
+    }
+
+    public function addNewPropsToEventLogSchema($hookName, $params)
+    {
+        $schema = &$params[0];
+        $newProperties = [
+            'moderationStageName' => 'string',
+        ];
+
+        foreach ($newProperties as $property => $type) {
+            $schema->properties->{$property} = (object) [
+                'type' => $type,
+                'apiSummary' => true,
+                'validation' => ['nullable'],
+            ];
+        }
+
+        return Hook::CONTINUE;
     }
 
     public function addStageAdvanceToAssignForm($hookName, $params)
