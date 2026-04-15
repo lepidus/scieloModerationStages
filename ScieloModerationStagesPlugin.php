@@ -23,11 +23,13 @@ use APP\facades\Repo;
 use PKP\security\Role;
 use PKP\db\DAORegistry;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Mail;
 use PKP\linkAction\LinkAction;
 use PKP\linkAction\request\AjaxModal;
 use PKP\core\JSONMessage;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageRegister;
+use APP\plugins\generic\scieloModerationStages\classes\mail\builders\StageAdvancementEmailBuilder;
 use APP\plugins\generic\scieloModerationStages\classes\observers\listeners\AssignFirstModerationStage;
 
 class ScieloModerationStagesPlugin extends GenericPlugin
@@ -360,6 +362,12 @@ class ScieloModerationStagesPlugin extends GenericPlugin
                 $moderationStageRegister = new ModerationStageRegister();
                 $moderationStageRegister->registerModerationStageOnDatabase($moderationStage);
                 $moderationStageRegister->registerModerationStageOnSubmissionLog($moderationStage);
+
+                $emailBuilder = new StageAdvancementEmailBuilder();
+                $email = $emailBuilder->setSubmission($submission)
+                    ->buildEmailParams()
+                    ->build();
+                Mail::send($email);
             }
         }
     }

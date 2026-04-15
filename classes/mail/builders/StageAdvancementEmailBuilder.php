@@ -19,6 +19,7 @@ class StageAdvancementEmailBuilder
     public function setSubmission(Submission $submission): StageAdvancementEmailBuilder
     {
         $this->submission = $submission;
+        $this->moderationStage = $submission->getData('currentModerationStage');
         return $this;
     }
 
