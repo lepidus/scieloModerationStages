@@ -258,18 +258,18 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         $moderationStage = new ModerationStage($submission);
         if ($moderationStage->submissionStageExists()) {
             $stageDates = $moderationStage->getStageEntryDates();
+            $currentStageName = $moderationStage->getCurrentStageName(false);
 
-            $templateMgr->assign($stageDates);
-            $templateMgr->assign('submissionId', $submission->getId());
-            $templateMgr->assign('userIsAuthor', $this->userIsAuthor($submission));
-            $templateMgr->assign('canAdvanceStage', $moderationStage->canAdvanceStage());
+            $templateMgr->assign([
+                ...$stageDates,
+                'submissionId' => $submission->getId(),
+                'userIsAuthor' => $this->userIsAuthor($submission),
+                'currentStage' => $currentStageName,
+                'canAdvanceStage' => $moderationStage->canAdvanceStage()
+            ]);
 
             if ($moderationStage->canAdvanceStage()) {
-                $currentStageName = $moderationStage->getCurrentStageName();
-                $nextStageName = $moderationStage->getNextStageName();
-
-                $templateMgr->assign('currentStage', $currentStageName);
-                $templateMgr->assign('nextStage', $nextStageName);
+                $templateMgr->assign('nextStage', $moderationStage->getNextStageName());
             }
 
             $output .= sprintf(
