@@ -10,7 +10,10 @@
 
 <div class="pkp_form" id="moderationStageEntriesForm">
     {if $userIsAuthor}
-        <p>{translate key="{$currentStage}.workflowDescription"}</p>
+        <div class="currentStageInfo">
+            <label class="label">{translate key="plugins.generic.scieloModerationStages.currentStageInfo"}</label>
+            {translate key="{$currentStage}.workflowDescription"}
+        </div>
     {/if}
 
     {if $formatStageEntryDate}

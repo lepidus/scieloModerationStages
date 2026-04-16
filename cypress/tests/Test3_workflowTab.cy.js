@@ -96,8 +96,6 @@ describe("SciELO Moderation Stages - Workflow tab", function() {
         cy.get('#scieloModerationStages-button').click();
 
         cy.contains('Your submission is currently at the Manuscript Type Pre-Moderation stage and is undergoing a review');
-        cy.contains('To facilitate moderation, please provide an updated ORCID with the most recent scientific output for at least one of the authors registered in the submission');
-        cy.contains('Optionally, you may also provide an endorsement for the preprint, if you have one');
         cy.contains('For more information, we recommend reading our FAQs #10 and #19');
     });
     it("Checks sending of email notification after advancing moderation stage", function() {

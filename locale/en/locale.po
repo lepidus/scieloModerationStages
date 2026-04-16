@@ -30,14 +30,23 @@ msgid "plugins.generic.scieloModerationStages.stages.formatStage"
 msgstr "Format Pre-Moderation"
 
 msgid "plugins.generic.scieloModerationStages.stages.formatStage.workflowDescription"
-msgstr "Your submission is currently at the Format Pre-Moderation stage, where it is undergoing a screening process."
-"Please wait for a response from the editorial team or an update on the status of your submission."
+msgstr "<p>Your submission is currently at the Format Pre-Moderation stage, where it is undergoing a screening process.</p>"
+"<p>Please wait for a response from the editorial team or an update on the status of your submission.</p>"
 
 msgid "plugins.generic.scieloModerationStages.stages.contentStage"
 msgstr "Manuscript Type Pre-Moderation"
 
+msgid "plugins.generic.scieloModerationStages.stages.contentStage.workflowDescription"
+msgstr ""
+"<p>Your submission is currently at the Manuscript Type Pre-Moderation stage and is undergoing a review"
+" that assesses whether it is an original research by authors with academic backgrounds eligible for automatic approval.</p>"
+"<p>For more information, we recommend reading our <a href=\"{$faqUrl}\">FAQs #10 and #19.</a></p>"
+
 msgid "plugins.generic.scieloModerationStages.stages.areaStage"
 msgstr "Area Moderation"
+
+msgid "plugins.generic.scieloModerationStages.currentStageInfo"
+msgstr "Current stage information:"
 
 msgid "plugins.generic.scieloModerationStages.checkboxTitle"
 msgstr "SciELO Moderation Stage"
