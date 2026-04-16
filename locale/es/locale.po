@@ -29,6 +29,10 @@ msgstr "El envío ha sido enviado a la etapa de {$moderationStageName}"
 msgid "plugins.generic.scieloModerationStages.stages.formatStage"
 msgstr "Moderación Previa del Formato"
 
+msgid "plugins.generic.scieloModerationStages.stages.formatStage.workflowDescription"
+msgstr "Su envío está en la etapa de Moderación Previa del Formato, donde está pasando por un proceso de revisión."
+"Por favor, espere la respuesta del equipo editorial o una actualización sobre el estado de su envío."
+
 msgid "plugins.generic.scieloModerationStages.stages.contentStage"
 msgstr "Moderación Previa de Tipo de Manuscrito"
 
