@@ -30,8 +30,9 @@ msgid "plugins.generic.scieloModerationStages.stages.formatStage"
 msgstr "Pré-Moderação de Formato"
 
 msgid "plugins.generic.scieloModerationStages.stages.formatStage.workflowDescription"
-msgstr "A sua submissão está no estágio de Pré-Moderação de Formato, onde está passando por um processo de triagem."
-"Por favor, aguarde retorno da equipe editorial ou uma atualização do status da sua submissão."
+msgstr ""
+"<p>A sua submissão está atualmente no estágio de Pré-Moderação de Formato, onde está passando por um processo de triagem.</p>"
+"<p>Por favor, aguarde retorno da equipe editorial ou uma atualização do status da sua submissão.</p>"
 
 msgid "plugins.generic.scieloModerationStages.stages.contentStage"
 msgstr "Pré-Moderação de Tipo de Manuscrito"

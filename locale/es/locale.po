@@ -30,7 +30,8 @@ msgid "plugins.generic.scieloModerationStages.stages.formatStage"
 msgstr "Moderación Previa del Formato"
 
 msgid "plugins.generic.scieloModerationStages.stages.formatStage.workflowDescription"
-msgstr "<p>Su envío está en la etapa de Moderación Previa del Formato, donde está pasando por un proceso de revisión.</p>"
+msgstr ""
+"<p>Su envío está en la etapa de Moderación Previa del Formato, donde está pasando por un proceso de revisión.</p>"
 "<p>Por favor, espere la respuesta del equipo editorial o una actualización sobre el estado de su envío.</p>"
 
 msgid "plugins.generic.scieloModerationStages.stages.contentStage"
