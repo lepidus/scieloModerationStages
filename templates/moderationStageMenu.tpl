@@ -12,7 +12,7 @@
     {if $userIsAuthor}
         <div class="currentStageInfo">
             <label class="label">{translate key="plugins.generic.scieloModerationStages.currentStageInfo"}</label>
-            {translate key="{$currentStage}.workflowDescription"}
+            {translate key="{$currentStage}.workflowDescription" faqUrl=$faqUrl}
         </div>
     {/if}
 

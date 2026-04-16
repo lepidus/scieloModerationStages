@@ -255,6 +255,10 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         $output = &$params[2];
         $submission = $templateMgr->getTemplateVars('submission');
 
+        $request = Application::get()->getRequest();
+        $context = $request->getContext();
+        $faqUrl = $request->url($context->getPath()) . '/faq';
+
         $moderationStage = new ModerationStage($submission);
         if ($moderationStage->submissionStageExists()) {
             $stageDates = $moderationStage->getStageEntryDates();
@@ -265,7 +269,8 @@ class ScieloModerationStagesPlugin extends GenericPlugin
                 'submissionId' => $submission->getId(),
                 'userIsAuthor' => $this->userIsAuthor($submission),
                 'currentStage' => $currentStageName,
-                'canAdvanceStage' => $moderationStage->canAdvanceStage()
+                'canAdvanceStage' => $moderationStage->canAdvanceStage(),
+                'faqUrl' => $faqUrl
             ]);
 
             if ($moderationStage->canAdvanceStage()) {
