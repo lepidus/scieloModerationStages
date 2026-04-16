@@ -40,10 +40,16 @@ msgid "plugins.generic.scieloModerationStages.stages.contentStage.workflowDescri
 msgstr ""
 "<p>A sua submissão está atualmente no estágio de Pré-Moderação de Tipo de Manuscrito e está passando por uma verificação"
 " que avalia se se trata de uma pesquisa original com autores com antecedentes acadêmicos passível de aprovação automática.</p>"
-"<p>Para mais informações, recomendamos a leitura de nossas <a href=\"{$faqUrl}\">FAQs n°10 e 19.</a></p>"
+"<p>Para mais informações, recomendamos a leitura de nossas <a href=\"{$faqUrl}\">FAQs n°10 e 19</a>.</p>"
 
 msgid "plugins.generic.scieloModerationStages.stages.areaStage"
 msgstr "Moderação de Área"
+
+msgid "plugins.generic.scieloModerationStages.stages.areaStage.workflowDescription"
+msgstr ""
+"<p>A sua submissão está atualmente no estágio de Moderação de Área, onde está sendo moderada por um editor de periódico SciELO."
+" Por favor, aguarde retorno da nossa equipe.</p>"
+"<p>Para mais informações, recomendamos a leitura de nossa <a href=\"{$faqUrl}\">FAQ n°19</a>.</p>"
 
 msgid "plugins.generic.scieloModerationStages.currentStageInfo"
 msgstr "Informação do estágio atual:"

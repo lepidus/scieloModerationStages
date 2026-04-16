@@ -38,12 +38,18 @@ msgstr "Moderación Previa de Tipo de Manuscrito"
 
 msgid "plugins.generic.scieloModerationStages.stages.contentStage.workflowDescription"
 msgstr ""
-"<p>Su publicación está actualmente en la etapa de Pre-Moderación de Tipo de Manuscrito y está siendo sometida a una verificación"
+"<p>Su envío está actualmente en la etapa de Pre-Moderación de Tipo de Manuscrito y está siendo sometida a una verificación"
 " que evalúa si se trata de una investigación original con autores con antecedentes académicos susceptible de aprobación automática.</p>"
-"<p>Para más información, le recomendamos la lectura de nuestras <a href=\"{$faqUrl}\">FAQs n°10 y 19.</a></p>"
+"<p>Para más información, le recomendamos la lectura de nuestras <a href=\"{$faqUrl}\">FAQs n°10 y 19</a>.</p>"
 
 msgid "plugins.generic.scieloModerationStages.stages.areaStage"
 msgstr "Moderación del Área"
+
+msgid "plugins.generic.scieloModerationStages.stages.areaStage.workflowDescription"
+msgstr ""
+"<p>Su envío está actualmente en la etapa de Moderación del Área, donde está siendo revisado por un editor de una revista de SciELO.</p>."
+" Por favor, espere a recibir noticias de nuestro equipo.</p>"
+"<p>Para más información, le recomendamos la lectura de nuestra <a href=\"{$faqUrl}\">FAQ n°19</a>.</p>"
 
 msgid "plugins.generic.scieloModerationStages.currentStageInfo"
 msgstr "Información de la etapa actual:"
