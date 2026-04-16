@@ -89,6 +89,17 @@ describe("SciELO Moderation Stages - Workflow tab", function() {
             cy.get('input[name="contentStageEntryDate"]').should('have.value', today);
         });
     });
+    it("Checks display of stage description to author after advancing moderation stage", function () {
+        cy.login('fpaglieri', null, 'publicknowledge');
+        cy.findSubmission('myQueue', submissionData.title);
+
+        cy.get('#scieloModerationStages-button').click();
+
+        cy.contains('Your submission is currently at the Manuscript Type Pre-Moderation stage and is undergoing a review');
+        cy.contains('To facilitate moderation, please provide an updated ORCID with the most recent scientific output for at least one of the authors registered in the submission');
+        cy.contains('Optionally, you may also provide an endorsement for the preprint, if you have one');
+        cy.contains('For more information, we recommend reading our FAQs #10 and #19');
+    });
     it("Checks sending of email notification after advancing moderation stage", function() {
         cy.visit('localhost:8025');
         cy.contains('b', 'Advancement in Submission Moderation')
