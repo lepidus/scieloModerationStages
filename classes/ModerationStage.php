@@ -18,7 +18,7 @@ class ModerationStage
         $this->submission = $submission;
     }
 
-    private function getModerationStageName($stage)
+    private function getModerationStageName(int $stage, bool $translated = true): string
     {
         $stageMap = [
             self::SCIELO_MODERATION_STAGE_FORMAT => 'plugins.generic.scieloModerationStages.stages.formatStage',
@@ -26,7 +26,7 @@ class ModerationStage
             self::SCIELO_MODERATION_STAGE_AREA => 'plugins.generic.scieloModerationStages.stages.areaStage',
         ];
 
-        return __($stageMap[$stage]);
+        return $translated ? __($stageMap[$stage]) : $stageMap[$stage];
     }
 
     private function getNextModerationStage($stage)
@@ -69,11 +69,11 @@ class ModerationStage
         return $stageEntryDates;
     }
 
-    public function getCurrentStageName(): string
+    public function getCurrentStageName(bool $translated = true): string
     {
         $currentStage = $this->submission->getData('currentModerationStage');
 
-        return $this->getModerationStageName($currentStage);
+        return $this->getModerationStageName($currentStage, $translated);
     }
 
     public function getNextStageName(): string
