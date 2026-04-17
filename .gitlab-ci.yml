@@ -16,5 +16,7 @@ ops_integration_tests:
 code_formatting_check:
   before_script:
     - export DEBIAN_FRONTEND=noninteractive
-    - apt update && apt install curl -yqq
-    - curl -I https://repo.packagist.org/p2/symfony/console.json
+    - apt update && apt install composer -yqq
+    - php -v
+    - composer -v
+    - composer config --global -- disable-ipv6 true
