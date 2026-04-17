@@ -17,6 +17,9 @@ msgstr "Etapas de Moderación SciELO"
 msgid "plugins.generic.scieloModerationStages.displayNameWorkflow"
 msgstr "Etapas de Moderación"
 
+msgid "plugins.generic.scieloModerationStages.moderation"
+msgstr "Moderación"
+
 msgid "plugins.generic.scieloModerationStages.description"
 msgstr "Este módulo agrega las etapas de moderación definidas por SciELO a OPS"
 
@@ -26,11 +29,31 @@ msgstr "El envío ha sido enviado a la etapa de {$moderationStageName}"
 msgid "plugins.generic.scieloModerationStages.stages.formatStage"
 msgstr "Moderación Previa del Formato"
 
+msgid "plugins.generic.scieloModerationStages.stages.formatStage.workflowDescription"
+msgstr ""
+"<p>Su envío está en la etapa de Moderación Previa del Formato, donde está pasando por un proceso de revisión.</p>"
+"<p>Por favor, espere la respuesta del equipo editorial o una actualización sobre el estado de su envío.</p>"
+
 msgid "plugins.generic.scieloModerationStages.stages.contentStage"
 msgstr "Moderación Previa de Tipo de Manuscrito"
 
+msgid "plugins.generic.scieloModerationStages.stages.contentStage.workflowDescription"
+msgstr ""
+"<p>Su envío está actualmente en la etapa de Pre-Moderación de Tipo de Manuscrito y está siendo sometida a una verificación"
+" que evalúa si se trata de una investigación original con autores con antecedentes académicos susceptible de aprobación automática.</p>"
+"<p>Para más información, le recomendamos la lectura de nuestras <a href=\"{$faqUrl}\">FAQs n°10 y 19</a>.</p>"
+
 msgid "plugins.generic.scieloModerationStages.stages.areaStage"
 msgstr "Moderación del Área"
+
+msgid "plugins.generic.scieloModerationStages.stages.areaStage.workflowDescription"
+msgstr ""
+"<p>Su envío está actualmente en la etapa de Moderación del Área, donde está siendo revisado por un editor de una revista de SciELO.</p>."
+" Por favor, espere a recibir noticias de nuestro equipo.</p>"
+"<p>Para más información, le recomendamos la lectura de nuestra <a href=\"{$faqUrl}\">FAQ n°19</a>.</p>"
+
+msgid "plugins.generic.scieloModerationStages.currentStageInfo"
+msgstr "Información de la etapa actual:"
 
 msgid "plugins.generic.scieloModerationStages.checkboxTitle"
 msgstr "Etapa de Moderación SciELO"
@@ -189,6 +212,11 @@ msgstr "<strong>Envío realizado hace {$numberOfDays} días</strong>"
 
 msgid "plugins.generic.scieloModerationStages.emails.preModerationReminder.subject"
 msgstr "Manuscritos pendientes de moderación previa"
+
+msgid "plugins.generic.scieloModerationStages.assignedFirstStage"
+msgstr ""
+"<p>La moderación de su envío ha sido iniciada y ha sido enviada a la etapa de Moderación Previa del Formato, donde pasará por un proceso de cribado.</p>"
+"<p>Por favor, espere una respuesta del equipo editorial o una actualización sobre el estado de su envío.</p>"
 
 msgid "plugins.generic.scieloModerationStages.emails.preModerationReminder.body"
 msgstr ""

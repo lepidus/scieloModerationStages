@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE emails SYSTEM "../../../lib/pkp/dtd/emailTemplates.dtd">
+<!--
+  * emailTemplates.xml
+  *
+  * Copyright (c) 2022 - 2026 Lepidus Tecnologia
+  * Copyright (c) 2022 - 2026 SciELO
+  * Distributed under the GNU GPL v3. For full terms see the file docs/COPYING.
+  *
+  * Email templates XML file.
+    -->
+<emails>
+	<email
+    key="SENT_TO_TYPE_MODERATION_STAGE"
+    name="emails.sentToTypeModerationStage.name"
+    description="emails.sentToTypeModerationStage.description"
+    subject="emails.sentToTypeModerationStage.subject"
+    body="emails.sentToTypeModerationStage.body"
+  />
+  <email
+    key="SENT_TO_AREA_MODERATION_STAGE"
+    name="emails.sentToAreaModerationStage.name"
+    description="emails.sentToAreaModerationStage.description"
+    subject="emails.sentToAreaModerationStage.subject"
+    body="emails.sentToAreaModerationStage.body"
+  />
+</emails>

@@ -28,8 +28,9 @@ class ModerationStageRegister
             'assocId' => $submission->getId(),
             'eventType' => PKPSubmissionEventLogEntry::SUBMISSION_LOG_METADATA_UPDATE,
             'userId' => Validation::loggedInAs() ?? $user->getId(),
-            'message' => __('plugins.generic.scieloModerationStages.log.submissionSentToModerationStage', ['moderationStageName' => $stageName]),
-            'isTranslated' => true,
+            'message' => 'plugins.generic.scieloModerationStages.log.submissionSentToModerationStage',
+            'moderationStageName' => $stageName,
+            'isTranslated' => false,
             'dateLogged' => Core::getCurrentDate(),
         ]);
         Repo::eventLog()->add($eventLog);

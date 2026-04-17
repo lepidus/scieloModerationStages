@@ -2,15 +2,20 @@
   padding: 0.875rem 0;
 }
 
-.stageDateField, #sendNextStageDiv {
+
+.currentStageInfo, .stageDateField, #sendNextStageDiv {
   padding: 0.875rem 0.3125rem;
   width: 100%;
 }
 
-.stageDateField .label {
+.currentStageInfo .label, .stageDateField .label {
   display: block;
   font-size: 1.125rem;
   font-weight: 700;
+}
+
+.currentStageInfo p {
+  margin: 10px 0;
 }
 
 .stageDateField input[type='date'] {

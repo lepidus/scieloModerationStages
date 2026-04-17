@@ -27,6 +27,9 @@ class ModerationStageTest extends TestCase
     {
         $expectedStageName = __('plugins.generic.scieloModerationStages.stages.formatStage');
         $this->assertEquals($expectedStageName, $this->moderationStage->getCurrentStageName());
+
+        $expectedStageLocaleKey = 'plugins.generic.scieloModerationStages.stages.formatStage';
+        $this->assertEquals($expectedStageLocaleKey, $this->moderationStage->getCurrentStageName(false));
     }
 
     public function testGetNextStageName(): void

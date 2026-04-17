@@ -23,11 +23,13 @@ use APP\facades\Repo;
 use PKP\security\Role;
 use PKP\db\DAORegistry;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Mail;
 use PKP\linkAction\LinkAction;
 use PKP\linkAction\request\AjaxModal;
 use PKP\core\JSONMessage;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageRegister;
+use APP\plugins\generic\scieloModerationStages\classes\mail\builders\StageAdvancementEmailBuilder;
 use APP\plugins\generic\scieloModerationStages\classes\observers\listeners\AssignFirstModerationStage;
 
 class ScieloModerationStagesPlugin extends GenericPlugin
@@ -45,7 +47,8 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         if ($success && $this->getEnabled($mainContextId)) {
             Event::subscribe(new AssignFirstModerationStage());
 
-            Hook::add('Schema::get::submission', [$this, 'addOurFieldsToSubmissionSchema']);
+            Hook::add('Schema::get::submission', [$this, 'addNewPropsToSubmissionSchema']);
+            Hook::add('Schema::get::eventLog', [$this, 'addNewPropsToEventLogSchema']);
             Hook::add('addparticipantform::display', [$this, 'addStageAdvanceToAssignForm']);
             Hook::add('addparticipantform::execute', [$this, 'sendSubmissionToNextModerationStage']);
             Hook::add('queryform::display', [$this, 'hideParticipantsOnDiscussionOpening']);
@@ -55,6 +58,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             Hook::add('LoadComponentHandler', [$this, 'setupScieloModerationStagesHandler']);
 
             Hook::add('AcronPlugin::parseCronTab', [$this, 'addTasksToCrontab']);
+            Hook::add('TemplateManager::display', [$this, 'addMessageToSubmissionComplete']);
 
             $this->addHandlerURLToJavaScript();
             $this->loadDispatcherClasses();
@@ -99,6 +103,11 @@ class ScieloModerationStagesPlugin extends GenericPlugin
     public function getDescription()
     {
         return __('plugins.generic.scieloModerationStages.description');
+    }
+
+    public function getInstallEmailTemplatesFile()
+    {
+        return $this->getPluginPath() . '/emailTemplates.xml';
     }
 
     public function getActions($request, $actionArgs)
@@ -166,37 +175,44 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         return false;
     }
 
-    public function addOurFieldsToSubmissionSchema($hookName, $params)
+    public function addNewPropsToSubmissionSchema($hookName, $params)
     {
         $schema = &$params[0];
-
-        $schema->properties->{'currentModerationStage'} = (object) [
-            'type' => 'string',
-            'apiSummary' => true,
-            'validation' => ['nullable'],
-        ];
-        $schema->properties->{'lastModerationStageChange'} = (object) [
-            'type' => 'string',
-            'apiSummary' => true,
-            'validation' => ['nullable'],
-        ];
-        $schema->properties->{'formatStageEntryDate'} = (object) [
-            'type' => 'string',
-            'apiSummary' => true,
-            'validation' => ['nullable'],
-        ];
-        $schema->properties->{'contentStageEntryDate'} = (object) [
-            'type' => 'string',
-            'apiSummary' => true,
-            'validation' => ['nullable'],
-        ];
-        $schema->properties->{'areaStageEntryDate'} = (object) [
-            'type' => 'string',
-            'apiSummary' => true,
-            'validation' => ['nullable'],
+        $newProperties = [
+            'currentModerationStage' => 'string',
+            'lastModerationStageChange' => 'string',
+            'formatStageEntryDate' => 'string',
+            'contentStageEntryDate' => 'string',
+            'areaStageEntryDate' => 'string'
         ];
 
-        return false;
+        foreach ($newProperties as $property => $type) {
+            $schema->properties->{$property} = (object) [
+                'type' => $type,
+                'apiSummary' => true,
+                'validation' => ['nullable'],
+            ];
+        }
+
+        return Hook::CONTINUE;
+    }
+
+    public function addNewPropsToEventLogSchema($hookName, $params)
+    {
+        $schema = &$params[0];
+        $newProperties = [
+            'moderationStageName' => 'string',
+        ];
+
+        foreach ($newProperties as $property => $type) {
+            $schema->properties->{$property} = (object) [
+                'type' => $type,
+                'apiSummary' => true,
+                'validation' => ['nullable'],
+            ];
+        }
+
+        return Hook::CONTINUE;
     }
 
     public function addStageAdvanceToAssignForm($hookName, $params)
@@ -239,21 +255,26 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         $output = &$params[2];
         $submission = $templateMgr->getTemplateVars('submission');
 
+        $request = Application::get()->getRequest();
+        $context = $request->getContext();
+        $faqUrl = $request->url($context->getPath()) . '/faq';
+
         $moderationStage = new ModerationStage($submission);
         if ($moderationStage->submissionStageExists()) {
             $stageDates = $moderationStage->getStageEntryDates();
+            $currentStageName = $moderationStage->getCurrentStageName(false);
 
-            $templateMgr->assign($stageDates);
-            $templateMgr->assign('submissionId', $submission->getId());
-            $templateMgr->assign('userIsAuthor', $this->userIsAuthor($submission));
-            $templateMgr->assign('canAdvanceStage', $moderationStage->canAdvanceStage());
+            $templateMgr->assign([
+                ...$stageDates,
+                'submissionId' => $submission->getId(),
+                'userIsAuthor' => $this->userIsAuthor($submission),
+                'currentStage' => $currentStageName,
+                'canAdvanceStage' => $moderationStage->canAdvanceStage(),
+                'faqUrl' => $faqUrl
+            ]);
 
             if ($moderationStage->canAdvanceStage()) {
-                $currentStageName = $moderationStage->getCurrentStageName();
-                $nextStageName = $moderationStage->getNextStageName();
-
-                $templateMgr->assign('currentStage', $currentStageName);
-                $templateMgr->assign('nextStage', $nextStageName);
+                $templateMgr->assign('nextStage', $moderationStage->getNextStageName());
             }
 
             $output .= sprintf(
@@ -288,6 +309,31 @@ class ScieloModerationStagesPlugin extends GenericPlugin
 
             $output = substr_replace($output, $currentStageStatus, $posMatch, 0);
             $templateMgr->unregisterFilter('output', array($this, 'addCurrentStageStatusToWorkflowFilter'));
+        }
+        return $output;
+    }
+
+    public function addMessageToSubmissionComplete($hookName, $params)
+    {
+        $template = &$params[1];
+        if ($template === 'submission/complete.tpl') {
+            $templateMgr = $params[0];
+            $templateMgr->registerFilter('output', [$this, 'addMessageToSubmissionCompleteFilter']);
+        }
+        return false;
+    }
+
+    public function addMessageToSubmissionCompleteFilter($output, $templateMgr)
+    {
+        if (preg_match('/class="app__contentPanel"/', $output, $matches, PREG_OFFSET_CAPTURE)) {
+            $contentPanelPos = $matches[0][1];
+            $afterContentPanel = substr($output, $contentPanelPos);
+            if (preg_match('/<\/div>/', $afterContentPanel, $divMatches, PREG_OFFSET_CAPTURE)) {
+                $insertPos = $contentPanelPos + $divMatches[0][1];
+                $submissionCompleteMsg = $templateMgr->fetch($this->getTemplateResource('submissionCompleteMsg.tpl'));
+                $output = substr_replace($output, $submissionCompleteMsg, $insertPos, 0);
+                $templateMgr->unregisterFilter('output', [$this, 'addMessageToSubmissionCompleteFilter']);
+            }
         }
         return $output;
     }
@@ -329,6 +375,12 @@ class ScieloModerationStagesPlugin extends GenericPlugin
                 $moderationStageRegister = new ModerationStageRegister();
                 $moderationStageRegister->registerModerationStageOnDatabase($moderationStage);
                 $moderationStageRegister->registerModerationStageOnSubmissionLog($moderationStage);
+
+                $emailBuilder = new StageAdvancementEmailBuilder();
+                $email = $emailBuilder->setSubmission($submission)
+                    ->buildEmailParams()
+                    ->build();
+                Mail::send($email);
             }
         }
     }

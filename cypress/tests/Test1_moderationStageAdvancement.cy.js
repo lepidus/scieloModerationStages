@@ -36,9 +36,11 @@ describe("SciELO Moderation Stages - Moderation stage advancement", function() {
 		};
     });
     
-    it("Author creates submission", function() {
+    it("Author creates submission. Asserts submission goes to Format Pre-Moderation stage", function() {
         cy.login('fpaglieri', null, 'publicknowledge');
         cy.createSubmission(submissionData);
+        cy.contains('The moderation of your submission has been initiated and it has been forwarded to the Format Pre-Moderation stage, where it will undergo a screening process');
+        cy.contains('Please wait for a response from the editorial team or an update on the status of your submission');
     });
     it("Checks submission is set to first moderation stage", function() {
         cy.login('fpaglieri', null, 'publicknowledge');
@@ -65,6 +67,22 @@ describe("SciELO Moderation Stages - Moderation stage advancement", function() {
         cy.contains('span', 'Manuscript Type Pre-Moderation');
         cy.contains('button', 'Activity Log').click();
         cy.contains('The submission has been sent to the Manuscript Type Pre-Moderation stage');
+    });
+    it("Checks sending of email notification after advancing moderation stage", function() {
+        cy.visit('localhost:8025');
+        cy.contains('b', 'Advancement in Submission Moderation').should('have.length', 1);
+        cy.contains('b', 'Advancement in Submission Moderation')
+            .parent().parent().parent()
+            .within((node) => {
+                cy.contains('fpaglieri@mailinator.com');
+            });
+        cy.contains('b', 'Advancement in Submission Moderation').click();
+        cy.get('#nav-tab button:contains("Text")').click();
+
+        cy.contains('Your submission has been forwarded to the Manuscript Type Pre-Moderation stage');
+        cy.contains('To facilitate moderation, please provide an updated ORCID with the most recent scientific output for at least one of the authors registered in the submission');
+        cy.contains('Optionally, you may also provide an endorsement for the preprint, if you have one');
+        cy.contains('For more information, we recommend reading our FAQs #10 and #19');
     });
     it("Checks stage advancing not present in last stage", function() {
         cy.login('dbarnes', null, 'publicknowledge');

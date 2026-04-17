@@ -9,6 +9,13 @@
 {capture assign=updateStageEntryDatesUrl}{url router=$smarty.const.ROUTE_COMPONENT component="plugins.generic.scieloModerationStages.controllers.ScieloModerationStagesHandler" op="updateSubmissionStageData" escape=false}{/capture}
 
 <div class="pkp_form" id="moderationStageEntriesForm">
+    {if $userIsAuthor}
+        <div class="currentStageInfo">
+            <label class="label">{translate key="plugins.generic.scieloModerationStages.currentStageInfo"}</label>
+            {translate key="{$currentStage}.workflowDescription" faqUrl=$faqUrl}
+        </div>
+    {/if}
+
     {if $formatStageEntryDate}
         <div id="formatStageEntryDateDiv" class="stageDateField">
             <label class="label">{translate key="plugins.generic.scieloModerationStages.stages.formatStage"}</label>
@@ -31,18 +38,21 @@
         </div>
     {/if}
 
-    {if $canAdvanceStage}
-        <div id="sendNextStageDiv">
-            <label class="label">{translate key="plugins.generic.scieloModerationStages.sendNextStageField"}</label>
-            <label class="description">{translate key="plugins.generic.scieloModerationStages.checkboxSendNextStage" currentStage=$currentStage nextStage=$nextStage}</label>
-            <input type="radio" id="checkboxSendNextStageMenuYes" name="sendNextStage" value="1" {if $userIsAuthor}disabled{/if}/>
-            {translate key="common.yes"}<br>
-            <input type="radio" id="checkboxSendNextStageMenuNo" name="sendNextStage" value="0" {if $userIsAuthor}disabled{/if} checked="checked"/>
-            {translate key="common.no"}<br>
-        </div>
-    {/if}
-
     {if not $userIsAuthor}
+        {if $canAdvanceStage}
+            <div id="sendNextStageDiv">
+                {capture assign=currentStageName}{translate key=$currentStage}{/capture}
+                <label class="label">{translate key="plugins.generic.scieloModerationStages.sendNextStageField"}</label>
+                <label class="description">
+                    {translate key="plugins.generic.scieloModerationStages.checkboxSendNextStage" currentStage=$currentStageName nextStage=$nextStage}
+                </label>
+                <input type="radio" id="checkboxSendNextStageMenuYes" name="sendNextStage" value="1"/>
+                {translate key="common.yes"}<br>
+                <input type="radio" id="checkboxSendNextStageMenuNo" name="sendNextStage" value="0" checked="checked"/>
+                {translate key="common.no"}<br>
+            </div>
+        {/if}
+
         <div class="formButtons">
             <button id="moderationStageSubmit" type="button" class="pkp_button submitFormButton">{translate key="common.save"}</button>
         </div>
