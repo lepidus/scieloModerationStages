@@ -12,3 +12,7 @@ include:
 ops_integration_tests:
   rules:
     - when: never
+
+code_formatting_check:
+  before_script:
+    - curl -I https://repo.packagist.org/p2/symfony/console.json
