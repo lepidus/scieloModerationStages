@@ -12,11 +12,3 @@ include:
 ops_integration_tests:
   rules:
     - when: never
-
-code_formatting_check:
-  before_script:
-    - export DEBIAN_FRONTEND=noninteractive
-    - apt update && apt install composer -yqq
-    - php -v
-    - composer -v
-    - composer config --global -- disable-ipv6 true
