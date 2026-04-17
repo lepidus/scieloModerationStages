@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\Mail;
 use PKP\linkAction\LinkAction;
 use PKP\linkAction\request\AjaxModal;
 use PKP\core\JSONMessage;
+use APP\plugins\generic\scieloModerationStages\classes\SchemaEditor;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageRegister;
 use APP\plugins\generic\scieloModerationStages\classes\mail\builders\StageAdvancementEmailBuilder;
@@ -47,8 +48,6 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         if ($success && $this->getEnabled($mainContextId)) {
             Event::subscribe(new AssignFirstModerationStage());
 
-            Hook::add('Schema::get::submission', [$this, 'addNewPropsToSubmissionSchema']);
-            Hook::add('Schema::get::eventLog', [$this, 'addNewPropsToEventLogSchema']);
             Hook::add('addparticipantform::display', [$this, 'addStageAdvanceToAssignForm']);
             Hook::add('addparticipantform::execute', [$this, 'sendSubmissionToNextModerationStage']);
             Hook::add('queryform::display', [$this, 'hideParticipantsOnDiscussionOpening']);
@@ -60,8 +59,9 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             Hook::add('AcronPlugin::parseCronTab', [$this, 'addTasksToCrontab']);
             Hook::add('TemplateManager::display', [$this, 'addMessageToSubmissionComplete']);
 
-            $this->addHandlerURLToJavaScript();
+            $this->editSchemas();
             $this->loadDispatcherClasses();
+            $this->addHandlerURLToJavaScript();
         }
         return $success;
     }
@@ -76,6 +76,13 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             $dispatcherClass = 'APP\plugins\generic\scieloModerationStages\classes\dispatchers\\' . $dispatcherClass;
             $dispatcher = new $dispatcherClass($this);
         }
+    }
+
+    private function editSchemas()
+    {
+        $schemaEditor = new SchemaEditor();
+        Hook::add('Schema::add::submission', [$schemaEditor, 'editSubmissionSchema']);
+        Hook::add('Schema::add::eventLog', [$schemaEditor, 'editEventLogSchema']);
     }
 
     public function addHandlerURLToJavaScript()
