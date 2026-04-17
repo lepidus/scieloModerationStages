@@ -15,4 +15,6 @@ ops_integration_tests:
 
 code_formatting_check:
   before_script:
+    - export DEBIAN_FRONTEND=noninteractive
+    - apt update && apt install curl -yqq
     - curl -I https://repo.packagist.org/p2/symfony/console.json
