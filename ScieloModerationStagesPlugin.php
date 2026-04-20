@@ -282,7 +282,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         return $this->getPluginPath() . '/styles/moderationStageStyleSheet.css';
     }
 
-    private function userIsAuthor($submission)
+    public function userIsAuthor($submission)
     {
         $currentUser = Application::get()->getRequest()->getUser();
         $currentUserAssignedRoles = array();
