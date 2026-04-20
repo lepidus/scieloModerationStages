@@ -77,8 +77,8 @@ class ScieloModerationStagesPlugin extends GenericPlugin
     private function editSchemas()
     {
         $schemaEditor = new SchemaEditor();
-        Hook::add('Schema::add::submission', [$schemaEditor, 'editSubmissionSchema']);
-        Hook::add('Schema::add::eventLog', [$schemaEditor, 'editEventLogSchema']);
+        Hook::add('Schema::get::submission', [$schemaEditor, 'editSubmissionSchema']);
+        Hook::add('Schema::get::eventLog', [$schemaEditor, 'editEventLogSchema']);
     }
 
     public function addHandlerURLToJavaScript()
