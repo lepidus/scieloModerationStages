@@ -23,14 +23,10 @@ use APP\facades\Repo;
 use PKP\security\Role;
 use PKP\db\DAORegistry;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Mail;
 use PKP\linkAction\LinkAction;
 use PKP\linkAction\request\AjaxModal;
 use PKP\core\JSONMessage;
 use APP\plugins\generic\scieloModerationStages\classes\SchemaEditor;
-use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
-use APP\plugins\generic\scieloModerationStages\classes\ModerationStageRegister;
-use APP\plugins\generic\scieloModerationStages\classes\mail\builders\StageAdvancementEmailBuilder;
 use APP\plugins\generic\scieloModerationStages\classes\observers\listeners\AssignFirstModerationStage;
 
 class ScieloModerationStagesPlugin extends GenericPlugin
@@ -46,11 +42,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         if ($success && $this->getEnabled($mainContextId)) {
             Event::subscribe(new AssignFirstModerationStage());
 
-            Hook::add('addparticipantform::display', [$this, 'addStageAdvanceToAssignForm']);
-            Hook::add('addparticipantform::execute', [$this, 'sendSubmissionToNextModerationStage']);
-
             Hook::add('LoadComponentHandler', [$this, 'setupScieloModerationStagesHandler']);
-
             Hook::add('AcronPlugin::parseCronTab', [$this, 'addTasksToCrontab']);
             Hook::add('TemplateManager::display', [$this, 'addMessageToSubmissionComplete']);
 
@@ -218,40 +210,6 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         return Hook::CONTINUE;
     }
 
-    public function addStageAdvanceToAssignForm($hookName, $params)
-    {
-        $request = Application::get()->getRequest();
-        $templateMgr = TemplateManager::getManager($request);
-
-        $submission = $params[0]->getSubmission();
-        $moderationStage = new ModerationStage($submission);
-
-        if ($moderationStage->canAdvanceStage()) {
-            $currentStageName = $moderationStage->getCurrentStageName();
-            $nextStageName = $moderationStage->getNextStageName();
-
-            $templateMgr->assign('currentStage', $currentStageName);
-            $templateMgr->assign('nextStage', $nextStageName);
-
-            $templateMgr->registerFilter("output", array($this, 'addCheckboxesToAssignForm'));
-        }
-
-        return false;
-    }
-
-    public function addCheckboxesToAssignForm($output, $templateMgr)
-    {
-        if (preg_match('/<div[^>]+class="section formButtons/', $output, $matches, PREG_OFFSET_CAPTURE)) {
-            $posMatch = $matches[0][1];
-
-            $sentNextStageOutput = $templateMgr->fetch($this->getTemplateResource('sentNextStage.tpl'));
-
-            $output = substr_replace($output, $sentNextStageOutput, $posMatch, 0);
-            $templateMgr->unregisterFilter('output', array($this, 'addCheckboxesToAssignForm'));
-        }
-        return $output;
-    }
-
     public function addMessageToSubmissionComplete($hookName, $params)
     {
         $template = &$params[1];
@@ -297,30 +255,5 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         }
 
         return $currentUserAssignedRoles[0] == Role::ROLE_ID_AUTHOR;
-    }
-
-    public function sendSubmissionToNextModerationStage($hookName, $params)
-    {
-        $request = Application::get()->getRequest();
-        $form = $params[0];
-        $requestVars = $request->getUserVars();
-
-        if ($requestVars['sendNextStage']) {
-            $submission = $form->getSubmission();
-            $moderationStage = new ModerationStage($submission);
-
-            if ($moderationStage->canAdvanceStage()) {
-                $moderationStage->sendNextStage();
-                $moderationStageRegister = new ModerationStageRegister();
-                $moderationStageRegister->registerModerationStageOnDatabase($moderationStage);
-                $moderationStageRegister->registerModerationStageOnSubmissionLog($moderationStage);
-
-                $emailBuilder = new StageAdvancementEmailBuilder();
-                $email = $emailBuilder->setSubmission($submission)
-                    ->buildEmailParams()
-                    ->build();
-                Mail::send($email);
-            }
-        }
     }
 }
