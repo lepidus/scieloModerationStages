@@ -17,19 +17,22 @@ namespace APP\plugins\generic\scieloModerationStages;
 
 use PKP\plugins\GenericPlugin;
 use PKP\plugins\Hook;
+use PKP\plugins\interfaces\HasTaskScheduler;
+use PKP\scheduledTask\PKPScheduler;
 use APP\core\Application;
 use APP\template\TemplateManager;
 use APP\facades\Repo;
 use PKP\security\Role;
-use PKP\db\DAORegistry;
+use PKP\stageAssignment\StageAssignment;
 use Illuminate\Support\Facades\Event;
 use PKP\linkAction\LinkAction;
 use PKP\linkAction\request\AjaxModal;
 use PKP\core\JSONMessage;
 use APP\plugins\generic\scieloModerationStages\classes\SchemaEditor;
 use APP\plugins\generic\scieloModerationStages\classes\observers\listeners\AssignFirstModerationStage;
+use APP\plugins\generic\scieloModerationStages\classes\tasks\SendModerationReminders;
 
-class ScieloModerationStagesPlugin extends GenericPlugin
+class ScieloModerationStagesPlugin extends GenericPlugin implements HasTaskScheduler
 {
     public function register($category, $path, $mainContextId = null)
     {
@@ -43,14 +46,35 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             Event::subscribe(new AssignFirstModerationStage());
 
             Hook::add('LoadComponentHandler', [$this, 'setupScieloModerationStagesHandler']);
-            Hook::add('AcronPlugin::parseCronTab', [$this, 'addTasksToCrontab']);
             Hook::add('TemplateManager::display', [$this, 'addMessageToSubmissionComplete']);
 
             $this->editSchemas();
             $this->loadDispatcherClasses();
             $this->addHandlerURLToJavaScript();
+            $this->addBackendUiAssets();
         }
         return $success;
+    }
+
+    private function addBackendUiAssets(): void
+    {
+        $request = Application::get()->getRequest();
+        $templateMgr = TemplateManager::getManager($request);
+
+        $templateMgr->addJavaScript(
+            'ScieloModerationStages',
+            "{$request->getBaseUrl()}/{$this->getPluginPath()}/public/build/build.iife.js",
+            [
+                'inline' => false,
+                'contexts' => ['backend'],
+                'priority' => TemplateManager::STYLE_SEQUENCE_LAST,
+            ]
+        );
+        $templateMgr->addStyleSheet(
+            'ScieloModerationStagesStyle',
+            "{$request->getBaseUrl()}/{$this->getPluginPath()}/public/build/build.css",
+            ['contexts' => ['backend']]
+        );
     }
 
     private function loadDispatcherClasses(): void
@@ -76,18 +100,38 @@ class ScieloModerationStagesPlugin extends GenericPlugin
     public function addHandlerURLToJavaScript()
     {
         $request = Application::get()->getRequest();
+
+        if (!$request->getContext()) {
+            return;
+        }
+
         $templateMgr = TemplateManager::getManager($request);
-        $handlerUrl = $request->getDispatcher()->url($request, Application::ROUTE_COMPONENT, null, 'plugins.generic.scieloModerationStages.controllers.ScieloModerationStagesHandler');
-        $data = ['moderationStagesHandlerUrl' => $handlerUrl];
+        $dispatcher = $request->getDispatcher();
+        $component = 'plugins.generic.scieloModerationStages.controllers.ScieloModerationStagesHandler';
+
+        // PKPComponentRouter::url() requires an explicit operation since 3.5,
+        // so each endpoint URL is built individually.
+        $handlerOps = [
+            'getModerationTabData',
+            'updateSubmissionStageData',
+            'getUserIsAuthor',
+            'getSubmissionExhibitData',
+        ];
+        $handlerUrls = [];
+        foreach ($handlerOps as $op) {
+            $handlerUrls[$op] = $dispatcher->url($request, Application::ROUTE_COMPONENT, null, $component, $op);
+        }
+        $data = ['moderationStagesHandlerUrls' => $handlerUrls];
 
         $templateMgr->addJavaScript('ModerationStagesHandler', 'app = ' . json_encode($data) . ';', ['contexts' => 'backend', 'inline' => true]);
     }
 
-    public function addTasksToCrontab($hookName, $params)
+    public function registerSchedules(PKPScheduler $scheduler): void
     {
-        $taskFilesPath = &$params[0];
-        $taskFilesPath[] = $this->getPluginPath() . DIRECTORY_SEPARATOR . 'scheduledTasks.xml';
-        return false;
+        $scheduler->addSchedule(new SendModerationReminders())
+            ->weeklyOn(1, '00:00')
+            ->name(SendModerationReminders::class)
+            ->withoutOverlapping();
     }
 
     public function getDisplayName()
@@ -235,22 +279,19 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         return $output;
     }
 
-    public function getStyleSheet()
-    {
-        return $this->getPluginPath() . '/styles/moderationStageStyleSheet.css';
-    }
-
     public function userIsAuthor($submission)
     {
         $currentUser = Application::get()->getRequest()->getUser();
         $currentUserAssignedRoles = array();
         if ($currentUser) {
-            $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
-            $stageAssignmentsResult = $stageAssignmentDao->getBySubmissionAndUserIdAndStageId($submission->getId(), $currentUser->getId(), $submission->getData('stageId'));
+            $stageAssignments = StageAssignment::withSubmissionIds([$submission->getId()])
+                ->withUserId($currentUser->getId())
+                ->withStageIds([$submission->getData('stageId')])
+                ->get();
 
-            while ($stageAssignment = $stageAssignmentsResult->next()) {
-                $userGroup = Repo::userGroup()->get($stageAssignment->getUserGroupId(), $submission->getData('contextId'));
-                $currentUserAssignedRoles[] = (int) $userGroup->getRoleId();
+            foreach ($stageAssignments as $stageAssignment) {
+                $userGroup = Repo::userGroup()->get($stageAssignment->userGroupId, $submission->getData('contextId'));
+                $currentUserAssignedRoles[] = (int) $userGroup->roleId;
             }
         }
 

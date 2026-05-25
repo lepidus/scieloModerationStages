@@ -1,0 +1,109 @@
+<template>
+  <PkpTableCell>
+    <div class="moderationStageCell" data-cy="moderationStageCell">
+      <div v-if="exhibit.ModerationStage" class="moderationStageCell__stage">
+        {{ exhibit.ModerationStage }}
+      </div>
+
+      <template v-if="hasExtraData">
+        <div v-if="hasPeople" class="moderationStageCell__group">
+          <div v-if="exhibit.Responsibles" class="moderationStageCell__line">
+            {{ exhibit.Responsibles }}
+          </div>
+          <div v-if="exhibit.AreaModerators" class="moderationStageCell__line">
+            {{ exhibit.AreaModerators }}
+          </div>
+        </div>
+
+        <div v-if="hasTimes" class="moderationStageCell__group">
+          <div
+            v-for="field in timeFields"
+            :key="field"
+            v-show="exhibit[field]"
+            class="moderationStageCell__line"
+            :class="{ 'moderationStageCell__line--red': exhibit[field + 'RedFlag'] }"
+          >
+            {{ exhibit[field] }}
+          </div>
+        </div>
+      </template>
+    </div>
+  </PkpTableCell>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from "vue";
+
+const props = defineProps({ item: { type: Object, required: true } });
+
+const exhibit = ref({});
+const timeFields = ["TimeSubmitted", "TimeResponsible", "TimeAreaModerator"];
+
+const hasPeople = computed(
+  () => exhibit.value.Responsibles || exhibit.value.AreaModerators
+);
+const hasTimes = computed(() =>
+  timeFields.some((field) => exhibit.value[field])
+);
+const hasExtraData = computed(() => hasPeople.value || hasTimes.value);
+
+// Shared across all cells so the author check runs only once per dashboard.
+let userIsAuthorPromise = null;
+function fetchUserIsAuthor() {
+  if (!userIsAuthorPromise) {
+    userIsAuthorPromise = fetch(window.app.moderationStagesHandlerUrls.getUserIsAuthor, {
+      headers: { Accept: "application/json" },
+      credentials: "same-origin",
+    }).then((response) => response.json());
+  }
+  return userIsAuthorPromise;
+}
+
+onMounted(async () => {
+  const userIsAuthor = await fetchUserIsAuthor();
+  const url =
+    window.app.moderationStagesHandlerUrls.getSubmissionExhibitData +
+    `?submissionId=${props.item.id}&userIsAuthor=${userIsAuthor}`;
+
+  const response = await fetch(url, {
+    headers: { Accept: "application/json" },
+    credentials: "same-origin",
+  });
+  exhibit.value = await response.json();
+});
+</script>
+
+<style scoped>
+.moderationStageCell {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.moderationStageCell__stage {
+  font-weight: 700;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.moderationStageCell__group {
+  margin-bottom: 0.5rem;
+}
+
+.moderationStageCell__group:last-child {
+  margin-bottom: 0;
+}
+
+.moderationStageCell__line {
+  margin-bottom: 0.25rem;
+}
+
+.moderationStageCell__line:last-child {
+  margin-bottom: 0;
+}
+
+.moderationStageCell__line--red {
+  color: #d00a0a;
+  font-weight: 700;
+}
+</style>

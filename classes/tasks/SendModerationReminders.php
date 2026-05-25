@@ -17,7 +17,7 @@ class SendModerationReminders extends ScheduledTask
 {
     private $plugin;
 
-    public function executeActions()
+    protected function executeActions(): bool
     {
         PluginRegistry::loadCategory('generic');
         $this->plugin = PluginRegistry::getPlugin('generic', 'scielomoderationstagesplugin');
@@ -42,7 +42,7 @@ class SendModerationReminders extends ScheduledTask
 
         $moderationStageDao = new ModerationStageDAO();
         $responsibleAssignments = $moderationStageDao->getAssignmentsByUserGroupAndModerationStage(
-            $responsiblesUserGroup->getId(),
+            $responsiblesUserGroup->id,
             ModerationStage::SCIELO_MODERATION_STAGE_CONTENT
         );
 
@@ -76,7 +76,7 @@ class SendModerationReminders extends ScheduledTask
 
         $moderationStageDao = new ModerationStageDAO();
         $areaModeratorAssignments = $moderationStageDao->getAssignmentsByUserGroupAndModerationStage(
-            $areaModeratorsUserGroup->getId(),
+            $areaModeratorsUserGroup->id,
             ModerationStage::SCIELO_MODERATION_STAGE_AREA
         );
 

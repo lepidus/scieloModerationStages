@@ -8,7 +8,8 @@ use APP\handler\Handler;
 use PKP\facades\Locale;
 use APP\facades\Repo;
 use PKP\security\Role;
-use PKP\db\DAORegistry;
+use PKP\stageAssignment\StageAssignment;
+use PKP\userGroup\UserGroup;
 use APP\submission\Submission;
 use APP\decision\Decision;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
@@ -21,6 +22,37 @@ class ScieloModerationStagesHandler extends Handler
 {
     private const SUBMISSION_STAGE_ID = 5;
     private const THRESHOLD_TIME_EXHIBITORS = 2;
+
+    public function getModerationTabData($args, $request)
+    {
+        $submission = Repo::submission()->get((int) $args['submissionId']);
+        $moderationStage = new ModerationStage($submission);
+
+        if (!$moderationStage->submissionStageExists()) {
+            return json_encode(['stageExists' => false]);
+        }
+
+        $plugin = PluginRegistry::getPlugin('generic', 'scielomoderationstagesplugin');
+        $context = $request->getContext();
+
+        $data = [
+            'stageExists' => true,
+            'submissionId' => $submission->getId(),
+            'userIsAuthor' => $plugin->userIsAuthor($submission),
+            'currentStageKey' => $moderationStage->getCurrentStageName(false),
+            'currentStageName' => $moderationStage->getCurrentStageName(),
+            'canAdvanceStage' => $moderationStage->canAdvanceStage(),
+            'stageEntryDates' => $moderationStage->getStageEntryDates(),
+            'faqUrl' => $request->url($context->getPath()) . '/faq',
+            'csrfToken' => $request->getSession()->token(),
+        ];
+
+        if ($moderationStage->canAdvanceStage()) {
+            $data['nextStageName'] = $moderationStage->getNextStageName();
+        }
+
+        return json_encode($data);
+    }
 
     public function getReminderBody($args, $request)
     {
@@ -86,7 +118,7 @@ class ScieloModerationStagesHandler extends Handler
             $submission->setData('areaStageEntryDate', $args['areaStageEntryDate']);
         }
 
-        $userSelectedAdvanceStage = ($args['sendNextStage'] == 1);
+        $userSelectedAdvanceStage = (($args['sendNextStage'] ?? 0) == 1);
         if ($userSelectedAdvanceStage and $moderationStage->canAdvanceStage()) {
             $moderationStage->sendNextStage();
             $moderationStageRegister = new ModerationStageRegister();
@@ -190,16 +222,18 @@ class ScieloModerationStagesHandler extends Handler
 
     private function getAssignedUsers($submissionId, $abbrev): array
     {
-        $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
-        $stageAssignmentsResults = $stageAssignmentDao->getBySubmissionAndRoleId($submissionId, Role::ROLE_ID_SUB_EDITOR, self::SUBMISSION_STAGE_ID);
+        $stageAssignments = StageAssignment::withSubmissionIds([$submissionId])
+            ->withRoleIds([Role::ROLE_ID_SUB_EDITOR])
+            ->withStageIds([self::SUBMISSION_STAGE_ID])
+            ->get();
         $assignedUsers = [];
 
-        while ($stageAssignment = $stageAssignmentsResults->next()) {
-            $userGroup = Repo::userGroup()->get($stageAssignment->getUserGroupId());
-            $userGroupAbbrev = strtolower($userGroup->getData('abbrev', 'en'));
+        foreach ($stageAssignments as $stageAssignment) {
+            $userGroup = Repo::userGroup()->get($stageAssignment->userGroupId);
+            $userGroupAbbrev = strtolower($userGroup->getLocalizedData('abbrev', 'en', UserGroup::LOCALE_MATCH_STRICT));
 
             if ($userGroupAbbrev == $abbrev) {
-                $user = Repo::user()->get($stageAssignment->getUserId(), false);
+                $user = Repo::user()->get($stageAssignment->userId, false);
                 $assignedUsers[$user->getData('username')] = $user->getFullName();
             }
         }
@@ -261,18 +295,19 @@ class ScieloModerationStagesHandler extends Handler
 
     private function getLastAssignmentDate($submissionId, $abbrev): string
     {
-        $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
-
-        $stageAssignmentsResults = $stageAssignmentDao->getBySubmissionAndRoleId($submissionId, Role::ROLE_ID_SUB_EDITOR, self::SUBMISSION_STAGE_ID);
+        $stageAssignments = StageAssignment::withSubmissionIds([$submissionId])
+            ->withRoleIds([Role::ROLE_ID_SUB_EDITOR])
+            ->withStageIds([self::SUBMISSION_STAGE_ID])
+            ->get();
         $lastAssignmentDate = "";
 
-        while ($stageAssignment = $stageAssignmentsResults->next()) {
-            $userGroup = Repo::userGroup()->get($stageAssignment->getUserGroupId());
-            $currentUserGroupAbbrev = strtolower($userGroup->getData('abbrev', 'en'));
+        foreach ($stageAssignments as $stageAssignment) {
+            $userGroup = Repo::userGroup()->get($stageAssignment->userGroupId);
+            $currentUserGroupAbbrev = strtolower($userGroup->getLocalizedData('abbrev', 'en', UserGroup::LOCALE_MATCH_STRICT));
 
             if ($currentUserGroupAbbrev == $abbrev) {
-                if (empty($lastAssignmentDate) or ($stageAssignment->getData('dateAssigned') > $lastAssignmentDate)) {
-                    $lastAssignmentDate = $stageAssignment->getData('dateAssigned');
+                if (empty($lastAssignmentDate) or ($stageAssignment->dateAssigned > $lastAssignmentDate)) {
+                    $lastAssignmentDate = $stageAssignment->dateAssigned;
                 }
             }
         }

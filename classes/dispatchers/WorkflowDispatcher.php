@@ -25,76 +25,10 @@ class WorkflowDispatcher
 
     private function registerHooks(): void
     {
-        Hook::add('Template::Workflow::Publication', [$this, 'addToWorkflowTabs']);
-        Hook::add('Template::Workflow', [$this, 'addCurrentStageStatusToWorkflow']);
         Hook::add('queryform::display', [$this, 'hideParticipantsOnDiscussionOpening']);
 
         Hook::add('addparticipantform::display', [$this, 'addStageAdvanceToAssignForm']);
         Hook::add('addparticipantform::execute', [$this, 'sendSubmissionToNextModerationStage']);
-    }
-
-    public function addToWorkflowTabs($hookName, $params)
-    {
-        $templateMgr = &$params[1];
-        $output = &$params[2];
-        $submission = $templateMgr->getTemplateVars('submission');
-
-        $request = Application::get()->getRequest();
-        $context = $request->getContext();
-        $faqUrl = $request->url($context->getPath()) . '/faq';
-
-        $moderationStage = new ModerationStage($submission);
-        if ($moderationStage->submissionStageExists()) {
-            $stageDates = $moderationStage->getStageEntryDates();
-            $currentStageName = $moderationStage->getCurrentStageName(false);
-
-            $templateMgr->assign([
-                ...$stageDates,
-                'submissionId' => $submission->getId(),
-                'userIsAuthor' => $this->plugin->userIsAuthor($submission),
-                'currentStage' => $currentStageName,
-                'canAdvanceStage' => $moderationStage->canAdvanceStage(),
-                'faqUrl' => $faqUrl
-            ]);
-
-            if ($moderationStage->canAdvanceStage()) {
-                $templateMgr->assign('nextStage', $moderationStage->getNextStageName());
-            }
-
-            $output .= sprintf(
-                '<tab id="scieloModerationStages" label="%s">%s</tab>',
-                __('plugins.generic.scieloModerationStages.displayNameWorkflow'),
-                $templateMgr->fetch($this->plugin->getTemplateResource('moderationStageMenu.tpl'))
-            );
-        }
-    }
-
-    public function addCurrentStageStatusToWorkflow($hookName, $params)
-    {
-        $templateMgr = &$params[1];
-        $submission = $templateMgr->getTemplateVars('submission');
-
-        if (!is_null($submission->getData('currentModerationStage'))) {
-            $moderationStage = new ModerationStage($submission);
-
-            $templateMgr->assign('currentStageName', $moderationStage->getCurrentStageName());
-            $templateMgr->registerFilter("output", [$this, 'addCurrentStageStatusToWorkflowFilter']);
-        }
-
-        return Hook::CONTINUE;
-    }
-
-    public function addCurrentStageStatusToWorkflowFilter($output, $templateMgr)
-    {
-        if (preg_match('/<span[^>]+v-if="publicationList.length/', $output, $matches, PREG_OFFSET_CAPTURE)) {
-            $posMatch = $matches[0][1];
-
-            $currentStageStatus = $templateMgr->fetch($this->plugin->getTemplateResource('currentStageStatus.tpl'));
-
-            $output = substr_replace($output, $currentStageStatus, $posMatch, 0);
-            $templateMgr->unregisterFilter('output', [$this, 'addCurrentStageStatusToWorkflowFilter']);
-        }
-        return $output;
     }
 
     public function hideParticipantsOnDiscussionOpening($hookName, $params)
@@ -105,7 +39,7 @@ class WorkflowDispatcher
         $allParticipants = $templateMgr->getTemplateVars('allParticipants');
 
         $query = $form->getQuery();
-        $submission = Repo::submission()->get($query->getData('assocId'));
+        $submission = Repo::submission()->get($query->assocId);
 
         if ($this->plugin->userIsAuthor($submission)) {
             $author = $request->getUser();
@@ -169,7 +103,7 @@ class WorkflowDispatcher
         $form = $params[0];
         $requestVars = $request->getUserVars();
 
-        if ($requestVars['sendNextStage']) {
+        if (!empty($requestVars['sendNextStage'])) {
             $submission = $form->getSubmission();
             $moderationStage = new ModerationStage($submission);
 

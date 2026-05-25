@@ -30,7 +30,7 @@ class SendModerationReminderForm extends Form
         $moderationReminderHelper = new ModerationReminderHelper();
         $responsiblesUserGroup = $moderationReminderHelper->getResponsiblesUserGroup($contextId);
 
-        return ($responsiblesUserGroup ? $responsiblesUserGroup->getId() : null);
+        return ($responsiblesUserGroup ? $responsiblesUserGroup->id : null);
     }
 
     private function getAreaModeratorsUserGroupId($contextId)
@@ -38,7 +38,7 @@ class SendModerationReminderForm extends Form
         $moderationReminderHelper = new ModerationReminderHelper();
         $areaModeratorsUserGroup = $moderationReminderHelper->getAreaModeratorsUserGroup($contextId);
 
-        return ($areaModeratorsUserGroup ? $areaModeratorsUserGroup->getId() : null);
+        return ($areaModeratorsUserGroup ? $areaModeratorsUserGroup->id : null);
     }
 
     private function getUsersAssignedByGroupAndModerationStage(int $userGroupId, int $moderationStage): array
