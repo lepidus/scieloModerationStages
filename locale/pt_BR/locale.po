@@ -76,32 +76,6 @@ msgstr "Moderador(a) de área: {$areaModerator}"
 msgid "plugins.generic.scieloModerationStages.areaModerators"
 msgstr "Moderadores de área: {$areaModerators}"
 
-msgid "plugins.generic.scieloModerationStages.responsible"
-msgstr "Responsável: {$responsible}"
-
-msgid "plugins.generic.scieloModerationStages.responsibles"
-msgstr "Responsáveis: {$responsibles}"
-
-
-msgid "plugins.generic.scieloModerationStages.TimeSubmitted.currentDate.lessThanOneDay"
-msgstr "Submissão realizada há menos de um dia"
-
-msgid "plugins.generic.scieloModerationStages.TimeSubmitted.currentDate"
-msgstr "Submissão realizada há {$daysPassed} dias"
-
-msgid "plugins.generic.scieloModerationStages.TimeSubmitted.datePublished.lessThanOneDay"
-msgstr "Submissão realizada menos de um dia antes da postagem"
-
-msgid "plugins.generic.scieloModerationStages.TimeSubmitted.datePublished"
-msgstr "Submissão realizada {$daysPassed} dias antes da postagem"
-
-msgid "plugins.generic.scieloModerationStages.TimeSubmitted.dateDeclined.lessThanOneDay"
-msgstr "Submissão realizada menos de um dia antes da rejeição"
-
-msgid "plugins.generic.scieloModerationStages.TimeSubmitted.dateDeclined"
-msgstr "Submissão realizada {$daysPassed} dias antes da rejeição"
-
-
 msgid "plugins.generic.scieloModerationStages.TimeResponsible.currentDate.lessThanOneDay"
 msgstr "Responsável designado(a) há menos de um dia"
 

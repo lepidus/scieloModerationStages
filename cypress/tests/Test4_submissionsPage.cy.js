@@ -34,16 +34,12 @@ describe('SciELO Moderation Stages - Features on submissions page', function () 
             .parent().within(() => {
                 cy.contains('Moderation stage:');
                 cy.contains('Area Moderation');
-
-                cy.contains('Submission made less than a day ago');
             });
 
         cy.get('.listPanel__itemSubtitle:visible:contains("' + submission3 + '")')
             .parent().within(() => {
                 cy.contains('Moderation stage:');
                 cy.contains('Manuscript Type Pre-Moderation');
-
-                cy.contains('Submission made less than a day ago');
             });
     });
     it("Editor can filter submissions by moderation stage", function () {

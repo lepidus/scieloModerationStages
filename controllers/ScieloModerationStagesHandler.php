@@ -144,9 +144,7 @@ class ScieloModerationStagesHandler extends Handler
         if ($args['userIsAuthor'] == 0) {
             $exhibitData = array_merge(
                 $exhibitData,
-                $this->getResponsibles($submissionId),
                 $this->getAreaModerators($submissionId),
-                $this->getTimeSubmitted($submissionId),
                 $this->getTimeResponsible($submissionId),
                 $this->getTimeAreaModerator($submissionId)
             );
@@ -185,25 +183,6 @@ class ScieloModerationStagesHandler extends Handler
         }
 
         return ['submissionId' => $submissionId, 'ModerationStage' => ''];
-    }
-
-    private function getResponsibles($submissionId)
-    {
-        $responsibleUsers = $this->getAssignedUsers($submissionId, 'resp');
-
-        $responsiblesText = "";
-
-        if (count($responsibleUsers) > 1) {
-            unset($responsibleUsers['scielo-brasil']);
-        }
-
-        if (count($responsibleUsers) == 1) {
-            $responsiblesText = __('plugins.generic.scieloModerationStages.responsible', ['responsible' =>  array_pop($responsibleUsers)]);
-        } elseif (count($responsibleUsers) > 1) {
-            $responsiblesText = __('plugins.generic.scieloModerationStages.responsibles', ['responsibles' => implode(", ", $responsibleUsers)]);
-        }
-
-        return ['Responsibles' => $responsiblesText];
     }
 
     private function getAreaModerators($submissionId)
@@ -279,18 +258,6 @@ class ScieloModerationStagesHandler extends Handler
         }
 
         return [$exhibitor => __("plugins.generic.scieloModerationStages.$exhibitor.$dateType", ['daysPassed' => $daysPassed])];
-    }
-
-    private function getTimeSubmitted($submissionId)
-    {
-        $submission = Repo::submission()->get($submissionId);
-        $dateSubmitted = $submission->getData('dateSubmitted');
-
-        if (empty($dateSubmitted)) {
-            return ['TimeSubmitted' => ''];
-        }
-
-        return $this->getDataForTimeExhibitors($submission, $dateSubmitted, "TimeSubmitted");
     }
 
     private function getLastAssignmentDate($submissionId, $abbrev): string

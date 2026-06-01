@@ -7,9 +7,6 @@
 
       <template v-if="hasExtraData">
         <div v-if="hasPeople" class="moderationStageCell__group">
-          <div v-if="exhibit.Responsibles" class="moderationStageCell__line">
-            {{ exhibit.Responsibles }}
-          </div>
           <div v-if="exhibit.AreaModerators" class="moderationStageCell__line">
             {{ exhibit.AreaModerators }}
           </div>
@@ -37,11 +34,9 @@ import { ref, computed, onMounted } from "vue";
 const props = defineProps({ item: { type: Object, required: true } });
 
 const exhibit = ref({});
-const timeFields = ["TimeSubmitted", "TimeResponsible", "TimeAreaModerator"];
+const timeFields = ["TimeResponsible", "TimeAreaModerator"];
 
-const hasPeople = computed(
-  () => exhibit.value.Responsibles || exhibit.value.AreaModerators
-);
+const hasPeople = computed(() => exhibit.value.AreaModerators);
 const hasTimes = computed(() =>
   timeFields.some((field) => exhibit.value[field])
 );
