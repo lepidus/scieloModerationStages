@@ -1,6 +1,29 @@
 <template>
-  <PkpTableCell>
-    <div class="moderationStageCell" data-cy="moderationStageCell">
+  <PkpTableCell
+    :id="'submission-title-' + item.id"
+    :is-row-header="true"
+  >
+    <div class="max-w-[25em] truncate">
+      <span class="text-base-bold">
+        {{ currentPublication.authorsStringShort }}
+      </span>
+      <template v-if="currentPublication.authorsStringShort">—</template>
+      <span
+        v-strip-unsafe-html="
+          localizeSubmission(
+            currentPublication.fullTitle,
+            currentPublication.locale
+          )
+        "
+        class="text-base-normal"
+      ></span>
+    </div>
+
+    <div
+      v-if="exhibit.ModerationStage || hasExtraData"
+      class="moderationStageCell"
+      data-cy="moderationStageCell"
+    >
       <div v-if="exhibit.ModerationStage" class="moderationStageCell__stage">
         {{ exhibit.ModerationStage }}
       </div>
@@ -31,7 +54,14 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 
+const { useSubmission } = pkp.modules.useSubmission;
+const { useLocalize } = pkp.modules.useLocalize;
+
 const props = defineProps({ item: { type: Object, required: true } });
+
+const { getCurrentPublication } = useSubmission();
+const { localizeSubmission } = useLocalize();
+const currentPublication = computed(() => getCurrentPublication(props.item));
 
 const exhibit = ref({});
 const timeFields = ["TimeResponsible", "TimeAreaModerator"];
@@ -72,21 +102,17 @@ onMounted(async () => {
 .moderationStageCell {
   font-size: 0.8125rem;
   line-height: 1.4;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e0e0e0;
 }
 
 .moderationStageCell__stage {
   font-weight: 700;
-  padding-bottom: 0.5rem;
-  margin-bottom: 0.5rem;
-  border-bottom: 1px solid #e0e0e0;
 }
 
 .moderationStageCell__group {
-  margin-bottom: 0.5rem;
-}
-
-.moderationStageCell__group:last-child {
-  margin-bottom: 0;
+  margin-top: 0.5rem;
 }
 
 .moderationStageCell__line {

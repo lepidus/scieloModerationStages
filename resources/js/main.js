@@ -1,12 +1,12 @@
 import ModerationStageTab from "./Components/ModerationStageTab.vue";
 import ModerationStageHeader from "./Components/ModerationStageHeader.vue";
-import DashboardCellModerationStage from "./Components/DashboardCellModerationStage.vue";
+import DashboardCellModerationTitle from "./Components/DashboardCellModerationTitle.vue";
 
 pkp.registry.registerComponent("ModerationStageTab", ModerationStageTab);
 pkp.registry.registerComponent("ModerationStageHeader", ModerationStageHeader);
 pkp.registry.registerComponent(
-  "DashboardCellModerationStage",
-  DashboardCellModerationStage
+  "DashboardCellModerationTitle",
+  DashboardCellModerationTitle
 );
 
 pkp.registry.storeExtend("workflow", (piniaContext) => {
@@ -68,18 +68,16 @@ pkp.registry.storeExtend("workflow", (piniaContext) => {
 
 pkp.registry.storeExtend("dashboard", (piniaContext) => {
   const dashboardStore = piniaContext.store;
-  const { useLocalize } = pkp.modules.useLocalize;
-  const { t } = useLocalize();
 
   dashboardStore.extender.extendFn("getColumns", (columns) => {
-    return [
-      ...columns,
-      {
-        id: "scieloModerationStage",
-        header: t("plugins.generic.scieloModerationStages.displayNameWorkflow"),
-        component: "DashboardCellModerationStage",
-        sortable: false,
-      },
-    ];
+    return columns.map((column) => {
+      if (column.id === "title") {
+        return {
+          ...column,
+          component: "DashboardCellModerationTitle",
+        };
+      }
+      return column;
+    });
   });
 });
