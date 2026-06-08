@@ -116,6 +116,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin implements HasTaskSched
             'updateSubmissionStageData',
             'getUserIsAuthor',
             'getSubmissionExhibitData',
+            'getModerationStageCounts',
         ];
         $handlerUrls = [];
         foreach ($handlerOps as $op) {

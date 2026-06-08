@@ -139,7 +139,7 @@ class ScieloModerationStagesHandler extends Handler
     public function getSubmissionExhibitData($args, $request)
     {
         $submissionId = (int) $args['submissionId'];
-        $exhibitData = $this->getSubmissionModerationStage($submissionId);
+        $exhibitData = ['submissionId' => $submissionId];
 
         if ($args['userIsAuthor'] == 0) {
             $exhibitData = array_merge(
@@ -165,24 +165,43 @@ class ScieloModerationStagesHandler extends Handler
         return json_encode(1);
     }
 
-    private function getSubmissionModerationStage($submissionId)
+    /**
+     * Returns the active submissions count per moderation stage keyed by the
+     * dashboard view id, so it can be merged into the native _submissions/viewsCount
+     * response and rendered with the same badge as the core dashboard views.
+     */
+    public function getModerationStageCounts($args, $request)
     {
-        $moderationStageDAO = new ModerationStageDAO();
+        $context = $request->getContext();
+        $user = $request->getUser();
 
-        $moderationStage = $moderationStageDAO->getSubmissionModerationStage($submissionId);
-        if (!is_null($moderationStage)) {
-            $stageMap = [
-                ModerationStage::SCIELO_MODERATION_STAGE_FORMAT => 'plugins.generic.scieloModerationStages.stages.formatStage',
-                ModerationStage::SCIELO_MODERATION_STAGE_CONTENT => 'plugins.generic.scieloModerationStages.stages.contentStage',
-                ModerationStage::SCIELO_MODERATION_STAGE_AREA => 'plugins.generic.scieloModerationStages.stages.areaStage',
-            ];
+        $editorialRoles = [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_ASSISTANT];
+        $userRoles = (array) $this->getAuthorizedContextObject(Application::ASSOC_TYPE_USER_ROLES);
 
-            $moderationStageText = __('plugins.generic.scieloModerationStages.currentStageStatusLabel') . ' ' . __($stageMap[$moderationStage]);
-
-            return ['submissionId' => $submissionId, 'ModerationStage' => $moderationStageText];
+        if (!$context || !$user || empty(array_intersect($editorialRoles, $userRoles))) {
+            return json_encode([]);
         }
 
-        return ['submissionId' => $submissionId, 'ModerationStage' => ''];
+        $canAccessUnassignedSubmission = !empty(array_intersect([Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER], $userRoles));
+
+        $moderationStageDao = new ModerationStageDAO();
+        $counts = $moderationStageDao->countSubmissionsByModerationStage(
+            $context->getId(),
+            $canAccessUnassignedSubmission ? null : $user->getId()
+        );
+
+        $stages = [
+            ModerationStage::SCIELO_MODERATION_STAGE_FORMAT,
+            ModerationStage::SCIELO_MODERATION_STAGE_CONTENT,
+            ModerationStage::SCIELO_MODERATION_STAGE_AREA,
+        ];
+
+        $result = [];
+        foreach ($stages as $stage) {
+            $result['moderation-stage-' . $stage] = $counts[$stage] ?? 0;
+        }
+
+        return json_encode($result);
     }
 
     private function getAreaModerators($submissionId)

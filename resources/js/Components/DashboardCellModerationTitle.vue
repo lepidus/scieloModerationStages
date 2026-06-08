@@ -20,33 +20,27 @@
     </div>
 
     <div
-      v-if="exhibit.ModerationStage || hasExtraData"
+      v-if="hasExtraData"
       class="moderationStageCell"
       data-cy="moderationStageCell"
     >
-      <div v-if="exhibit.ModerationStage" class="moderationStageCell__stage">
-        {{ exhibit.ModerationStage }}
+      <div v-if="hasPeople" class="moderationStageCell__group">
+        <div v-if="exhibit.AreaModerators" class="moderationStageCell__line">
+          {{ exhibit.AreaModerators }}
+        </div>
       </div>
 
-      <template v-if="hasExtraData">
-        <div v-if="hasPeople" class="moderationStageCell__group">
-          <div v-if="exhibit.AreaModerators" class="moderationStageCell__line">
-            {{ exhibit.AreaModerators }}
-          </div>
+      <div v-if="hasTimes" class="moderationStageCell__group">
+        <div
+          v-for="field in timeFields"
+          :key="field"
+          v-show="exhibit[field]"
+          class="moderationStageCell__line"
+          :class="{ 'moderationStageCell__line--red': exhibit[field + 'RedFlag'] }"
+        >
+          {{ exhibit[field] }}
         </div>
-
-        <div v-if="hasTimes" class="moderationStageCell__group">
-          <div
-            v-for="field in timeFields"
-            :key="field"
-            v-show="exhibit[field]"
-            class="moderationStageCell__line"
-            :class="{ 'moderationStageCell__line--red': exhibit[field + 'RedFlag'] }"
-          >
-            {{ exhibit[field] }}
-          </div>
-        </div>
-      </template>
+      </div>
     </div>
   </PkpTableCell>
 </template>
@@ -105,10 +99,6 @@ onMounted(async () => {
   margin-top: 0.5rem;
   padding-top: 0.5rem;
   border-top: 1px solid #e0e0e0;
-}
-
-.moderationStageCell__stage {
-  font-weight: 700;
 }
 
 .moderationStageCell__group {
