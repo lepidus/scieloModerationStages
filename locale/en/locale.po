@@ -26,6 +26,9 @@ msgstr "This plugin adds the stages of moderation defined by SciELO to OPS"
 msgid "plugins.generic.scieloModerationStages.log.submissionSentToModerationStage"
 msgstr "The submission has been sent to the {$moderationStageName} stage"
 
+msgid "plugins.generic.scieloModerationStages.filter.responsibles"
+msgstr "Assigned to Responsible"
+
 msgid "plugins.generic.scieloModerationStages.stages.formatStage"
 msgstr "Format Pre-Moderation"
 

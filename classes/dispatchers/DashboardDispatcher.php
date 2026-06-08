@@ -7,7 +7,9 @@ use PKP\security\Role;
 use APP\core\Application;
 use APP\submission\Submission;
 use APP\template\TemplateManager;
+use PKP\components\forms\FieldSelectUsers;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
+use APP\plugins\generic\scieloModerationStages\classes\ModerationReminderHelper;
 
 class DashboardDispatcher
 {
@@ -24,6 +26,18 @@ class DashboardDispatcher
         Hook::add('Dashboard::views', [$this, 'addModerationStagesViews']);
         Hook::add('TemplateManager::setupBackendPage', [$this, 'addModerationStagesToMenu']);
         Hook::add('Submission::Collector', [$this, 'addFiltersToSubmissionCollector']);
+        Hook::add('Form::config::after', [$this, 'addResponsiblesFilterField']);
+        Hook::add('User::Collector', [$this, 'filterResponsiblesUsers']);
+    }
+
+    /**
+     * Returns the abbrev id of the resp user group for the given context id.
+     */
+    private function respUserGroupId(int $contextId): ?int
+    {
+        $respUserGroup = (new ModerationReminderHelper())->getResponsiblesUserGroup($contextId);
+
+        return $respUserGroup?->id;
     }
 
     /**
@@ -146,6 +160,7 @@ class DashboardDispatcher
     {
         $query = &$params[0];
         $request = Application::get()->getRequest();
+        $context = $request->getContext();
         $moderationStages = $request->getUserVar('moderationStages');
 
         if ($moderationStages) {
@@ -153,5 +168,100 @@ class DashboardDispatcher
                 ->where('sub_s.setting_name', 'currentModerationStage')
                 ->whereIn('sub_s.setting_value', $moderationStages);
         }
+
+        $responsibles = $request->getUserVar('responsibles');
+        if ($responsibles && $context) {
+            $responsibleUserIds = array_map('intval', (array) $responsibles);
+            $respUserGroupId = $this->respUserGroupId($context->getId());
+
+            if ($respUserGroupId) {
+                $query->whereExists(function ($subQuery) use ($responsibleUserIds, $respUserGroupId) {
+                    $subQuery->from('stage_assignments as resp_sa')
+                        ->whereColumn('resp_sa.submission_id', 's.submission_id')
+                        ->where('resp_sa.user_group_id', $respUserGroupId)
+                        ->whereIn('resp_sa.user_id', $responsibleUserIds);
+                });
+            }
+        }
+
+        return Hook::CONTINUE;
+    }
+
+    /**
+     * Adds a "Responsibles" autosuggest filter to the submissions dashboard
+     * filters form, mirroring the native "Assigned to Moderator" filter but
+     * listing only users in the "resp" (Responsibles) user group.
+     */
+    public function addResponsiblesFilterField($hookName, $params)
+    {
+        $config = &$params[0];
+        $form = $params[1];
+
+        if (($config['id'] ?? null) !== 'submissionFilters') {
+            return Hook::CONTINUE;
+        }
+
+        $userRoles = (array) ($form->userRoles ?? []);
+        if (empty(array_intersect([Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER], $userRoles))) {
+            return Hook::CONTINUE;
+        }
+
+        $context = $form->context ?? null;
+        if (!$context || !$this->respUserGroupId($context->getId())) {
+            return Hook::CONTINUE;
+        }
+
+        $request = Application::get()->getRequest();
+        $field = new FieldSelectUsers('responsibles', [
+            'groupId' => 'default',
+            'label' => __('plugins.generic.scieloModerationStages.filter.responsibles'),
+            'value' => [],
+            'apiUrl' => $request->getDispatcher()->url(
+                $request,
+                Application::ROUTE_API,
+                $context->getPath(),
+                'users',
+                null,
+                null,
+                ['scieloModerationResponsibles' => 1]
+            ),
+        ]);
+
+        $config['fields'][] = $field->getConfig();
+
+        return Hook::CONTINUE;
+    }
+
+    /**
+     * Restricts the users autosuggest of the "Responsibles" filter to members
+     * of the "resp" user group. Only acts when the request carries the
+     * scieloModerationResponsibles flag set by addResponsiblesFilterField().
+     */
+    public function filterResponsiblesUsers($hookName, $params)
+    {
+        $query = $params[0];
+        $request = Application::get()->getRequest();
+
+        if (!$request->getUserVar('scieloModerationResponsibles')) {
+            return Hook::CONTINUE;
+        }
+
+        $context = $request->getContext();
+        if (!$context) {
+            return Hook::CONTINUE;
+        }
+
+        $respUserGroupId = $this->respUserGroupId($context->getId());
+        if (!$respUserGroupId) {
+            return Hook::CONTINUE;
+        }
+
+        $query->whereExists(function ($subQuery) use ($respUserGroupId) {
+            $subQuery->from('user_user_groups as resp_uug')
+                ->whereColumn('resp_uug.user_id', 'u.user_id')
+                ->where('resp_uug.user_group_id', $respUserGroupId);
+        });
+
+        return Hook::CONTINUE;
     }
 }
