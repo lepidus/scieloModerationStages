@@ -30,41 +30,58 @@
         />
       </div>
 
-      <!-- Advance to next stage -->
+      <!-- Moderation stage change -->
       <div
-        v-if="!tabData.userIsAuthor && tabData.canAdvanceStage"
-        class="moderationStageTab__sendNextStage"
+        v-if="!tabData.userIsAuthor && (tabData.canAdvanceStage || tabData.canRegressStage)"
+        class="moderationStageTab__stageChange"
       >
         <label class="moderationStageTab__label">
-          {{ t("plugins.generic.scieloModerationStages.sendNextStageField") }}
+          {{ t("plugins.generic.scieloModerationStages.stageChangeField") }}
         </label>
         <p class="moderationStageTab__description">
           {{
-            t("plugins.generic.scieloModerationStages.checkboxSendNextStage", {
+            t("plugins.generic.scieloModerationStages.stageChange.description", {
               currentStage: tabData.currentStageName,
-              nextStage: tabData.nextStageName,
             })
           }}
         </p>
-        <label class="moderationStageTab__radio">
+        <label v-if="tabData.canAdvanceStage" class="moderationStageTab__radioBlock">
           <input
             type="radio"
-            name="sendNextStage"
-            value="1"
-            data-cy="sendNextStageYes"
-            v-model="form.sendNextStage"
+            name="stageChange"
+            value="advance"
+            data-cy="stageChangeAdvance"
+            v-model="form.stageChange"
           />
-          {{ t("common.yes") }}
+          {{
+            t("plugins.generic.scieloModerationStages.stageChange.advance", {
+              nextStage: tabData.nextStageName,
+            })
+          }}
         </label>
-        <label class="moderationStageTab__radio">
+        <label v-if="tabData.canRegressStage" class="moderationStageTab__radioBlock">
           <input
             type="radio"
-            name="sendNextStage"
-            value="0"
-            data-cy="sendNextStageNo"
-            v-model="form.sendNextStage"
+            name="stageChange"
+            value="regress"
+            data-cy="stageChangeRegress"
+            v-model="form.stageChange"
           />
-          {{ t("common.no") }}
+          {{
+            t("plugins.generic.scieloModerationStages.stageChange.regress", {
+              previousStage: tabData.previousStageName,
+            })
+          }}
+        </label>
+        <label class="moderationStageTab__radioBlock">
+          <input
+            type="radio"
+            name="stageChange"
+            value="stay"
+            data-cy="stageChangeStay"
+            v-model="form.stageChange"
+          />
+          {{ t("plugins.generic.scieloModerationStages.stageChange.stay") }}
         </label>
       </div>
 
@@ -75,7 +92,11 @@
             {{ t("common.save") }}
           </PkpButton>
         </span>
-        <span v-if="savedMessage" class="moderationStageTab__saved">
+        <span
+          v-if="savedMessage"
+          :class="saveFailed ? 'moderationStageTab__saveError' : 'moderationStageTab__saved'"
+          data-cy="moderationStageSaveMessage"
+        >
           {{ savedMessage }}
         </span>
       </div>
@@ -89,6 +110,9 @@ import { ref, reactive, computed, onMounted } from "vue";
 const { useLocalize } = pkp.modules.useLocalize;
 const { t } = useLocalize();
 
+const { useDataChanged } = pkp.modules.useDataChanged;
+const { triggerDataChange } = useDataChanged();
+
 const props = defineProps({
   submission: { type: Object, required: true },
 });
@@ -97,12 +121,13 @@ const tabData = ref(null);
 const isLoading = ref(true);
 const isSaving = ref(false);
 const savedMessage = ref("");
+const saveFailed = ref(false);
 
 const form = reactive({
   formatStageEntryDate: null,
   contentStageEntryDate: null,
   areaStageEntryDate: null,
-  sendNextStage: "0",
+  stageChange: "stay",
 });
 
 const stageDateLabelKeys = {
@@ -144,7 +169,7 @@ function handlerUrl(op) {
   return window.app.moderationStagesHandlerUrls[op];
 }
 
-onMounted(async () => {
+async function loadTabData() {
   const url =
     handlerUrl("getModerationTabData") +
     `?submissionId=${props.submission.id}`;
@@ -161,12 +186,18 @@ onMounted(async () => {
     });
   }
 
+  form.stageChange = "stay";
+}
+
+onMounted(async () => {
+  await loadTabData();
   isLoading.value = false;
 });
 
 async function save() {
   isSaving.value = true;
   savedMessage.value = "";
+  saveFailed.value = false;
 
   const body = new URLSearchParams();
   body.append("submissionId", tabData.value.submissionId);
@@ -179,17 +210,34 @@ async function save() {
   });
 
   if (tabData.value.canAdvanceStage) {
-    body.append("sendNextStage", form.sendNextStage);
+    body.append("sendNextStage", form.stageChange === "advance" ? "1" : "0");
   }
 
-  await fetch(handlerUrl("updateSubmissionStageData"), {
-    method: "POST",
-    body,
-    credentials: "same-origin",
-  });
+  if (tabData.value.canRegressStage) {
+    body.append("sendPreviousStage", form.stageChange === "regress" ? "1" : "0");
+  }
 
-  savedMessage.value = t("form.saved");
-  isSaving.value = false;
+  try {
+    const response = await fetch(handlerUrl("updateSubmissionStageData"), {
+      method: "POST",
+      body,
+      credentials: "same-origin",
+    });
+
+    if (!response.ok) {
+      throw new Error(`Saving failed with status ${response.status}`);
+    }
+
+    await Promise.all([loadTabData(), triggerDataChange()]);
+    savedMessage.value = t("form.saved");
+  } catch (error) {
+    saveFailed.value = true;
+    savedMessage.value = t(
+      "plugins.generic.scieloModerationStages.stageChange.saveError"
+    );
+  } finally {
+    isSaving.value = false;
+  }
 }
 </script>
 
@@ -203,7 +251,7 @@ async function save() {
 }
 
 .moderationStageTab__dateField,
-.moderationStageTab__sendNextStage {
+.moderationStageTab__stageChange {
   margin-bottom: 1.5rem;
 }
 
@@ -218,9 +266,9 @@ async function save() {
   color: #555;
 }
 
-.moderationStageTab__radio {
-  display: inline-block;
-  margin-right: 1rem;
+.moderationStageTab__radioBlock {
+  display: block;
+  margin-bottom: 0.25rem;
 }
 
 .moderationStageTab__actions {
@@ -231,6 +279,11 @@ async function save() {
 
 .moderationStageTab__saved {
   color: #00833e;
+  font-weight: 700;
+}
+
+.moderationStageTab__saveError {
+  color: #d00a0a;
   font-weight: 700;
 }
 

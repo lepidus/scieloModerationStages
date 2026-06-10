@@ -92,4 +92,66 @@ class ModerationStageTest extends TestCase
         $moderationStage = new ModerationStage($submission);
         $this->assertFalse($moderationStage->canAdvanceStage());
     }
+
+    public function testGetPreviousStageName(): void
+    {
+        $this->submission->setData('currentModerationStage', ModerationStage::SCIELO_MODERATION_STAGE_CONTENT);
+
+        $expectedStageName = __('plugins.generic.scieloModerationStages.stages.formatStage');
+        $this->assertEquals($expectedStageName, $this->moderationStage->getPreviousStageName());
+    }
+
+    public function testSendPreviousStage(): void
+    {
+        $this->submission->setData('currentModerationStage', ModerationStage::SCIELO_MODERATION_STAGE_AREA);
+        $this->moderationStage->sendPreviousStage();
+
+        $expectedStageName = __('plugins.generic.scieloModerationStages.stages.contentStage');
+        $this->assertEquals($expectedStageName, $this->moderationStage->getCurrentStageName());
+    }
+
+    public function testSubmissionDataPreviousStage(): void
+    {
+        $this->submission->setData('currentModerationStage', ModerationStage::SCIELO_MODERATION_STAGE_CONTENT);
+        $this->moderationStage->sendPreviousStage();
+
+        $this->assertEquals(ModerationStage::SCIELO_MODERATION_STAGE_FORMAT, $this->submission->getData('currentModerationStage'));
+        $this->assertEquals(Core::getCurrentDate(), $this->submission->getData('lastModerationStageChange'));
+        $this->assertEquals(Core::getCurrentDate(), $this->submission->getData('formatStageEntryDate'));
+    }
+
+    public function testSubmissionOnIntermediateStageCanRegress(): void
+    {
+        $this->submission->setData('currentModerationStage', ModerationStage::SCIELO_MODERATION_STAGE_CONTENT);
+        $this->assertTrue($this->moderationStage->canRegressStage());
+
+        $this->submission->setData('currentModerationStage', ModerationStage::SCIELO_MODERATION_STAGE_AREA);
+        $this->assertTrue($this->moderationStage->canRegressStage());
+    }
+
+    public function testSubmissionOnFirstStageCantRegress(): void
+    {
+        $this->assertFalse($this->moderationStage->canRegressStage());
+    }
+
+    public function testSubmissionWithoutStageCantRegress(): void
+    {
+        $submission = new Submission();
+        $moderationStage = new ModerationStage($submission);
+        $this->assertFalse($moderationStage->canRegressStage());
+    }
+
+    public function testRejectedSubmissionCantRegressStage(): void
+    {
+        $this->submission->setData('currentModerationStage', ModerationStage::SCIELO_MODERATION_STAGE_CONTENT);
+        $this->submission->setData('status', Submission::STATUS_DECLINED);
+        $this->assertFalse($this->moderationStage->canRegressStage());
+    }
+
+    public function testPostedSubmissionCantRegressStage(): void
+    {
+        $this->submission->setData('currentModerationStage', ModerationStage::SCIELO_MODERATION_STAGE_CONTENT);
+        $this->submission->setData('status', Submission::STATUS_PUBLISHED);
+        $this->assertFalse($this->moderationStage->canRegressStage());
+    }
 }
