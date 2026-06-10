@@ -26,6 +26,9 @@ msgstr "This plugin adds the stages of moderation defined by SciELO to OPS"
 msgid "plugins.generic.scieloModerationStages.log.submissionSentToModerationStage"
 msgstr "The submission has been sent to the {$moderationStageName} stage"
 
+msgid "plugins.generic.scieloModerationStages.log.submissionReturnedToModerationStage"
+msgstr "The submission has been returned to the {$moderationStageName} stage"
+
 msgid "plugins.generic.scieloModerationStages.filter.responsibles"
 msgstr "Assigned to Responsible"
 
@@ -64,8 +67,23 @@ msgstr "SciELO Moderation Stage"
 msgid "plugins.generic.scieloModerationStages.checkboxSendNextStage"
 msgstr "This submission is in the {$currentStage} stage, do you want to send it to the {$nextStage} stage?"
 
-msgid "plugins.generic.scieloModerationStages.sendNextStageField"
-msgstr "Send to the next moderation stage"
+msgid "plugins.generic.scieloModerationStages.stageChangeField"
+msgstr "Moderation stage change"
+
+msgid "plugins.generic.scieloModerationStages.stageChange.description"
+msgstr "This submission is in the {$currentStage} stage. Select what you want to do:"
+
+msgid "plugins.generic.scieloModerationStages.stageChange.advance"
+msgstr "Send to the {$nextStage} stage"
+
+msgid "plugins.generic.scieloModerationStages.stageChange.regress"
+msgstr "Return to the {$previousStage} stage"
+
+msgid "plugins.generic.scieloModerationStages.stageChange.stay"
+msgstr "Remain in the current stage"
+
+msgid "plugins.generic.scieloModerationStages.stageChange.saveError"
+msgstr "An error occurred while saving. Please try again."
 
 msgid "plugins.generic.scieloModerationStages.menuDates.fieldDescription"
 msgstr "The submission has entered in this moderation stage in the following data"
@@ -204,6 +222,20 @@ msgstr ""
 "{$submissions}"
 "<br/>\n"
 "This is an automatic email. If you have already sent your moderation for these manuscripts, please disregard this email."
+
+msgid "plugins.generic.scieloModerationStages.emails.stageRegression.subject"
+msgstr "Return in Submission Moderation"
+
+msgid "plugins.generic.scieloModerationStages.emails.stageRegression.body"
+msgstr ""
+"Dear {$authorName},<br>\n"
+"<br>\n"
+"Your submission has been returned to the {$moderationStageName} stage, where it will undergo a new moderation.<br>\n"
+"<br>\n"
+"Please wait for a response from our team.<br>\n"
+"<br>\n"
+"For more information, we recommend reading our <a href=\"{$faqUrl}\">FAQ #19</a>.<br>\n"
+"<br>\n"
 
 msgid "plugins.generic.scieloModerationStages.emails.areaModerationReminder.subject"
 msgstr "Manuscripts awaiting area moderation"

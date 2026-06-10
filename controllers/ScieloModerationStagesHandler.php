@@ -8,6 +8,7 @@ use APP\handler\Handler;
 use PKP\facades\Locale;
 use APP\facades\Repo;
 use PKP\security\Role;
+use PKP\security\authorization\ContextAccessPolicy;
 use PKP\stageAssignment\StageAssignment;
 use PKP\userGroup\UserGroup;
 use APP\submission\Submission;
@@ -17,15 +18,49 @@ use APP\plugins\generic\scieloModerationStages\classes\ModerationStageRegister;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageDAO;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationReminderEmailBuilder;
 use APP\plugins\generic\scieloModerationStages\classes\mail\builders\StageAdvancementEmailBuilder;
+use APP\plugins\generic\scieloModerationStages\classes\mail\builders\StageRegressionEmailBuilder;
 
 class ScieloModerationStagesHandler extends Handler
 {
     private const SUBMISSION_STAGE_ID = 5;
     private const THRESHOLD_TIME_EXHIBITORS = 2;
 
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->addRoleAssignment(
+            [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_ASSISTANT, Role::ROLE_ID_AUTHOR],
+            ['getModerationTabData', 'getUserIsAuthor', 'getSubmissionExhibitData']
+        );
+        $this->addRoleAssignment(
+            [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR],
+            ['updateSubmissionStageData']
+        );
+        $this->addRoleAssignment(
+            [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_ASSISTANT],
+            ['getModerationStageCounts']
+        );
+        $this->addRoleAssignment(
+            [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER],
+            ['getReminderBody']
+        );
+    }
+
+    public function authorize($request, &$args, $roleAssignments)
+    {
+        $this->addPolicy(new ContextAccessPolicy($request, $roleAssignments));
+        return parent::authorize($request, $args, $roleAssignments);
+    }
+
     public function getModerationTabData($args, $request)
     {
-        $submission = Repo::submission()->get((int) $args['submissionId']);
+        $submission = Repo::submission()->get((int) ($args['submissionId'] ?? 0));
+        if (!$submission) {
+            http_response_code(404);
+            return json_encode(['stageExists' => false]);
+        }
+
         $moderationStage = new ModerationStage($submission);
 
         if (!$moderationStage->submissionStageExists()) {
@@ -34,6 +69,8 @@ class ScieloModerationStagesHandler extends Handler
 
         $plugin = PluginRegistry::getPlugin('generic', 'scielomoderationstagesplugin');
         $context = $request->getContext();
+        $canAdvanceStage = $moderationStage->canAdvanceStage();
+        $canRegressStage = $moderationStage->canRegressStage();
 
         $data = [
             'stageExists' => true,
@@ -41,14 +78,19 @@ class ScieloModerationStagesHandler extends Handler
             'userIsAuthor' => $plugin->userIsAuthor($submission),
             'currentStageKey' => $moderationStage->getCurrentStageName(false),
             'currentStageName' => $moderationStage->getCurrentStageName(),
-            'canAdvanceStage' => $moderationStage->canAdvanceStage(),
+            'canAdvanceStage' => $canAdvanceStage,
+            'canRegressStage' => $canRegressStage,
             'stageEntryDates' => $moderationStage->getStageEntryDates(),
             'faqUrl' => $request->url($context->getPath()) . '/faq',
             'csrfToken' => $request->getSession()->token(),
         ];
 
-        if ($moderationStage->canAdvanceStage()) {
+        if ($canAdvanceStage) {
             $data['nextStageName'] = $moderationStage->getNextStageName();
+        }
+
+        if ($canRegressStage) {
+            $data['previousStageName'] = $moderationStage->getPreviousStageName();
         }
 
         return json_encode($data);
@@ -103,30 +145,47 @@ class ScieloModerationStagesHandler extends Handler
 
     public function updateSubmissionStageData($args, $request)
     {
-        $submission = Repo::submission()->get($args['submissionId']);
+        if (!$request->checkCSRF()) {
+            return http_response_code(403);
+        }
+
+        $submission = Repo::submission()->get((int) ($args['submissionId'] ?? 0));
+        if (!$submission) {
+            return http_response_code(404);
+        }
+
         $moderationStage = new ModerationStage($submission);
 
-        if (isset($args['formatStageEntryDate'])) {
-            $submission->setData('formatStageEntryDate', $args['formatStageEntryDate']);
-        }
-
-        if (isset($args['contentStageEntryDate'])) {
-            $submission->setData('contentStageEntryDate', $args['contentStageEntryDate']);
-        }
-
-        if (isset($args['areaStageEntryDate'])) {
-            $submission->setData('areaStageEntryDate', $args['areaStageEntryDate']);
+        foreach (['formatStageEntryDate', 'contentStageEntryDate', 'areaStageEntryDate'] as $dateField) {
+            if (isset($args[$dateField]) && is_string($args[$dateField]) && $this->isValidEntryDate($args[$dateField])) {
+                $submission->setData($dateField, $args[$dateField]);
+            }
         }
 
         $userSelectedAdvanceStage = (($args['sendNextStage'] ?? 0) == 1);
-        if ($userSelectedAdvanceStage and $moderationStage->canAdvanceStage()) {
-            $moderationStage->sendNextStage();
-            $moderationStageRegister = new ModerationStageRegister();
-            $moderationStageRegister->registerModerationStageOnDatabase($moderationStage);
-            $moderationStageRegister->registerModerationStageOnSubmissionLog($moderationStage);
+        $userSelectedRegressStage = (($args['sendPreviousStage'] ?? 0) == 1);
 
-            $emailBuilder = new StageAdvancementEmailBuilder();
-            $email = $emailBuilder->setSubmission($submission)
+        if ($userSelectedAdvanceStage && $moderationStage->canAdvanceStage()) {
+            $moderationStage->sendNextStage();
+            $this->registerStageChange(
+                $moderationStage,
+                'plugins.generic.scieloModerationStages.log.submissionSentToModerationStage'
+            );
+
+            $email = (new StageAdvancementEmailBuilder())
+                ->setSubmission($submission)
+                ->buildEmailParams()
+                ->build();
+            Mail::send($email);
+        } elseif ($userSelectedRegressStage && $moderationStage->canRegressStage()) {
+            $moderationStage->sendPreviousStage();
+            $this->registerStageChange(
+                $moderationStage,
+                'plugins.generic.scieloModerationStages.log.submissionReturnedToModerationStage'
+            );
+
+            $email = (new StageRegressionEmailBuilder())
+                ->setSubmission($submission)
                 ->buildEmailParams()
                 ->build();
             Mail::send($email);
@@ -134,6 +193,19 @@ class ScieloModerationStagesHandler extends Handler
 
         Repo::submission()->edit($submission, []);
         return http_response_code(200);
+    }
+
+    private function registerStageChange(ModerationStage $moderationStage, string $logMessageKey): void
+    {
+        $moderationStageRegister = new ModerationStageRegister();
+        $moderationStageRegister->registerModerationStageOnDatabase($moderationStage);
+        $moderationStageRegister->registerModerationStageOnSubmissionLog($moderationStage, $logMessageKey);
+    }
+
+    private function isValidEntryDate(string $date): bool
+    {
+        $parsedDate = DateTime::createFromFormat('Y-m-d', $date);
+        return $parsedDate && $parsedDate->format('Y-m-d') === $date;
     }
 
     public function getSubmissionExhibitData($args, $request)
