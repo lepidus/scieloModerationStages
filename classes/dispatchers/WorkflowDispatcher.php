@@ -54,11 +54,16 @@ class WorkflowDispatcher
                 'userIsAuthor' => $this->plugin->userIsAuthor($submission),
                 'currentStage' => $currentStageName,
                 'canAdvanceStage' => $moderationStage->canAdvanceStage(),
+                'canRegressStage' => $moderationStage->canRegressStage(),
                 'faqUrl' => $faqUrl
             ]);
 
             if ($moderationStage->canAdvanceStage()) {
                 $templateMgr->assign('nextStage', $moderationStage->getNextStageName());
+            }
+
+            if ($moderationStage->canRegressStage()) {
+                $templateMgr->assign('previousStage', $moderationStage->getPreviousStageName());
             }
 
             $output .= sprintf(

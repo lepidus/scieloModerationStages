@@ -26,6 +26,9 @@ msgstr "Este plugin adiciona os estágios de moderação definidos pela SciELO a
 msgid "plugins.generic.scieloModerationStages.log.submissionSentToModerationStage"
 msgstr "A submissão foi enviada para o estágio de {$moderationStageName}"
 
+msgid "plugins.generic.scieloModerationStages.log.submissionReturnedToModerationStage"
+msgstr "A submissão foi retornada para o estágio de {$moderationStageName}"
+
 msgid "plugins.generic.scieloModerationStages.stages.formatStage"
 msgstr "Pré-Moderação de Formato"
 
@@ -61,8 +64,20 @@ msgstr "Estágio de Moderação SciELO"
 msgid "plugins.generic.scieloModerationStages.checkboxSendNextStage"
 msgstr "Esta submissão está no estágio de {$currentStage}, deseja a enviar para o estágio de {$nextStage}?"
 
-msgid "plugins.generic.scieloModerationStages.sendNextStageField"
-msgstr "Enviar para o próximo estágio de moderação"
+msgid "plugins.generic.scieloModerationStages.stageChangeField"
+msgstr "Mudança de estágio de moderação"
+
+msgid "plugins.generic.scieloModerationStages.stageChange.description"
+msgstr "Esta submissão está no estágio de {$currentStage}. Selecione o que deseja fazer:"
+
+msgid "plugins.generic.scieloModerationStages.stageChange.advance"
+msgstr "Enviar para o estágio de {$nextStage}"
+
+msgid "plugins.generic.scieloModerationStages.stageChange.regress"
+msgstr "Retornar para o estágio de {$previousStage}"
+
+msgid "plugins.generic.scieloModerationStages.stageChange.stay"
+msgstr "Permanecer no estágio atual"
 
 msgid "plugins.generic.scieloModerationStages.menuDates.fieldDescription"
 msgstr "A submissão entrou nesse estágio de moderação na seguinte data"
@@ -227,6 +242,20 @@ msgstr ""
 "{$submissions}"
 "<br/>\n"
 "Este é um email automático. Caso você já tenha enviado a sua moderação para estes manuscritos, por favor desconsidere este email."
+
+msgid "plugins.generic.scieloModerationStages.emails.stageRegression.subject"
+msgstr "Retorno na Moderação de Submissão"
+
+msgid "plugins.generic.scieloModerationStages.emails.stageRegression.body"
+msgstr ""
+"Prezado(a) {$authorName},<br>\n"
+"<br>\n"
+"A sua submissão foi retornada para o estágio de {$moderationStageName}, onde passará por uma nova moderação.<br>\n"
+"<br>\n"
+"Por favor, aguarde retorno da nossa equipe.<br>\n"
+"<br>\n"
+"Para mais informações, recomendamos a leitura da nossa <a href=\"{$faqUrl}\">FAQ n°19</a>.<br>\n"
+"<br>"
 
 msgid "plugins.generic.scieloModerationStages.emails.areaModerationReminder.subject"
 msgstr "Manuscritos aguardando moderação de área"

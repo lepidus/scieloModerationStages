@@ -16,6 +16,7 @@ use APP\plugins\generic\scieloModerationStages\classes\ModerationStageRegister;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageDAO;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationReminderEmailBuilder;
 use APP\plugins\generic\scieloModerationStages\classes\mail\builders\StageAdvancementEmailBuilder;
+use APP\plugins\generic\scieloModerationStages\classes\mail\builders\StageRegressionEmailBuilder;
 
 class ScieloModerationStagesHandler extends Handler
 {
@@ -86,15 +87,30 @@ class ScieloModerationStagesHandler extends Handler
             $submission->setData('areaStageEntryDate', $args['areaStageEntryDate']);
         }
 
-        $userSelectedAdvanceStage = ($args['sendNextStage'] == 1);
+        $userSelectedAdvanceStage = (($args['sendNextStage'] ?? 0) == 1);
+        $userSelectedRegressStage = (($args['sendPreviousStage'] ?? 0) == 1);
+
         if ($userSelectedAdvanceStage and $moderationStage->canAdvanceStage()) {
             $moderationStage->sendNextStage();
-            $moderationStageRegister = new ModerationStageRegister();
-            $moderationStageRegister->registerModerationStageOnDatabase($moderationStage);
-            $moderationStageRegister->registerModerationStageOnSubmissionLog($moderationStage);
+            $this->registerStageChange(
+                $moderationStage,
+                'plugins.generic.scieloModerationStages.log.submissionSentToModerationStage'
+            );
 
-            $emailBuilder = new StageAdvancementEmailBuilder();
-            $email = $emailBuilder->setSubmission($submission)
+            $email = (new StageAdvancementEmailBuilder())
+                ->setSubmission($submission)
+                ->buildEmailParams()
+                ->build();
+            Mail::send($email);
+        } elseif ($userSelectedRegressStage and $moderationStage->canRegressStage()) {
+            $moderationStage->sendPreviousStage();
+            $this->registerStageChange(
+                $moderationStage,
+                'plugins.generic.scieloModerationStages.log.submissionReturnedToModerationStage'
+            );
+
+            $email = (new StageRegressionEmailBuilder())
+                ->setSubmission($submission)
                 ->buildEmailParams()
                 ->build();
             Mail::send($email);
@@ -102,6 +118,13 @@ class ScieloModerationStagesHandler extends Handler
 
         Repo::submission()->edit($submission, []);
         return http_response_code(200);
+    }
+
+    private function registerStageChange(ModerationStage $moderationStage, string $logMessageKey): void
+    {
+        $moderationStageRegister = new ModerationStageRegister();
+        $moderationStageRegister->registerModerationStageOnDatabase($moderationStage);
+        $moderationStageRegister->registerModerationStageOnSubmissionLog($moderationStage, $logMessageKey);
     }
 
     public function getSubmissionExhibitData($args, $request)
