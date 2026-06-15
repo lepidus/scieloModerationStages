@@ -4,6 +4,7 @@ namespace APP\plugins\generic\scieloModerationStages\classes;
 
 use APP\submission\Submission;
 use PKP\core\Core;
+use Exception;
 
 class ModerationStage
 {
@@ -45,6 +46,10 @@ class ModerationStage
             self::SCIELO_MODERATION_STAGE_CONTENT => self::SCIELO_MODERATION_STAGE_FORMAT,
             self::SCIELO_MODERATION_STAGE_AREA => self::SCIELO_MODERATION_STAGE_CONTENT,
         ];
+
+        if (!isset($previousStageMap[$stage])) {
+            throw new Exception('There is no moderation stage previous to the current one');
+        }
 
         return $previousStageMap[$stage];
     }

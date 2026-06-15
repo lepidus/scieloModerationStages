@@ -55,3 +55,24 @@ msgstr ""
 "<br>\n"
 "Para mais informações, recomendamos a leitura da nossa <a href=\"{$faqUrl}\">FAQ n°19</a>.<br>\n"
 "<br>\n"
+
+
+msgid "emails.returnedToModerationStage.name"
+msgstr "Notificação de retorno na moderação para um estágio anterior"
+
+msgid "emails.returnedToModerationStage.description"
+msgstr "Modelo de e-mail usado para notificar sobre o retorno de uma submissão para um estágio anterior de moderação."
+
+msgid "emails.returnedToModerationStage.subject"
+msgstr "Retorno na Moderação de Submissão"
+
+msgid "emails.returnedToModerationStage.body"
+msgstr ""
+"Prezado(a) {$authorName},<br>\n"
+"<br>\n"
+"A sua submissão foi retornada para o estágio de {$moderationStageName}, onde passará por uma nova moderação.<br>\n"
+"<br>\n"
+"Por favor, aguarde retorno da nossa equipe.<br>\n"
+"<br>\n"
+"Para mais informações, recomendamos a leitura da nossa <a href=\"{$faqUrl}\">FAQ n°19</a>.<br>\n"
+"<br>\n"

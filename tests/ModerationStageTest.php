@@ -101,6 +101,14 @@ class ModerationStageTest extends TestCase
         $this->assertEquals($expectedStageName, $this->moderationStage->getPreviousStageName());
     }
 
+    public function testGetPreviousStageNameOnFirstStageThrowsException(): void
+    {
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('There is no moderation stage previous to the current one');
+
+        $this->moderationStage->getPreviousStageName();
+    }
+
     public function testSendPreviousStage(): void
     {
         $this->submission->setData('currentModerationStage', ModerationStage::SCIELO_MODERATION_STAGE_AREA);

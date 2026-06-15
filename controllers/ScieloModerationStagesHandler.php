@@ -8,6 +8,7 @@ use APP\handler\Handler;
 use PKP\facades\Locale;
 use APP\facades\Repo;
 use PKP\security\Role;
+use PKP\security\authorization\ContextAccessPolicy;
 use PKP\db\DAORegistry;
 use APP\submission\Submission;
 use APP\decision\Decision;
@@ -22,6 +23,25 @@ class ScieloModerationStagesHandler extends Handler
 {
     private const SUBMISSION_STAGE_ID = 5;
     private const THRESHOLD_TIME_EXHIBITORS = 2;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->addRoleAssignment(
+            [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_ASSISTANT],
+            ['getReminderBody', 'updateSubmissionStageData', 'getSubmissionExhibitData', 'getUserIsAuthor']
+        );
+        $this->addRoleAssignment(
+            [Role::ROLE_ID_AUTHOR],
+            ['getSubmissionExhibitData', 'getUserIsAuthor']
+        );
+    }
+
+    public function authorize($request, &$args, $roleAssignments)
+    {
+        $this->addPolicy(new ContextAccessPolicy($request, $roleAssignments));
+        return parent::authorize($request, $args, $roleAssignments);
+    }
 
     public function getReminderBody($args, $request)
     {
@@ -87,10 +107,9 @@ class ScieloModerationStagesHandler extends Handler
             $submission->setData('areaStageEntryDate', $args['areaStageEntryDate']);
         }
 
-        $userSelectedAdvanceStage = (($args['sendNextStage'] ?? 0) == 1);
-        $userSelectedRegressStage = (($args['sendPreviousStage'] ?? 0) == 1);
+        $stageChangeAction = $args['stageChangeAction'] ?? null;
 
-        if ($userSelectedAdvanceStage and $moderationStage->canAdvanceStage()) {
+        if ($stageChangeAction === 'advance' and $moderationStage->canAdvanceStage()) {
             $moderationStage->sendNextStage();
             $this->registerStageChange(
                 $moderationStage,
@@ -102,7 +121,7 @@ class ScieloModerationStagesHandler extends Handler
                 ->buildEmailParams()
                 ->build();
             Mail::send($email);
-        } elseif ($userSelectedRegressStage and $moderationStage->canRegressStage()) {
+        } elseif ($stageChangeAction === 'regress' and $moderationStage->canRegressStage()) {
             $moderationStage->sendPreviousStage();
             $this->registerStageChange(
                 $moderationStage,

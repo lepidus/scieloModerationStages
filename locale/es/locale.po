@@ -243,20 +243,6 @@ msgstr ""
 "<br/>\n"
 "Este es un correo electrónico automático. Si ya ha enviado su moderación para estos manuscritos, por favor ignore este correo electrónico."
 
-msgid "plugins.generic.scieloModerationStages.emails.stageRegression.subject"
-msgstr "Retroceso en la Moderación de Envío"
-
-msgid "plugins.generic.scieloModerationStages.emails.stageRegression.body"
-msgstr ""
-"Estimado(a) {$authorName},<br>\n"
-"<br>\n"
-"Su envío ha sido devuelto a la etapa de {$moderationStageName}, donde será sometido a una nueva moderación.<br>\n"
-"<br>\n"
-"Por favor, espere a recibir noticias de nuestro equipo.<br>\n"
-"<br>\n"
-"Para más información, le recomendamos la lectura de nuestra <a href=\"{$faqUrl}\">FAQ n°19</a>.<br>\n"
-"<br>"
-
 msgid "plugins.generic.scieloModerationStages.emails.areaModerationReminder.subject"
 msgstr "Manuscritos pendientes de moderación de área"
 

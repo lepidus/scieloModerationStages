@@ -7,6 +7,7 @@ use APP\author\Author;
 use APP\submission\Submission;
 use APP\publication\Publication;
 use PKP\core\PKPPageRouter;
+use PKP\emailTemplate\EmailTemplate;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 use APP\plugins\generic\scieloModerationStages\classes\mail\builders\StageRegressionEmailBuilder;
 
@@ -16,6 +17,7 @@ class StageRegressionEmailBuilderTest extends TestCase
     private $context;
     private $primaryAuthor;
     private $submission;
+    private $emailTemplate;
 
     public function setUp(): void
     {
@@ -29,6 +31,7 @@ class StageRegressionEmailBuilderTest extends TestCase
         $this->context = $this->createTestContext();
         $this->primaryAuthor = $this->createPrimaryAuthor();
         $this->submission = $this->createTestSubmission();
+        $this->emailTemplate = $this->createTestEmailTemplate();
     }
 
     private function createTestContext()
@@ -48,7 +51,7 @@ class StageRegressionEmailBuilderTest extends TestCase
         $author->setData('locale', $this->locale);
         $author->setData('email', 'caligari@gmail.com');
         $author->setData('givenName', 'Doutor', $this->locale);
-        $author->setData('familyName', 'Caligari', $this->locale);
+        $author->setData('familyName', 'Caligari & Cesare', $this->locale);
 
         return $author;
     }
@@ -74,9 +77,35 @@ class StageRegressionEmailBuilderTest extends TestCase
         return $submission;
     }
 
+    private function createTestEmailTemplate(): EmailTemplate
+    {
+        $emailTemplate = new EmailTemplate();
+        $emailTemplate->setData('subject', __('emails.returnedToModerationStage.subject'), $this->locale);
+        $emailTemplate->setData('body', __('emails.returnedToModerationStage.body'), $this->locale);
+
+        return $emailTemplate;
+    }
+
+    private function createStageRegressionEmailBuilder(): StageRegressionEmailBuilder
+    {
+        return new class ($this->emailTemplate) extends StageRegressionEmailBuilder {
+            private $testEmailTemplate;
+
+            public function __construct($emailTemplate)
+            {
+                $this->testEmailTemplate = $emailTemplate;
+            }
+
+            protected function getEmailTemplate(string $emailTemplateKey)
+            {
+                return $this->testEmailTemplate;
+            }
+        };
+    }
+
     public function testStageRegressionEmailBuilding(): void
     {
-        $email = (new StageRegressionEmailBuilder())
+        $email = $this->createStageRegressionEmailBuilder()
             ->setSubmission($this->submission)
             ->setContext($this->context)
             ->buildEmailParams()
@@ -88,18 +117,23 @@ class StageRegressionEmailBuilderTest extends TestCase
         $expectedTo = [['name' => $this->primaryAuthor->getFullName(), 'address' => $this->primaryAuthor->getEmail()]];
         $this->assertEquals($expectedTo, $email->to);
 
-        $expectedSubject = __('plugins.generic.scieloModerationStages.emails.stageRegression.subject');
-        $this->assertEquals($expectedSubject, $email->subject);
+        $this->assertEquals($this->emailTemplate->getLocalizedData('subject'), $email->subject);
+        $this->assertEquals($this->emailTemplate->getLocalizedData('body'), $email->view);
+    }
+
+    public function testStageRegressionEmailParams(): void
+    {
+        $email = $this->createStageRegressionEmailBuilder()
+            ->setSubmission($this->submission)
+            ->setContext($this->context)
+            ->buildEmailParams()
+            ->build();
 
         $request = Application::get()->getRequest();
         $faqUrl = $request->url($this->context->getPath()) . '/faq';
 
-        $bodyParams = [
-            'authorName' => $this->primaryAuthor->getFullName(),
-            'moderationStageName' => __('plugins.generic.scieloModerationStages.stages.formatStage'),
-            'faqUrl' => $faqUrl,
-        ];
-        $expectedBody = __('plugins.generic.scieloModerationStages.emails.stageRegression.body', $bodyParams);
-        $this->assertEquals($expectedBody, $email->view);
+        $this->assertEquals('Doutor Caligari &amp; Cesare', $email->viewData['authorName']);
+        $this->assertEquals(__('plugins.generic.scieloModerationStages.stages.formatStage'), $email->viewData['moderationStageName']);
+        $this->assertEquals($faqUrl, $email->viewData['faqUrl']);
     }
 }

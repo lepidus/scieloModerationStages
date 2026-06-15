@@ -77,8 +77,7 @@
                 {ldelim}
                     submissionId: {$submissionId},
                     {if $canAdvanceStage or $canRegressStage}
-                        sendNextStage: $('input[name=stageChangeAction]:checked').val() == 'advance' ? 1 : 0,
-                        sendPreviousStage: $('input[name=stageChangeAction]:checked').val() == 'regress' ? 1 : 0,
+                        stageChangeAction: $('input[name=stageChangeAction]:checked').val(),
                     {/if}
                     {if $formatStageEntryDate} formatStageEntryDate: $('#formatStageEntryDate').val(), {/if}
                     {if $contentStageEntryDate} contentStageEntryDate: $('#contentStageEntryDate').val(), {/if}
