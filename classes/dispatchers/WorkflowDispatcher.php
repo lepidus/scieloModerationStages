@@ -47,18 +47,25 @@ class WorkflowDispatcher
         if ($moderationStage->submissionStageExists()) {
             $stageDates = $moderationStage->getStageEntryDates();
             $currentStageName = $moderationStage->getCurrentStageName(false);
+            $canAdvanceStage = $moderationStage->canAdvanceStage();
+            $canRegressStage = $moderationStage->canRegressStage();
 
             $templateMgr->assign([
                 ...$stageDates,
                 'submissionId' => $submission->getId(),
                 'userIsAuthor' => $this->plugin->userIsAuthor($submission),
                 'currentStage' => $currentStageName,
-                'canAdvanceStage' => $moderationStage->canAdvanceStage(),
+                'canAdvanceStage' => $canAdvanceStage,
+                'canRegressStage' => $canRegressStage,
                 'faqUrl' => $faqUrl
             ]);
 
-            if ($moderationStage->canAdvanceStage()) {
+            if ($canAdvanceStage) {
                 $templateMgr->assign('nextStage', $moderationStage->getNextStageName());
+            }
+
+            if ($canRegressStage) {
+                $templateMgr->assign('previousStage', $moderationStage->getPreviousStageName());
             }
 
             $output .= sprintf(

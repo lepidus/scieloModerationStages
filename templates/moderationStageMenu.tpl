@@ -39,17 +39,23 @@
     {/if}
 
     {if not $userIsAuthor}
-        {if $canAdvanceStage}
-            <div id="sendNextStageDiv">
+        {if $canAdvanceStage or $canRegressStage}
+            <div id="stageChangeDiv">
                 {capture assign=currentStageName}{translate key=$currentStage}{/capture}
-                <label class="label">{translate key="plugins.generic.scieloModerationStages.sendNextStageField"}</label>
+                <label class="label">{translate key="plugins.generic.scieloModerationStages.stageChangeField"}</label>
                 <label class="description">
-                    {translate key="plugins.generic.scieloModerationStages.checkboxSendNextStage" currentStage=$currentStageName nextStage=$nextStage}
+                    {translate key="plugins.generic.scieloModerationStages.stageChange.description" currentStage=$currentStageName}
                 </label>
-                <input type="radio" id="checkboxSendNextStageMenuYes" name="sendNextStage" value="1"/>
-                {translate key="common.yes"}<br>
-                <input type="radio" id="checkboxSendNextStageMenuNo" name="sendNextStage" value="0" checked="checked"/>
-                {translate key="common.no"}<br>
+                {if $canAdvanceStage}
+                    <input type="radio" id="stageChangeActionAdvance" name="stageChangeAction" value="advance"/>
+                    {translate key="plugins.generic.scieloModerationStages.stageChange.advance" nextStage=$nextStage}<br>
+                {/if}
+                {if $canRegressStage}
+                    <input type="radio" id="stageChangeActionRegress" name="stageChangeAction" value="regress"/>
+                    {translate key="plugins.generic.scieloModerationStages.stageChange.regress" previousStage=$previousStage}<br>
+                {/if}
+                <input type="radio" id="stageChangeActionStay" name="stageChangeAction" value="stay" checked="checked"/>
+                {translate key="plugins.generic.scieloModerationStages.stageChange.stay"}<br>
             </div>
         {/if}
 
@@ -70,7 +76,9 @@
                 "{$updateStageEntryDatesUrl}",
                 {ldelim}
                     submissionId: {$submissionId},
-                    {if $canAdvanceStage} sendNextStage: $('input[name=sendNextStage]:checked').val(), {/if}
+                    {if $canAdvanceStage or $canRegressStage}
+                        stageChangeAction: $('input[name=stageChangeAction]:checked').val(),
+                    {/if}
                     {if $formatStageEntryDate} formatStageEntryDate: $('#formatStageEntryDate').val(), {/if}
                     {if $contentStageEntryDate} contentStageEntryDate: $('#contentStageEntryDate').val(), {/if}
                     {if $areaStageEntryDate} areaStageEntryDate: $('#areaStageEntryDate').val(), {/if}

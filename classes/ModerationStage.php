@@ -4,6 +4,7 @@ namespace APP\plugins\generic\scieloModerationStages\classes;
 
 use APP\submission\Submission;
 use PKP\core\Core;
+use Exception;
 
 class ModerationStage
 {
@@ -37,6 +38,20 @@ class ModerationStage
         ];
 
         return $nextStageMap[$stage];
+    }
+
+    private function getPreviousModerationStage($stage)
+    {
+        $previousStageMap = [
+            self::SCIELO_MODERATION_STAGE_CONTENT => self::SCIELO_MODERATION_STAGE_FORMAT,
+            self::SCIELO_MODERATION_STAGE_AREA => self::SCIELO_MODERATION_STAGE_CONTENT,
+        ];
+
+        if (!isset($previousStageMap[$stage])) {
+            throw new Exception('There is no moderation stage previous to the current one');
+        }
+
+        return $previousStageMap[$stage];
     }
 
     private function getModerationStageEntryConfig($stage)
@@ -84,9 +99,17 @@ class ModerationStage
         return $this->getModerationStageName($nextStage);
     }
 
+    public function getPreviousStageName(): string
+    {
+        $currentStage = $this->submission->getData('currentModerationStage');
+        $previousStage = $this->getPreviousModerationStage($currentStage);
+
+        return $this->getModerationStageName($previousStage);
+    }
+
     public function canAdvanceStage(): bool
     {
-        if ($this->submission->getData('status') == Submission::STATUS_DECLINED || $this->submission->getData('status') == Submission::STATUS_PUBLISHED) {
+        if ($this->submissionIsFinished()) {
             return false;
         }
 
@@ -96,6 +119,26 @@ class ModerationStage
         }
 
         return true;
+    }
+
+    public function canRegressStage(): bool
+    {
+        if ($this->submissionIsFinished()) {
+            return false;
+        }
+
+        $currentStage = $this->submission->getData('currentModerationStage');
+        if (is_null($currentStage) || $currentStage == self::SCIELO_MODERATION_STAGE_FORMAT) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function submissionIsFinished(): bool
+    {
+        return $this->submission->getData('status') == Submission::STATUS_DECLINED
+            || $this->submission->getData('status') == Submission::STATUS_PUBLISHED;
     }
 
     public function submissionStageExists(): bool
@@ -114,6 +157,21 @@ class ModerationStage
         $nextStage = $this->getNextModerationStage($currentStage);
 
         $this->setSubmissionToStage($nextStage);
+    }
+
+    public function sendPreviousStage()
+    {
+        $currentStage = $this->submission->getData('currentModerationStage');
+        $previousStage = $this->getPreviousModerationStage($currentStage);
+
+        $this->clearModerationStageEntryDate($currentStage);
+        $this->setSubmissionToStage($previousStage);
+    }
+
+    private function clearModerationStageEntryDate($stage)
+    {
+        $moderationStageEntryConfig = $this->getModerationStageEntryConfig($stage);
+        $this->submission->setData($moderationStageEntryConfig, null);
     }
 
     private function setSubmissionToStage($stage)

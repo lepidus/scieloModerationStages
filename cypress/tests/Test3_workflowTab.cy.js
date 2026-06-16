@@ -80,7 +80,7 @@ describe("SciELO Moderation Stages - Workflow tab", function() {
         cy.get('#publication-button').click();
         cy.get('#scieloModerationStages-button').click();
 
-        cy.get('#checkboxSendNextStageMenuYes').check();
+        cy.get('#stageChangeActionAdvance').check();
         cy.get('#moderationStageSubmit').click();
 
         cy.reload();
@@ -113,5 +113,20 @@ describe("SciELO Moderation Stages - Workflow tab", function() {
         cy.contains('To facilitate moderation, please provide an updated ORCID with the most recent scientific output for at least one of the authors registered in the submission');
         cy.contains('Optionally, you may also provide an endorsement for the preprint, if you have one');
         cy.contains('For more information, we recommend reading our FAQs #10 and #19');
+    });
+    it("Editor returns submission to the previous moderation stage", function() {
+        cy.login('dbarnes', null, 'publicknowledge');
+        cy.findSubmission('active', submissionData.title);
+
+        cy.get('#publication-button').click();
+        cy.get('#scieloModerationStages-button').click();
+
+        cy.get('#stageChangeActionRegress').check();
+        cy.get('#moderationStageSubmit').click();
+
+        cy.reload();
+        cy.get('#scieloModerationStages-button').click();
+        cy.get('#stageChangeDiv').contains('This submission is in the Format Pre-Moderation stage');
+        cy.get('input[name="formatStageEntryDate"]').should('have.value', today);
     });
 });
