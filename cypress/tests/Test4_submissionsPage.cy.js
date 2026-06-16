@@ -22,7 +22,7 @@ describe('SciELO Moderation Stages - Features on submissions page', function () 
         cy.get('.listPanel__itemSubtitle:visible:contains("' + submission3 + '")')
             .parent().within(() => {
                 cy.contains('Moderation stage:');
-                cy.contains('Manuscript Type Pre-Moderation');
+                cy.contains('Format Pre-Moderation');
             });
     });
     it("Editor can view all submissions' exhibitors", function () {
@@ -41,7 +41,7 @@ describe('SciELO Moderation Stages - Features on submissions page', function () 
         cy.get('.listPanel__itemSubtitle:visible:contains("' + submission3 + '")')
             .parent().within(() => {
                 cy.contains('Moderation stage:');
-                cy.contains('Manuscript Type Pre-Moderation');
+                cy.contains('Format Pre-Moderation');
 
                 cy.contains('Submission made less than a day ago');
             });
@@ -59,7 +59,7 @@ describe('SciELO Moderation Stages - Features on submissions page', function () 
         cy.get('li.listPanel__item:visible').should('have.length', 1);
         cy.contains(submission1);
 
-        cy.get('.pkpFilter__label:visible:contains("Manuscript Type Pre-Moderation")').click();
+        cy.get('.pkpFilter__label:visible:contains("Format Pre-Moderation")').click();
         cy.waitJQuery();
         cy.get('li.listPanel__item:visible').should('have.length', 2);
         cy.contains(submission1);
