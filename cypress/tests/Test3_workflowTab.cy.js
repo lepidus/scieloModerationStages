@@ -129,18 +129,4 @@ describe("SciELO Moderation Stages - Workflow tab", function() {
         cy.get('#stageChangeDiv').contains('This submission is in the Format Pre-Moderation stage');
         cy.get('input[name="formatStageEntryDate"]').should('have.value', today);
     });
-    it("Checks sending of email notification after returning moderation stage", function() {
-        cy.visit('localhost:8025');
-        cy.contains('b', 'Return in Submission Moderation')
-            .first()
-            .parent().parent().parent()
-            .within((node) => {
-                cy.contains('fpaglieri@mailinator.com');
-            });
-        cy.contains('b', 'Return in Submission Moderation').first().click();
-        cy.get('#nav-tab button:contains("Text")').click();
-
-        cy.contains('Your submission has been returned to the Format Pre-Moderation stage, where it will undergo a new moderation');
-        cy.contains('For more information, we recommend reading our FAQ #19');
-    });
 });

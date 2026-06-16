@@ -17,7 +17,6 @@ use APP\plugins\generic\scieloModerationStages\classes\ModerationStageRegister;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageDAO;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationReminderEmailBuilder;
 use APP\plugins\generic\scieloModerationStages\classes\mail\builders\StageAdvancementEmailBuilder;
-use APP\plugins\generic\scieloModerationStages\classes\mail\builders\StageRegressionEmailBuilder;
 
 class ScieloModerationStagesHandler extends Handler
 {
@@ -127,12 +126,6 @@ class ScieloModerationStagesHandler extends Handler
                 $moderationStage,
                 'plugins.generic.scieloModerationStages.log.submissionReturnedToModerationStage'
             );
-
-            $email = (new StageRegressionEmailBuilder())
-                ->setSubmission($submission)
-                ->buildEmailParams()
-                ->build();
-            Mail::send($email);
         }
 
         Repo::submission()->edit($submission, []);

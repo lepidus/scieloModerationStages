@@ -24,11 +24,4 @@
     subject="emails.sentToAreaModerationStage.subject"
     body="emails.sentToAreaModerationStage.body"
   />
-  <email
-    key="RETURNED_TO_MODERATION_STAGE"
-    name="emails.returnedToModerationStage.name"
-    description="emails.returnedToModerationStage.description"
-    subject="emails.returnedToModerationStage.subject"
-    body="emails.returnedToModerationStage.body"
-  />
 </emails>

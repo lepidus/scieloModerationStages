@@ -55,23 +55,3 @@ msgstr ""
 "<br>\n"
 "Para más información, le recomendamos la lectura de nuestra <a href=\"{$faqUrl}\">FAQ n°19</a>.<br>\n"
 "<br>\n"
-
-msgid "emails.returnedToModerationStage.name"
-msgstr "Notificación de retorno en la moderación a una etapa anterior"
-
-msgid "emails.returnedToModerationStage.description"
-msgstr "Plantilla de correo electrónico utilizada para notificar sobre el retorno de un envío a una etapa anterior de moderación."
-
-msgid "emails.returnedToModerationStage.subject"
-msgstr "Retroceso en la Moderación de Envío"
-
-msgid "emails.returnedToModerationStage.body"
-msgstr ""
-"Estimado(a) {$authorName},<br>\n"
-"<br>\n"
-"Su envío ha sido devuelto a la etapa de {$moderationStageName}, donde será sometido a una nueva moderación.<br>\n"
-"<br>\n"
-"Por favor, espere a recibir noticias de nuestro equipo.<br>\n"
-"<br>\n"
-"Para más información, le recomendamos la lectura de nuestra <a href=\"{$faqUrl}\">FAQ n°19</a>.<br>\n"
-"<br>\n"
