@@ -6,6 +6,8 @@ use PKP\form\Form;
 use APP\template\TemplateManager;
 use APP\core\Application;
 use PKP\form\validation\FormValidatorCustom;
+use PKP\form\validation\FormValidatorCSRF;
+use PKP\form\validation\FormValidatorPost;
 
 class ScieloModerationStagesSettingsForm extends Form
 {
@@ -23,6 +25,8 @@ class ScieloModerationStagesSettingsForm extends Form
         $this->plugin = $plugin;
         parent::__construct($plugin->getTemplateResource('settingsForm.tpl'));
 
+        $this->addCheck(new FormValidatorPost($this));
+        $this->addCheck(new FormValidatorCSRF($this));
         $this->addCheck(new FormValidatorCustom($this, 'preModerationTimeLimit', 'required', 'plugins.generic.scieloModerationStages.settings.timeLimitError', function ($timeLimit) {
             return is_numeric($timeLimit) && intval($timeLimit) > 0;
         }));

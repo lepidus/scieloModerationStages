@@ -3,6 +3,8 @@
 namespace APP\plugins\generic\scieloModerationStages\form;
 
 use PKP\form\Form;
+use PKP\form\validation\FormValidatorCSRF;
+use PKP\form\validation\FormValidatorPost;
 use PKP\facades\Locale;
 use APP\facades\Repo;
 use APP\template\TemplateManager;
@@ -23,6 +25,9 @@ class SendModerationReminderForm extends Form
         $this->contextId = $contextId;
         $this->plugin = $plugin;
         parent::__construct($plugin->getTemplateResource('sendModerationReminderForm.tpl'));
+
+        $this->addCheck(new FormValidatorPost($this));
+        $this->addCheck(new FormValidatorCSRF($this));
     }
 
     private function getResponsiblesUserGroupId($contextId)
