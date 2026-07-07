@@ -9,19 +9,23 @@ use PKP\facades\Locale;
 use APP\facades\Repo;
 use PKP\security\Role;
 use PKP\security\authorization\ContextAccessPolicy;
+use PKP\security\authorization\SubmissionAccessPolicy;
 use PKP\db\DAORegistry;
+use PKP\core\JSONMessage;
 use APP\submission\Submission;
 use APP\decision\Decision;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageRegister;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageDAO;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationReminderEmailBuilder;
+use APP\plugins\generic\scieloModerationStages\classes\ModerationReminderHelper;
 use APP\plugins\generic\scieloModerationStages\classes\mail\builders\StageAdvancementEmailBuilder;
 
 class ScieloModerationStagesHandler extends Handler
 {
     private const SUBMISSION_STAGE_ID = 5;
     private const THRESHOLD_TIME_EXHIBITORS = 2;
+    private const SUBMISSION_SCOPED_OPERATIONS = ['updateSubmissionStageData', 'getSubmissionExhibitData'];
 
     public function __construct()
     {
@@ -38,26 +42,49 @@ class ScieloModerationStagesHandler extends Handler
 
     public function authorize($request, &$args, $roleAssignments)
     {
-        $this->addPolicy(new ContextAccessPolicy($request, $roleAssignments));
+        $operation = $request->getRouter()->getRequestedOp($request);
+
+        if (in_array($operation, self::SUBMISSION_SCOPED_OPERATIONS)) {
+            $this->addPolicy(new SubmissionAccessPolicy($request, $args, $roleAssignments));
+        } else {
+            $this->addPolicy(new ContextAccessPolicy($request, $roleAssignments));
+        }
+
         return parent::authorize($request, $args, $roleAssignments);
     }
 
     public function getReminderBody($args, $request)
     {
-        $userGroupId = (int) $args['userGroup'];
-        $role = $args['role'];
-        $userToRemind = Repo::user()->get((int) $args['user']);
-
         $context = $request->getContext();
+        if (is_null($context)) {
+            return new JSONMessage(false);
+        }
+
+        $role = $args['role'] ?? null;
         $locale = Locale::getLocale();
         $plugin = PluginRegistry::getPlugin('generic', 'scielomoderationstagesplugin');
+        $reminderHelper = new ModerationReminderHelper();
 
         if ($role == ModerationReminderEmailBuilder::REMINDER_TYPE_PRE_MODERATION) {
             $moderationStage = ModerationStage::SCIELO_MODERATION_STAGE_CONTENT;
+            $expectedUserGroup = $reminderHelper->getResponsiblesUserGroup($context->getId());
             $moderationTimeLimit = $plugin->getSetting($context->getId(), 'preModerationTimeLimit');
         } elseif ($role == ModerationReminderEmailBuilder::REMINDER_TYPE_AREA_MODERATION) {
             $moderationStage = ModerationStage::SCIELO_MODERATION_STAGE_AREA;
+            $expectedUserGroup = $reminderHelper->getAreaModeratorsUserGroup($context->getId());
             $moderationTimeLimit = $plugin->getSetting($context->getId(), 'areaModerationTimeLimit');
+        } else {
+            return new JSONMessage(false);
+        }
+
+        $userGroupId = (int) $args['userGroup'];
+        if (is_null($expectedUserGroup) || (int) $expectedUserGroup->getId() !== $userGroupId) {
+            return new JSONMessage(false);
+        }
+
+        $userToRemind = Repo::user()->get((int) $args['user']);
+        if (is_null($userToRemind)) {
+            return new JSONMessage(false);
         }
 
         $moderationStageDao = new ModerationStageDAO();
@@ -91,7 +118,11 @@ class ScieloModerationStagesHandler extends Handler
 
     public function updateSubmissionStageData($args, $request)
     {
-        $submission = Repo::submission()->get($args['submissionId']);
+        if (!$request->checkCSRF()) {
+            return new JSONMessage(false);
+        }
+
+        $submission = $this->getSubmission();
         $moderationStage = new ModerationStage($submission);
 
         if (isset($args['formatStageEntryDate'])) {
@@ -129,7 +160,12 @@ class ScieloModerationStagesHandler extends Handler
         }
 
         Repo::submission()->edit($submission, []);
-        return http_response_code(200);
+        return new JSONMessage(true);
+    }
+
+    public function getSubmission()
+    {
+        return $this->getAuthorizedContextObject(Application::ASSOC_TYPE_SUBMISSION);
     }
 
     private function registerStageChange(ModerationStage $moderationStage, string $logMessageKey): void
@@ -141,18 +177,11 @@ class ScieloModerationStagesHandler extends Handler
 
     public function getSubmissionExhibitData($args, $request)
     {
-        $submissionId = (int) $args['submissionId'];
+        $submissionId = $this->getSubmission()->getId();
         $exhibitData = $this->getSubmissionModerationStage($submissionId);
 
-        if ($args['userIsAuthor'] == 0) {
-            $exhibitData = array_merge(
-                $exhibitData,
-                $this->getResponsibles($submissionId),
-                $this->getAreaModerators($submissionId),
-                $this->getTimeSubmitted($submissionId),
-                $this->getTimeResponsible($submissionId),
-                $this->getTimeAreaModerator($submissionId)
-            );
+        if (!$this->currentUserIsAuthor()) {
+            $exhibitData = array_merge($exhibitData, $this->getEditorialExhibitData($submissionId));
         }
 
         return json_encode($exhibitData);
@@ -160,17 +189,29 @@ class ScieloModerationStagesHandler extends Handler
 
     public function getUserIsAuthor($args, $request)
     {
-        $userRoles = $this->getAuthorizedContextObject(Application::ASSOC_TYPE_USER_ROLES);
-        $adminRoles = [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR];
-
-        if (count(array_intersect($userRoles, $adminRoles)) > 0) {
-            return json_encode(0);
-        }
-
-        return json_encode(1);
+        return json_encode($this->currentUserIsAuthor() ? 1 : 0);
     }
 
-    private function getSubmissionModerationStage($submissionId)
+    protected function currentUserIsAuthor(): bool
+    {
+        $userRoles = $this->getAuthorizedContextObject(Application::ASSOC_TYPE_USER_ROLES);
+        $editorialRoles = [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR];
+
+        return count(array_intersect($userRoles, $editorialRoles)) === 0;
+    }
+
+    protected function getEditorialExhibitData($submissionId): array
+    {
+        return array_merge(
+            $this->getResponsibles($submissionId),
+            $this->getAreaModerators($submissionId),
+            $this->getTimeSubmitted($submissionId),
+            $this->getTimeResponsible($submissionId),
+            $this->getTimeAreaModerator($submissionId)
+        );
+    }
+
+    protected function getSubmissionModerationStage($submissionId)
     {
         $moderationStageDAO = new ModerationStageDAO();
 

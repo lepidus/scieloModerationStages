@@ -75,6 +75,7 @@
             $.post(
                 "{$updateStageEntryDatesUrl}",
                 {ldelim}
+                    csrfToken: "{$csrfToken}",
                     submissionId: {$submissionId},
                     {if $canAdvanceStage or $canRegressStage}
                         stageChangeAction: $('input[name=stageChangeAction]:checked').val(),
