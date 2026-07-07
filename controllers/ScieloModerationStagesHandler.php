@@ -18,6 +18,7 @@ use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageRegister;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageDAO;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationReminderEmailBuilder;
+use APP\plugins\generic\scieloModerationStages\classes\ModerationReminderHelper;
 use APP\plugins\generic\scieloModerationStages\classes\mail\builders\StageAdvancementEmailBuilder;
 
 class ScieloModerationStagesHandler extends Handler
@@ -54,20 +55,36 @@ class ScieloModerationStagesHandler extends Handler
 
     public function getReminderBody($args, $request)
     {
-        $userGroupId = (int) $args['userGroup'];
-        $role = $args['role'];
-        $userToRemind = Repo::user()->get((int) $args['user']);
-
         $context = $request->getContext();
+        if (is_null($context)) {
+            return new JSONMessage(false);
+        }
+
+        $role = $args['role'] ?? null;
         $locale = Locale::getLocale();
         $plugin = PluginRegistry::getPlugin('generic', 'scielomoderationstagesplugin');
+        $reminderHelper = new ModerationReminderHelper();
 
         if ($role == ModerationReminderEmailBuilder::REMINDER_TYPE_PRE_MODERATION) {
             $moderationStage = ModerationStage::SCIELO_MODERATION_STAGE_CONTENT;
+            $expectedUserGroup = $reminderHelper->getResponsiblesUserGroup($context->getId());
             $moderationTimeLimit = $plugin->getSetting($context->getId(), 'preModerationTimeLimit');
         } elseif ($role == ModerationReminderEmailBuilder::REMINDER_TYPE_AREA_MODERATION) {
             $moderationStage = ModerationStage::SCIELO_MODERATION_STAGE_AREA;
+            $expectedUserGroup = $reminderHelper->getAreaModeratorsUserGroup($context->getId());
             $moderationTimeLimit = $plugin->getSetting($context->getId(), 'areaModerationTimeLimit');
+        } else {
+            return new JSONMessage(false);
+        }
+
+        $userGroupId = (int) $args['userGroup'];
+        if (is_null($expectedUserGroup) || (int) $expectedUserGroup->getId() !== $userGroupId) {
+            return new JSONMessage(false);
+        }
+
+        $userToRemind = Repo::user()->get((int) $args['user']);
+        if (is_null($userToRemind)) {
+            return new JSONMessage(false);
         }
 
         $moderationStageDao = new ModerationStageDAO();
@@ -105,7 +122,7 @@ class ScieloModerationStagesHandler extends Handler
             return new JSONMessage(false);
         }
 
-        $submission = Repo::submission()->get($args['submissionId']);
+        $submission = $this->getSubmission();
         $moderationStage = new ModerationStage($submission);
 
         if (isset($args['formatStageEntryDate'])) {
@@ -146,6 +163,11 @@ class ScieloModerationStagesHandler extends Handler
         return new JSONMessage(true);
     }
 
+    public function getSubmission()
+    {
+        return $this->getAuthorizedContextObject(Application::ASSOC_TYPE_SUBMISSION);
+    }
+
     private function registerStageChange(ModerationStage $moderationStage, string $logMessageKey): void
     {
         $moderationStageRegister = new ModerationStageRegister();
@@ -155,7 +177,7 @@ class ScieloModerationStagesHandler extends Handler
 
     public function getSubmissionExhibitData($args, $request)
     {
-        $submissionId = (int) $args['submissionId'];
+        $submissionId = $this->getSubmission()->getId();
         $exhibitData = $this->getSubmissionModerationStage($submissionId);
 
         if (!$this->currentUserIsAuthor()) {
