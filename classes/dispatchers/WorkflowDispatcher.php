@@ -52,6 +52,7 @@ class WorkflowDispatcher
 
             $templateMgr->assign([
                 ...$stageDates,
+                'csrfToken' => $request->getSession()->getCSRFToken(),
                 'submissionId' => $submission->getId(),
                 'userIsAuthor' => $this->plugin->userIsAuthor($submission),
                 'currentStage' => $currentStageName,
