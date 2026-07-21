@@ -209,12 +209,8 @@ async function save() {
     }
   });
 
-  if (tabData.value.canAdvanceStage) {
-    body.append("sendNextStage", form.stageChange === "advance" ? "1" : "0");
-  }
-
-  if (tabData.value.canRegressStage) {
-    body.append("sendPreviousStage", form.stageChange === "regress" ? "1" : "0");
+  if (tabData.value.canAdvanceStage || tabData.value.canRegressStage) {
+    body.append("stageChangeAction", form.stageChange);
   }
 
   try {
