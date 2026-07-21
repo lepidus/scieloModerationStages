@@ -161,7 +161,14 @@ class ModerationStage
         $currentStage = $this->submission->getData('currentModerationStage');
         $previousStage = $this->getPreviousModerationStage($currentStage);
 
+        $this->clearModerationStageEntryDate($currentStage);
         $this->setSubmissionToStage($previousStage);
+    }
+
+    private function clearModerationStageEntryDate($stage)
+    {
+        $moderationStageEntryConfig = $this->getModerationStageEntryConfig($stage);
+        $this->submission->setData($moderationStageEntryConfig, null);
     }
 
     private function setSubmissionToStage($stage)

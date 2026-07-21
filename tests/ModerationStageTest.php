@@ -120,6 +120,19 @@ class ModerationStageTest extends TestCase
         $this->assertEquals(Core::getCurrentDate(), $this->submission->getData('formatStageEntryDate'));
     }
 
+    public function testPreviousStageRemovesEntryDateOfLeftStage(): void
+    {
+        $this->submission->setData('currentModerationStage', ModerationStage::SCIELO_MODERATION_STAGE_AREA);
+        $this->submission->setData('formatStageEntryDate', '2026-01-01 00:00:00');
+        $this->submission->setData('contentStageEntryDate', '2026-01-02 00:00:00');
+        $this->submission->setData('areaStageEntryDate', '2026-01-03 00:00:00');
+
+        $this->moderationStage->sendPreviousStage();
+
+        $this->assertNull($this->submission->getData('areaStageEntryDate'));
+        $this->assertArrayNotHasKey('areaStageEntryDate', $this->moderationStage->getStageEntryDates());
+    }
+
     public function testSubmissionOnIntermediateStageCanRegress(): void
     {
         $this->submission->setData('currentModerationStage', ModerationStage::SCIELO_MODERATION_STAGE_CONTENT);
