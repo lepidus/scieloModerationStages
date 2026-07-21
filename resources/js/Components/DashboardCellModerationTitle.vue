@@ -66,23 +66,11 @@ const hasTimes = computed(() =>
 );
 const hasExtraData = computed(() => hasPeople.value || hasTimes.value);
 
-// Shared across all cells so the author check runs only once per dashboard.
-let userIsAuthorPromise = null;
-function fetchUserIsAuthor() {
-  if (!userIsAuthorPromise) {
-    userIsAuthorPromise = fetch(window.app.moderationStagesHandlerUrls.getUserIsAuthor, {
-      headers: { Accept: "application/json" },
-      credentials: "same-origin",
-    }).then((response) => response.json());
-  }
-  return userIsAuthorPromise;
-}
-
 onMounted(async () => {
-  const userIsAuthor = await fetchUserIsAuthor();
+  // The handler decides which data the current user may see; no author flag is sent.
   const url =
     window.app.moderationStagesHandlerUrls.getSubmissionExhibitData +
-    `?submissionId=${props.item.id}&userIsAuthor=${userIsAuthor}`;
+    `?submissionId=${props.item.id}`;
 
   const response = await fetch(url, {
     headers: { Accept: "application/json" },

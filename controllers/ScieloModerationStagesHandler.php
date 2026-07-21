@@ -18,6 +18,7 @@ use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageRegister;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageDAO;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationReminderEmailBuilder;
+use APP\plugins\generic\scieloModerationStages\classes\ModerationReminderHelper;
 use APP\plugins\generic\scieloModerationStages\classes\mail\builders\StageAdvancementEmailBuilder;
 
 class ScieloModerationStagesHandler extends Handler
@@ -32,7 +33,7 @@ class ScieloModerationStagesHandler extends Handler
 
         $this->addRoleAssignment(
             [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_ASSISTANT, Role::ROLE_ID_AUTHOR],
-            ['getModerationTabData', 'getUserIsAuthor', 'getSubmissionExhibitData']
+            ['getModerationTabData', 'getSubmissionExhibitData']
         );
         $this->addRoleAssignment(
             [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR],
@@ -106,20 +107,39 @@ class ScieloModerationStagesHandler extends Handler
 
     public function getReminderBody($args, $request)
     {
-        $userGroupId = (int) $args['userGroup'];
-        $role = $args['role'];
-        $userToRemind = Repo::user()->get((int) $args['user']);
-
         $context = $request->getContext();
+
+        if (is_null($context)) {
+            return http_response_code(400);
+        }
+
+        $role = $args['role'] ?? null;
         $locale = Locale::getLocale();
         $plugin = PluginRegistry::getPlugin('generic', 'scielomoderationstagesplugin');
+        $moderationReminderHelper = new ModerationReminderHelper();
 
         if ($role == ModerationReminderEmailBuilder::REMINDER_TYPE_PRE_MODERATION) {
             $moderationStage = ModerationStage::SCIELO_MODERATION_STAGE_CONTENT;
+            $expectedUserGroup = $moderationReminderHelper->getResponsiblesUserGroup($context->getId());
             $moderationTimeLimit = $plugin->getSetting($context->getId(), 'preModerationTimeLimit');
         } elseif ($role == ModerationReminderEmailBuilder::REMINDER_TYPE_AREA_MODERATION) {
             $moderationStage = ModerationStage::SCIELO_MODERATION_STAGE_AREA;
+            $expectedUserGroup = $moderationReminderHelper->getAreaModeratorsUserGroup($context->getId());
             $moderationTimeLimit = $plugin->getSetting($context->getId(), 'areaModerationTimeLimit');
+        } else {
+            return http_response_code(400);
+        }
+
+        $userGroupId = (int) ($args['userGroup'] ?? 0);
+
+        if (is_null($expectedUserGroup) || (int) $expectedUserGroup->id !== $userGroupId) {
+            return http_response_code(400);
+        }
+
+        $userToRemind = Repo::user()->get((int) ($args['user'] ?? 0));
+
+        if (is_null($userToRemind)) {
+            return http_response_code(400);
         }
 
         $moderationStageDao = new ModerationStageDAO();
@@ -210,7 +230,7 @@ class ScieloModerationStagesHandler extends Handler
         $submissionId = $this->getSubmission()->getId();
         $exhibitData = ['submissionId' => $submissionId];
 
-        if ($args['userIsAuthor'] == 0) {
+        if (!$this->currentUserIsAuthor()) {
             $exhibitData = array_merge(
                 $exhibitData,
                 $this->getAreaModerators($submissionId),
@@ -222,16 +242,12 @@ class ScieloModerationStagesHandler extends Handler
         return json_encode($exhibitData);
     }
 
-    public function getUserIsAuthor($args, $request)
+    private function currentUserIsAuthor(): bool
     {
-        $userRoles = $this->getAuthorizedContextObject(Application::ASSOC_TYPE_USER_ROLES);
-        $adminRoles = [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR];
+        $userRoles = (array) $this->getAuthorizedContextObject(Application::ASSOC_TYPE_USER_ROLES);
+        $editorialRoles = [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR];
 
-        if (count(array_intersect($userRoles, $adminRoles)) > 0) {
-            return json_encode(0);
-        }
-
-        return json_encode(1);
+        return count(array_intersect($userRoles, $editorialRoles)) === 0;
     }
 
     /**
