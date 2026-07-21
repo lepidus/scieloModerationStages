@@ -35,11 +35,14 @@
 {capture assign=getReminderBodyUrl}{url router=$smarty.const.ROUTE_COMPONENT component="plugins.generic.scieloModerationStages.controllers.ScieloModerationStagesHandler" op="getReminderBody" escape=false}{/capture}
 <script>
     function updateReminderBody(response) {ldelim}
+        if (!response || !response.status) {ldelim}
+            return;
+        {rdelim}
+
         let reminderBodyTextarea = $('textarea[name=reminderBody]');
         let tinyTextarea = tinyMCE.EditorManager.get(reminderBodyTextarea.attr('id'));
 
-        response = JSON.parse(response);
-        tinyTextarea.setContent(response['reminderBody']);
+        tinyTextarea.setContent(response.content['reminderBody']);
     {rdelim}
 
     function getReminderBody(userId, userGroupId) {ldelim}

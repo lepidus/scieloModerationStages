@@ -4,7 +4,6 @@ namespace APP\plugins\generic\scieloModerationStages\classes;
 
 use APP\submission\Submission;
 use PKP\core\Core;
-use Exception;
 
 class ModerationStage
 {
@@ -37,7 +36,8 @@ class ModerationStage
             self::SCIELO_MODERATION_STAGE_CONTENT => self::SCIELO_MODERATION_STAGE_AREA,
         ];
 
-        return $nextStageMap[$stage];
+        return $nextStageMap[$stage]
+            ?? throw new \DomainException("There is no moderation stage after stage '{$stage}'");
     }
 
     private function getPreviousModerationStage($stage)
@@ -47,11 +47,8 @@ class ModerationStage
             self::SCIELO_MODERATION_STAGE_AREA => self::SCIELO_MODERATION_STAGE_CONTENT,
         ];
 
-        if (!isset($previousStageMap[$stage])) {
-            throw new Exception('There is no moderation stage previous to the current one');
-        }
-
-        return $previousStageMap[$stage];
+        return $previousStageMap[$stage]
+            ?? throw new \DomainException("There is no moderation stage before stage '{$stage}'");
     }
 
     private function getModerationStageEntryConfig($stage)
@@ -79,6 +76,25 @@ class ModerationStage
 
         if ($this->submission->getData('areaStageEntryDate')) {
             $stageEntryDates['areaStageEntryDate'] = substr($this->submission->getData('areaStageEntryDate'), 0, 10);
+        }
+
+        return $stageEntryDates;
+    }
+
+    public function getStageEntryDatesUpToCurrentStage(): array
+    {
+        $currentStage = $this->submission->getData('currentModerationStage');
+
+        if (is_null($currentStage)) {
+            return [];
+        }
+
+        $stageEntryDates = [];
+        for ($stage = self::SCIELO_MODERATION_STAGE_FORMAT; $stage <= $currentStage; $stage++) {
+            $entryDateField = $this->getModerationStageEntryConfig($stage);
+            $entryDate = $this->submission->getData($entryDateField);
+
+            $stageEntryDates[$entryDateField] = $entryDate ? substr($entryDate, 0, 10) : null;
         }
 
         return $stageEntryDates;

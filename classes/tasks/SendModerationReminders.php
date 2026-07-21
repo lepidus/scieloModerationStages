@@ -5,7 +5,6 @@ namespace APP\plugins\generic\scieloModerationStages\classes\tasks;
 use DateTime;
 use PKP\scheduledTask\ScheduledTask;
 use PKP\plugins\PluginRegistry;
-use APP\core\Application;
 use APP\facades\Repo;
 use Illuminate\Support\Facades\Mail;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
@@ -17,20 +16,28 @@ class SendModerationReminders extends ScheduledTask
 {
     private $plugin;
 
-    public function executeActions()
+    protected function executeActions(): bool
     {
         PluginRegistry::loadCategory('generic');
         $this->plugin = PluginRegistry::getPlugin('generic', 'scielomoderationstagesplugin');
 
-        $context = Application::get()->getRequest()->getContext();
-        $locale = $context->getPrimaryLocale();
-        $this->plugin->addLocaleData($locale);
+        $contextIds = app()->get('context')->getIds(['isEnabled' => true]);
 
-        $preModerationTimeLimit = $this->plugin->getSetting($context->getId(), 'preModerationTimeLimit');
-        $this->sendResponsiblesReminders($context, $preModerationTimeLimit, $locale);
+        foreach ($contextIds as $contextId) {
+            if (!$this->plugin->getEnabled($contextId)) {
+                continue;
+            }
 
-        $areaModerationTimeLimit = $this->plugin->getSetting($context->getId(), 'areaModerationTimeLimit');
-        $this->sendAreaModeratorsReminders($context, $areaModerationTimeLimit, $locale);
+            $context = Repo::context()->get($contextId);
+            $locale = $context->getPrimaryLocale();
+            $this->plugin->addLocaleData($locale);
+
+            $preModerationTimeLimit = $this->plugin->getSetting($contextId, 'preModerationTimeLimit');
+            $this->sendResponsiblesReminders($context, $preModerationTimeLimit, $locale);
+
+            $areaModerationTimeLimit = $this->plugin->getSetting($contextId, 'areaModerationTimeLimit');
+            $this->sendAreaModeratorsReminders($context, $areaModerationTimeLimit, $locale);
+        }
 
         return true;
     }
@@ -40,9 +47,13 @@ class SendModerationReminders extends ScheduledTask
         $moderationReminderHelper = new ModerationReminderHelper();
         $responsiblesUserGroup = $moderationReminderHelper->getResponsiblesUserGroup($context->getId());
 
+        if (is_null($responsiblesUserGroup)) {
+            return;
+        }
+
         $moderationStageDao = new ModerationStageDAO();
         $responsibleAssignments = $moderationStageDao->getAssignmentsByUserGroupAndModerationStage(
-            $responsiblesUserGroup->getId(),
+            $responsiblesUserGroup->id,
             ModerationStage::SCIELO_MODERATION_STAGE_CONTENT
         );
 
@@ -74,9 +85,13 @@ class SendModerationReminders extends ScheduledTask
         $moderationReminderHelper = new ModerationReminderHelper();
         $areaModeratorsUserGroup = $moderationReminderHelper->getAreaModeratorsUserGroup($context->getId());
 
+        if (is_null($areaModeratorsUserGroup)) {
+            return;
+        }
+
         $moderationStageDao = new ModerationStageDAO();
         $areaModeratorAssignments = $moderationStageDao->getAssignmentsByUserGroupAndModerationStage(
-            $areaModeratorsUserGroup->getId(),
+            $areaModeratorsUserGroup->id,
             ModerationStage::SCIELO_MODERATION_STAGE_AREA
         );
 

@@ -1,9 +1,8 @@
 import '../support/commands.js';
 
 describe('SciELO Moderation Stages - Features on submissions page', function () {
-    let submission1 = "Night of the Living Dead";
-    let submission2 = 'Candyman';
-    let submission3 = "Ju-on: The Grudge";
+    const submission1 = 'Night of the Living Dead';
+    const submission3 = 'Ju-on: The Grudge';
     
     before(function() {
         Cypress.config('defaultCommandTimeout', 10000);
@@ -12,66 +11,35 @@ describe('SciELO Moderation Stages - Features on submissions page', function () 
     it("Authors can only view submissions' moderation stage", function () {
         cy.login('fpaglieri', null, 'publicknowledge');
 
-        cy.waitJQuery();
-        cy.get('.listPanel__itemSubtitle:visible:contains("' + submission1 + '")')
-            .parent().within(() => {
-                cy.contains('Moderation stage:');
-                cy.contains('Area Moderation');
-            });
+        cy.contains('table tr', submission1)
+            .find('[data-cy="moderationStageCell"]')
+            .should('not.exist');
 
-        cy.get('.listPanel__itemSubtitle:visible:contains("' + submission3 + '")')
-            .parent().within(() => {
-                cy.contains('Moderation stage:');
-                cy.contains('Format Pre-Moderation');
-            });
+        cy.findSubmission('myQueue', submission1);
+        cy.get('[data-cy="active-modal"]').within(() => {
+            cy.contains('Moderation stage:');
+            cy.contains('Area Moderation');
+        });
     });
-    it("Editor can view all submissions' exhibitors", function () {
+    it("Editor can view submissions' moderation stage", function () {
         cy.login('dbarnes', null, 'publicknowledge');
-        cy.get('#active-button').click();
-
-        cy.waitJQuery();
-        cy.get('.listPanel__itemSubtitle:visible:contains("' + submission1 + '")')
-            .parent().within(() => {
-                cy.contains('Moderation stage:');
-                cy.contains('Area Moderation');
-
-                cy.contains('Submission made less than a day ago');
-            });
-
-        cy.get('.listPanel__itemSubtitle:visible:contains("' + submission3 + '")')
-            .parent().within(() => {
-                cy.contains('Moderation stage:');
-                cy.contains('Format Pre-Moderation');
-
-                cy.contains('Submission made less than a day ago');
-            });
+        cy.findSubmission('active', submission3);
+        cy.get('[data-cy="active-modal"]').within(() => {
+            cy.contains('Moderation stage:');
+            cy.contains('Format Pre-Moderation');
+        });
     });
-    it("Editor can filter submissions by moderation stage", function () {
+    it("Editor can browse submissions by moderation stage", function () {
         cy.login('dbarnes', null, 'publicknowledge');
 
-        cy.get('#active-button').click();
-        cy.wait(1000);
-        cy.get('.pkpButton:visible:contains("Filters")').click();
-        cy.contains('h4', 'Moderation Stages');
-
-        cy.get('.pkpFilter__label:visible:contains("Area Moderation")').click();
+        cy.get('nav').contains('Area Moderation').click();
         cy.waitJQuery();
-        cy.get('li.listPanel__item:visible').should('have.length', 1);
-        cy.contains(submission1);
+        cy.contains('table tr', submission1);
+        cy.contains('table tr', submission3).should('not.exist');
 
-        cy.get('.pkpFilter__label:visible:contains("Format Pre-Moderation")').click();
+        cy.get('nav').contains('Format Pre-Moderation').click();
         cy.waitJQuery();
-        cy.get('li.listPanel__item:visible').should('have.length', 2);
-        cy.contains(submission1);
-        cy.contains(submission3);
-
-        cy.get('#archive-button').click();
-        cy.get('.pkpButton:visible:contains("Filters")').click();
-        cy.contains('h4', 'Moderation Stages');
-
-        cy.get('.pkpFilter__label:visible:contains("Format Pre-Moderation")').click();
-        cy.waitJQuery();
-        cy.get('li.listPanel__item:visible').should('have.length', 1);
-        cy.contains(submission2);
+        cy.contains('table tr', submission3);
+        cy.contains('table tr', submission1).should('not.exist');
     });
 });

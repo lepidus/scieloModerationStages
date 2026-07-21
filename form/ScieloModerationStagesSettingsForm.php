@@ -5,8 +5,8 @@ namespace APP\plugins\generic\scieloModerationStages\form;
 use PKP\form\Form;
 use APP\template\TemplateManager;
 use APP\core\Application;
-use PKP\form\validation\FormValidatorCustom;
 use PKP\form\validation\FormValidatorCSRF;
+use PKP\form\validation\FormValidatorCustom;
 use PKP\form\validation\FormValidatorPost;
 
 class ScieloModerationStagesSettingsForm extends Form

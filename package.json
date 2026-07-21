@@ -1,0 +1,16 @@
+{
+  "name": "scielomoderationstagesplugin",
+  "version": "1.0.0",
+  "description": "SciELO Moderation Stages plugin for Open Preprint Systems",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite build --watch --minify=false",
+    "build": "vite build"
+  },
+  "author": "Lepidus Tecnologia",
+  "license": "GPL-3",
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.1",
+    "vite": "^7.1.0"
+  }
+}

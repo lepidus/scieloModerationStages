@@ -29,6 +29,48 @@ class ModerationStageDAO extends DAO
         return !is_null($result) ? get_object_vars($result)['setting_value'] : null;
     }
 
+    /**
+     * Counts active (queued) submissions grouped by their current moderation stage.
+     * When $userId is provided, only submissions assigned to that user are counted,
+     * through an assignment whose role is in $assignedWithRoles.
+     *
+     * @return array<int,int> map of moderation stage => submissions count
+     */
+    public function countSubmissionsByModerationStage(int $contextId, ?int $userId = null, array $assignedWithRoles = []): array
+    {
+        $query = DB::table('submissions AS s')
+            ->join('submission_settings AS ss', function ($join) {
+                $join->on('s.submission_id', '=', 'ss.submission_id')
+                    ->where('ss.setting_name', '=', 'currentModerationStage');
+            })
+            ->where('s.context_id', '=', $contextId)
+            ->where('s.status', '=', Submission::STATUS_QUEUED);
+
+        if (!is_null($userId)) {
+            $query->whereIn('s.submission_id', function ($subQuery) use ($userId, $assignedWithRoles) {
+                $subQuery->select('sa.submission_id')
+                    ->from('stage_assignments AS sa')
+                    ->where('sa.user_id', '=', $userId);
+
+                if (!empty($assignedWithRoles)) {
+                    $subQuery->join('user_groups AS ug', 'ug.user_group_id', '=', 'sa.user_group_id')
+                        ->whereIn('ug.role_id', $assignedWithRoles);
+                }
+            });
+        }
+
+        $rows = $query->groupBy('ss.setting_value')
+            ->selectRaw('ss.setting_value AS stage, COUNT(DISTINCT s.submission_id) AS submissions_count')
+            ->get();
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $counts[(int) $row->stage] = (int) $row->submissions_count;
+        }
+
+        return $counts;
+    }
+
     public function getPreModerationIsOverdue(int $submissionId, int $timeLimit): bool
     {
         $result = DB::table('submissions')

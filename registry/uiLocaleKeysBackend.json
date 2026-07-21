@@ -1,0 +1,21 @@
+[
+  "common.loading",
+  "common.save",
+  "form.saved",
+  "plugins.generic.scieloModerationStages.currentStageInfo",
+  "plugins.generic.scieloModerationStages.currentStageStatusLabel",
+  "plugins.generic.scieloModerationStages.displayNameWorkflow",
+  "plugins.generic.scieloModerationStages.menuDates.fieldDescription",
+  "plugins.generic.scieloModerationStages.stageChange.advance",
+  "plugins.generic.scieloModerationStages.stageChange.description",
+  "plugins.generic.scieloModerationStages.stageChange.regress",
+  "plugins.generic.scieloModerationStages.stageChange.saveError",
+  "plugins.generic.scieloModerationStages.stageChange.stay",
+  "plugins.generic.scieloModerationStages.stageChangeField",
+  "plugins.generic.scieloModerationStages.stages.areaStage",
+  "plugins.generic.scieloModerationStages.stages.areaStage.workflowDescription",
+  "plugins.generic.scieloModerationStages.stages.contentStage",
+  "plugins.generic.scieloModerationStages.stages.contentStage.workflowDescription",
+  "plugins.generic.scieloModerationStages.stages.formatStage",
+  "plugins.generic.scieloModerationStages.stages.formatStage.workflowDescription"
+]

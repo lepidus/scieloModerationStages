@@ -9,9 +9,9 @@ describe('SciELO Moderation Stages - Hide participants discussion', function () 
 
     it('Moderators participants are hidden when author opens discussion', function () {
         cy.login('fpaglieri', null, 'publicknowledge');
-        cy.findSubmission('archive', submissionTitle);
+        cy.findSubmission('declined', submissionTitle);
 
-        cy.contains('Discussions').click();
+        cy.openWorkflowMenu('Discussions');
         cy.contains('Add discussion').click();
         cy.waitJQuery();
 
@@ -20,8 +20,9 @@ describe('SciELO Moderation Stages - Hide participants discussion', function () 
     });
     it('Participants are not hidden for other roles', function () {
         cy.login('dbarnes', null, 'publicknowledge');
-        cy.findSubmission('archive', submissionTitle);
+        cy.findSubmission('declined', submissionTitle);
 
+        cy.openWorkflowMenu('Production');
         cy.contains('Add discussion').click();
         cy.waitJQuery();
         

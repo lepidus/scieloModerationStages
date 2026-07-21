@@ -29,6 +29,9 @@ msgstr "The submission has been sent to the {$moderationStageName} stage"
 msgid "plugins.generic.scieloModerationStages.log.submissionReturnedToModerationStage"
 msgstr "The submission has been returned to the {$moderationStageName} stage"
 
+msgid "plugins.generic.scieloModerationStages.filter.responsibles"
+msgstr "Assigned to Responsible"
+
 msgid "plugins.generic.scieloModerationStages.stages.formatStage"
 msgstr "Format Pre-Moderation"
 
@@ -79,6 +82,9 @@ msgstr "Return to the {$previousStage} stage"
 msgid "plugins.generic.scieloModerationStages.stageChange.stay"
 msgstr "Remain in the current stage"
 
+msgid "plugins.generic.scieloModerationStages.stageChange.saveError"
+msgstr "An error occurred while saving. Please try again."
+
 msgid "plugins.generic.scieloModerationStages.menuDates.fieldDescription"
 msgstr "The submission has entered in this moderation stage in the following data"
 
@@ -90,32 +96,6 @@ msgstr "Area moderator: {$areaModerator}"
 
 msgid "plugins.generic.scieloModerationStages.areaModerators"
 msgstr "Area moderators: {$areaModerators}"
-
-msgid "plugins.generic.scieloModerationStages.responsible"
-msgstr "Responsible: {$responsible}"
-
-msgid "plugins.generic.scieloModerationStages.responsibles"
-msgstr "Responsibles: {$responsibles}"
-
-
-msgid "plugins.generic.scieloModerationStages.TimeSubmitted.currentDate.lessThanOneDay"
-msgstr "Submission made less than a day ago"
-
-msgid "plugins.generic.scieloModerationStages.TimeSubmitted.currentDate"
-msgstr "Submission made {$daysPassed} days ago"
-
-msgid "plugins.generic.scieloModerationStages.TimeSubmitted.datePublished.lessThanOneDay"
-msgstr "Submission made less than a day before posting"
-
-msgid "plugins.generic.scieloModerationStages.TimeSubmitted.datePublished"
-msgstr "Submission made {$daysPassed} days before posting"
-
-msgid "plugins.generic.scieloModerationStages.TimeSubmitted.dateDeclined.lessThanOneDay"
-msgstr "Submission made less than a day before rejection"
-
-msgid "plugins.generic.scieloModerationStages.TimeSubmitted.dateDeclined"
-msgstr "Submission made {$daysPassed} days before rejection"
-
 
 msgid "plugins.generic.scieloModerationStages.TimeResponsible.currentDate.lessThanOneDay"
 msgstr "Responsible assigned less than a day ago"

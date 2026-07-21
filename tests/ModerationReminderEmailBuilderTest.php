@@ -95,7 +95,7 @@ class ModerationReminderEmailBuilderTest extends TestCase
         $today = $today->format('Y-m-d') . ' 00:00:00';
 
         $mockModerationStageDao = $this->getMockBuilder(ModerationStageDAO::class)
-            ->setMethods(['getDateOfUserAssignment'])
+            ->onlyMethods(['getDateOfUserAssignment'])
             ->getMock();
         $mockModerationStageDao->expects($this->any())
             ->method('getDateOfUserAssignment')

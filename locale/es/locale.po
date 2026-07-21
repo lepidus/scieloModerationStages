@@ -29,6 +29,9 @@ msgstr "El envío ha sido enviado a la etapa de {$moderationStageName}"
 msgid "plugins.generic.scieloModerationStages.log.submissionReturnedToModerationStage"
 msgstr "El envío ha sido devuelto a la etapa de {$moderationStageName}"
 
+msgid "plugins.generic.scieloModerationStages.filter.responsibles"
+msgstr "Asignado al Responsable"
+
 msgid "plugins.generic.scieloModerationStages.stages.formatStage"
 msgstr "Moderación Previa del Formato"
 
@@ -79,6 +82,9 @@ msgstr "Devolver a la etapa de {$previousStage}"
 msgid "plugins.generic.scieloModerationStages.stageChange.stay"
 msgstr "Permanecer en la etapa actual"
 
+msgid "plugins.generic.scieloModerationStages.stageChange.saveError"
+msgstr "Se produjo un error al guardar. Por favor, inténtelo de nuevo."
+
 msgid "plugins.generic.scieloModerationStages.menuDates.fieldDescription"
 msgstr "Lo envío entró en esta etapa de moderación en la siguiente fecha"
 
@@ -90,32 +96,6 @@ msgstr "Moderador de área: {$areaModerator}"
 
 msgid "plugins.generic.scieloModerationStages.areaModerators"
 msgstr "Moderadores de área: {$areaModerators}"
-
-msgid "plugins.generic.scieloModerationStages.responsible"
-msgstr "Responsable: {$responsible}"
-
-msgid "plugins.generic.scieloModerationStages.responsibles"
-msgstr "Responsables: {$responsibles}"
-
-
-msgid "plugins.generic.scieloModerationStages.TimeSubmitted.currentDate.lessThanOneDay"
-msgstr "Envío realizado hace menos de un día"
-
-msgid "plugins.generic.scieloModerationStages.TimeSubmitted.currentDate"
-msgstr "Envío realizado hace {$daysPassed} días"
-
-msgid "plugins.generic.scieloModerationStages.TimeSubmitted.datePublished.lessThanOneDay"
-msgstr "Envío realizado menos de un día antes de la publicación"
-
-msgid "plugins.generic.scieloModerationStages.TimeSubmitted.datePublished"
-msgstr "Envío realizado {$daysPassed} días antes de la publicación"
-
-msgid "plugins.generic.scieloModerationStages.TimeSubmitted.dateDeclined.lessThanOneDay"
-msgstr "Envío realizado menos de un día antes del rechazo"
-
-msgid "plugins.generic.scieloModerationStages.TimeSubmitted.dateDeclined"
-msgstr "Envío realizado {$daysPassed} días antes del rechazo"
-
 
 msgid "plugins.generic.scieloModerationStages.TimeResponsible.currentDate.lessThanOneDay"
 msgstr "Responsable designado hace menos de un día"

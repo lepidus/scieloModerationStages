@@ -3,6 +3,7 @@
 namespace APP\plugins\generic\scieloModerationStages\classes;
 
 use APP\facades\Repo;
+use PKP\userGroup\UserGroup;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageDAO;
 
 class ModerationReminderHelper
@@ -31,12 +32,12 @@ class ModerationReminderHelper
 
     private function getUserGroupByAbbrev(int $contextId, string $abbrev)
     {
-        $contextUserGroups = Repo::userGroup()->getCollector()
-            ->filterByContextIds([$contextId])
-            ->getMany();
+        $contextUserGroups = UserGroup::query()
+            ->withContextIds([$contextId])
+            ->get();
 
         foreach ($contextUserGroups as $userGroup) {
-            $userGroupAbbrev = strtolower($userGroup->getData('abbrev', 'en'));
+            $userGroupAbbrev = strtolower($userGroup->getLocalizedData('abbrev', 'en', UserGroup::LOCALE_MATCH_STRICT));
 
             if ($userGroupAbbrev === $abbrev) {
                 return $userGroup;

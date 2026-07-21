@@ -3,7 +3,6 @@
 use PKP\tests\DatabaseTestCase;
 use PKP\userGroup\UserGroup;
 use PKP\security\Role;
-use APP\facades\Repo;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationReminderHelper;
 
 class ModerationReminderHelperTest extends DatabaseTestCase
@@ -21,27 +20,22 @@ class ModerationReminderHelperTest extends DatabaseTestCase
 
     protected function tearDown(): void
     {
-        Repo::userGroup()->delete($this->responsiblesUserGroup);
+        $this->responsiblesUserGroup->delete();
         parent::tearDown();
     }
 
     private function createResponsiblesUserGroup()
     {
-        $responsiblesUserGroup = new UserGroup();
-        $responsiblesUserGroup->setAllData([
+        $responsiblesUserGroup = new UserGroup([
             'contextId' => $this->contextId,
             'roleId' => Role::ROLE_ID_SUB_EDITOR,
             'isDefault' => true,
             'showTitle' => false,
             'permitSelfRegistration' => false,
             'permitMetadataEdit' => true,
-            'abbrev' => [
-                $this->locale => 'RESP'
-            ]
         ]);
-
-        $responsiblesUserGroupId = Repo::userGroup()->add($responsiblesUserGroup);
-        $responsiblesUserGroup->setId($responsiblesUserGroupId);
+        $responsiblesUserGroup->abbrev = [$this->locale => 'RESP'];
+        $responsiblesUserGroup->save();
 
         return $responsiblesUserGroup;
     }
@@ -50,6 +44,10 @@ class ModerationReminderHelperTest extends DatabaseTestCase
     {
         $retrievedUserGroup = $this->moderationReminderHelper->getResponsiblesUserGroup($this->contextId);
 
-        $this->assertEquals($this->responsiblesUserGroup->getId(), $retrievedUserGroup->getId());
+        $this->assertNotNull($retrievedUserGroup);
+        $this->assertEquals(
+            'resp',
+            strtolower($retrievedUserGroup->getLocalizedData('abbrev', 'en', UserGroup::LOCALE_MATCH_STRICT))
+        );
     }
 }
