@@ -2,12 +2,8 @@ import ModerationStageTab from "./Components/ModerationStageTab.vue";
 import ModerationStageHeader from "./Components/ModerationStageHeader.vue";
 import DashboardCellModerationTitle from "./Components/DashboardCellModerationTitle.vue";
 
-// The native circular count badge for SideNav dashboard views is populated from
-// the _submissions/viewsCount endpoint, which only knows about core views and
-// exposes no hook for custom ones. To render the moderation-stage badges exactly
-// like the native ones, we intercept that response and merge in the plugin counts
-// (fetched from our own handler). Only the editorial dashboard submenu references
-// these ids, so merging them everywhere is harmless.
+// _submissions/viewsCount only knows about core views and exposes no hook for
+// custom ones, so its response is intercepted to merge in the plugin counts.
 (function patchViewsCountFetch() {
   if (window.__moderationStagesFetchPatched) {
     return;

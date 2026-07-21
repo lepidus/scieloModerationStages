@@ -55,25 +55,21 @@ describe("SciELO Moderation Stages - Stage advancement hidden scenarios", functi
         cy.login('dbarnes', null, 'publicknowledge');
         cy.findSubmission('active', submissionData.title);
 
-        // Post the preprint
         cy.get('button:contains("Post the preprint")').click();
         cy.get('button:contains("Post"):visible').click();
         cy.get('[id^="publish"] button:contains("Post")').click();
         cy.waitJQuery();
 
-        // While posted, the advance-stage option must be hidden in the assign form
         cy.openWorkflowMenu('Production');
         openAssignParticipantForm();
         checkSendNextStageOptionIsNotPresent();
         closeAssignParticipantForm();
 
-        // Unpost the preprint
         cy.openWorkflowMenu('Title & Abstract');
         cy.get('button').contains('Unpost').click();
         cy.get('[data-cy=dialog] button').contains('Unpost').click();
         cy.waitJQuery();
 
-        // Decline the submission
         cy.openWorkflowMenu('Production');
         cy.clickDecision('Decline Submission');
         cy.contains('button', 'Skip this email').click();
@@ -81,7 +77,6 @@ describe("SciELO Moderation Stages - Stage advancement hidden scenarios", functi
         cy.contains('a, button', 'View Submission').click();
         cy.waitJQuery();
 
-        // While declined, the advance-stage option must be hidden in the assign form
         cy.openWorkflowMenu('Production');
         openAssignParticipantForm();
         checkSendNextStageOptionIsNotPresent();

@@ -44,9 +44,6 @@ class ModerationReminderHelperTest extends DatabaseTestCase
     {
         $retrievedUserGroup = $this->moderationReminderHelper->getResponsiblesUserGroup($this->contextId);
 
-        // The helper returns the context's user group whose abbreviation is "resp".
-        // Asserting on the abbreviation (rather than a specific id) keeps the test
-        // robust on databases that already contain a real "Responsible" user group.
         $this->assertNotNull($retrievedUserGroup);
         $this->assertEquals(
             'resp',

@@ -5,13 +5,11 @@
     </div>
 
     <div v-else-if="tabData && tabData.stageExists" class="moderationStageTab__body">
-      <!-- Author-facing description of the current stage -->
       <div v-if="tabData.userIsAuthor" class="moderationStageTab__currentStageInfo">
         <h3>{{ t("plugins.generic.scieloModerationStages.currentStageInfo") }}</h3>
         <div v-html="workflowDescription"></div>
       </div>
 
-      <!-- Stage entry dates -->
       <div
         v-for="field in dateFields"
         :key="field.name"
@@ -30,7 +28,6 @@
         />
       </div>
 
-      <!-- Moderation stage change -->
       <div
         v-if="tabData.canAdvanceStage || tabData.canRegressStage"
         class="moderationStageTab__stageChange"
@@ -85,7 +82,6 @@
         </label>
       </div>
 
-      <!-- Save -->
       <div v-if="tabData.canUpdate" class="moderationStageTab__actions">
         <span data-cy="moderationStageSubmit">
           <PkpButton :is-disabled="isSaving" @click="save">

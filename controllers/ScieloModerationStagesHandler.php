@@ -310,11 +310,6 @@ class ScieloModerationStagesHandler extends Handler
         return (array) $this->getAuthorizedContextObject(Application::ASSOC_TYPE_USER_ROLES);
     }
 
-    /**
-     * Returns the active submissions count per moderation stage keyed by the
-     * dashboard view id, so it can be merged into the native _submissions/viewsCount
-     * response and rendered with the same badge as the core dashboard views.
-     */
     public function getModerationStageCounts($args, $request)
     {
         $context = $request->getContext();

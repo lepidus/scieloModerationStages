@@ -30,9 +30,6 @@ class DashboardDispatcher
         Hook::add('User::Collector', [$this, 'filterResponsiblesUsers']);
     }
 
-    /**
-     * Returns the abbrev id of the resp user group for the given context id.
-     */
     private function respUserGroupId(int $contextId): ?int
     {
         $respUserGroup = (new ModerationReminderHelper())->getResponsiblesUserGroup($contextId);
@@ -40,14 +37,6 @@ class DashboardDispatcher
         return $respUserGroup?->id;
     }
 
-    /**
-     * Adds one entry per moderation stage to the editor dashboard menu (SideNav),
-     * so moderation stages show up as tabs under "Editorial dashboard".
-     *
-     * Each item carries the same placeholder badge as the core views; the actual
-     * count is merged into the _submissions/viewsCount response on the client side
-     * (see resources/js/main.js), so the native badge is rendered identically.
-     */
     public function addModerationStagesToMenu($hookName, $params)
     {
         $request = Application::get()->getRequest();
@@ -93,7 +82,6 @@ class DashboardDispatcher
             ];
         }
 
-        // Keep the "start new submission" entry (when present) as the last item.
         $submenu = collect($menu['dashboards']['submenu'])->all();
         $newSubmission = $submenu['newSubmission'] ?? null;
         unset($submenu['newSubmission']);
@@ -109,10 +97,6 @@ class DashboardDispatcher
         return Hook::CONTINUE;
     }
 
-    /**
-     * Adds one dashboard view (tab) per moderation stage to the editorial dashboard,
-     * so submissions can be browsed by moderation stage instead of using a filter.
-     */
     public function addModerationStagesViews($hookName, $params)
     {
         $viewsData = &$params[0];
@@ -187,11 +171,6 @@ class DashboardDispatcher
         return Hook::CONTINUE;
     }
 
-    /**
-     * Adds a "Responsibles" autosuggest filter to the submissions dashboard
-     * filters form, mirroring the native "Assigned to Moderator" filter but
-     * listing only users in the "resp" (Responsibles) user group.
-     */
     public function addResponsiblesFilterField($hookName, $params)
     {
         $config = &$params[0];
@@ -232,11 +211,6 @@ class DashboardDispatcher
         return Hook::CONTINUE;
     }
 
-    /**
-     * Restricts the users autosuggest of the "Responsibles" filter to members
-     * of the "resp" user group. Only acts when the request carries the
-     * scieloModerationResponsibles flag set by addResponsiblesFilterField().
-     */
     public function filterResponsiblesUsers($hookName, $params)
     {
         $query = $params[0];
