@@ -114,4 +114,20 @@ describe("SciELO Moderation Stages - Workflow tab", function() {
         cy.contains('Optionally, you may also provide an endorsement for the preprint, if you have one');
         cy.contains('For more information, we recommend reading our FAQs #10 and #19');
     });
+    it("Editor returns submission to the previous moderation stage", function() {
+        cy.login('dbarnes', null, 'publicknowledge');
+        cy.findSubmission('active', submissionData.title);
+
+        cy.openWorkflowMenu('Moderation Stages');
+
+        cy.get('[data-cy="stageChangeRegress"]').check();
+        cy.get('[data-cy="moderationStageSubmit"] button').click();
+        cy.get('[data-cy="moderationStageSaveMessage"]').should('contain', 'Saved');
+
+        cy.reload();
+        cy.get('[data-cy="formatStageEntryDateDiv"]').within(() => {
+            cy.get('input[name="formatStageEntryDate"]').should('have.value', today);
+        });
+        cy.get('[data-cy="contentStageEntryDateDiv"]').should('not.exist');
+    });
 });
