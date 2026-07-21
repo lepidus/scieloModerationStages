@@ -31,11 +31,12 @@ class ModerationStageDAO extends DAO
 
     /**
      * Counts active (queued) submissions grouped by their current moderation stage.
-     * When $userId is provided, only submissions assigned to that user are counted.
+     * When $userId is provided, only submissions assigned to that user are counted,
+     * through an assignment whose role is in $assignedWithRoles.
      *
      * @return array<int,int> map of moderation stage => submissions count
      */
-    public function countSubmissionsByModerationStage(int $contextId, ?int $userId = null): array
+    public function countSubmissionsByModerationStage(int $contextId, ?int $userId = null, array $assignedWithRoles = []): array
     {
         $query = DB::table('submissions AS s')
             ->join('submission_settings AS ss', function ($join) {
@@ -46,10 +47,15 @@ class ModerationStageDAO extends DAO
             ->where('s.status', '=', Submission::STATUS_QUEUED);
 
         if (!is_null($userId)) {
-            $query->whereIn('s.submission_id', function ($subQuery) use ($userId) {
-                $subQuery->select('submission_id')
-                    ->from('stage_assignments')
-                    ->where('user_id', '=', $userId);
+            $query->whereIn('s.submission_id', function ($subQuery) use ($userId, $assignedWithRoles) {
+                $subQuery->select('sa.submission_id')
+                    ->from('stage_assignments AS sa')
+                    ->where('sa.user_id', '=', $userId);
+
+                if (!empty($assignedWithRoles)) {
+                    $subQuery->join('user_groups AS ug', 'ug.user_group_id', '=', 'sa.user_group_id')
+                        ->whereIn('ug.role_id', $assignedWithRoles);
+                }
             });
         }
 

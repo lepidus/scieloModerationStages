@@ -26,13 +26,13 @@
           type="date"
           :name="field.name"
           v-model="form[field.name]"
-          :disabled="tabData.userIsAuthor"
+          :disabled="!tabData.canUpdate"
         />
       </div>
 
       <!-- Moderation stage change -->
       <div
-        v-if="!tabData.userIsAuthor && (tabData.canAdvanceStage || tabData.canRegressStage)"
+        v-if="tabData.canAdvanceStage || tabData.canRegressStage"
         class="moderationStageTab__stageChange"
       >
         <label class="moderationStageTab__label">
@@ -86,7 +86,7 @@
       </div>
 
       <!-- Save -->
-      <div v-if="!tabData.userIsAuthor" class="moderationStageTab__actions">
+      <div v-if="tabData.canUpdate" class="moderationStageTab__actions">
         <span data-cy="moderationStageSubmit">
           <PkpButton :is-disabled="isSaving" @click="save">
             {{ t("common.save") }}
@@ -124,9 +124,9 @@ const savedMessage = ref("");
 const saveFailed = ref(false);
 
 const form = reactive({
-  formatStageEntryDate: null,
-  contentStageEntryDate: null,
-  areaStageEntryDate: null,
+  formatStageEntryDate: "",
+  contentStageEntryDate: "",
+  areaStageEntryDate: "",
   stageChange: "stay",
 });
 
@@ -178,11 +178,12 @@ async function loadTabData() {
     headers: { Accept: "application/json" },
     credentials: "same-origin",
   });
-  tabData.value = await response.json();
+  const payload = await response.json();
+  tabData.value = payload.content;
 
   if (tabData.value.stageEntryDates) {
     Object.entries(tabData.value.stageEntryDates).forEach(([name, value]) => {
-      form[name] = value;
+      form[name] = value ?? "";
     });
   }
 
@@ -204,9 +205,7 @@ async function save() {
   body.append("csrfToken", tabData.value.csrfToken);
 
   dateFields.value.forEach((field) => {
-    if (form[field.name]) {
-      body.append(field.name, form[field.name]);
-    }
+    body.append(field.name, form[field.name] ?? "");
   });
 
   if (tabData.value.canAdvanceStage || tabData.value.canRegressStage) {
@@ -222,6 +221,11 @@ async function save() {
 
     if (!response.ok) {
       throw new Error(`Saving failed with status ${response.status}`);
+    }
+
+    const payload = await response.json();
+    if (!payload.status) {
+      throw new Error("Saving was rejected by the server");
     }
 
     await Promise.all([loadTabData(), triggerDataChange()]);

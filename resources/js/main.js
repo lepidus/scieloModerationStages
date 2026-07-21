@@ -31,6 +31,7 @@ import DashboardCellModerationTitle from "./Components/DashboardCellModerationTi
       credentials: "same-origin",
     })
       .then((response) => response.json())
+      .then((payload) => payload.content ?? {})
       .catch(() => ({}))
       .finally(() => {
         inFlightCounts = null;

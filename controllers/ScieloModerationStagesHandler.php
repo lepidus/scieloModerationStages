@@ -7,6 +7,7 @@ use APP\core\Application;
 use APP\handler\Handler;
 use PKP\facades\Locale;
 use APP\facades\Repo;
+use PKP\core\JSONMessage;
 use PKP\security\Role;
 use PKP\security\authorization\ContextAccessPolicy;
 use PKP\security\authorization\SubmissionAccessPolicy;
@@ -26,21 +27,38 @@ class ScieloModerationStagesHandler extends Handler
     private const SUBMISSION_STAGE_ID = 5;
     private const THRESHOLD_TIME_EXHIBITORS = 2;
     private const SUBMISSION_SCOPED_OPERATIONS = ['getModerationTabData', 'updateSubmissionStageData', 'getSubmissionExhibitData'];
+    private const ENTRY_DATE_FIELDS = ['formatStageEntryDate', 'contentStageEntryDate', 'areaStageEntryDate'];
+
+    public const EDITORIAL_ROLES = [
+        Role::ROLE_ID_SITE_ADMIN,
+        Role::ROLE_ID_MANAGER,
+        Role::ROLE_ID_SUB_EDITOR,
+        Role::ROLE_ID_ASSISTANT,
+    ];
+
+    public const STAGE_DATA_UPDATE_ROLES = [
+        Role::ROLE_ID_SITE_ADMIN,
+        Role::ROLE_ID_MANAGER,
+        Role::ROLE_ID_SUB_EDITOR,
+    ];
+
+    private array $stageAssignments = [];
+    private array $userGroupAbbrevs = [];
 
     public function __construct()
     {
         parent::__construct();
 
         $this->addRoleAssignment(
-            [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_ASSISTANT, Role::ROLE_ID_AUTHOR],
+            [...self::EDITORIAL_ROLES, Role::ROLE_ID_AUTHOR],
             ['getModerationTabData', 'getSubmissionExhibitData']
         );
         $this->addRoleAssignment(
-            [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR],
+            self::STAGE_DATA_UPDATE_ROLES,
             ['updateSubmissionStageData']
         );
         $this->addRoleAssignment(
-            [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_ASSISTANT],
+            self::EDITORIAL_ROLES,
             ['getModerationStageCounts']
         );
         $this->addRoleAssignment(
@@ -73,23 +91,25 @@ class ScieloModerationStagesHandler extends Handler
         $moderationStage = new ModerationStage($submission);
 
         if (!$moderationStage->submissionStageExists()) {
-            return json_encode(['stageExists' => false]);
+            return new JSONMessage(true, ['stageExists' => false]);
         }
 
         $plugin = PluginRegistry::getPlugin('generic', 'scielomoderationstagesplugin');
         $context = $request->getContext();
-        $canAdvanceStage = $moderationStage->canAdvanceStage();
-        $canRegressStage = $moderationStage->canRegressStage();
+        $canUpdate = $this->currentUserCanUpdateStageData();
+        $canAdvanceStage = $canUpdate && $moderationStage->canAdvanceStage();
+        $canRegressStage = $canUpdate && $moderationStage->canRegressStage();
 
         $data = [
             'stageExists' => true,
             'submissionId' => $submission->getId(),
             'userIsAuthor' => $plugin->userIsAuthor($submission),
+            'canUpdate' => $canUpdate,
             'currentStageKey' => $moderationStage->getCurrentStageName(false),
             'currentStageName' => $moderationStage->getCurrentStageName(),
             'canAdvanceStage' => $canAdvanceStage,
             'canRegressStage' => $canRegressStage,
-            'stageEntryDates' => $moderationStage->getStageEntryDates(),
+            'stageEntryDates' => $moderationStage->getStageEntryDatesUpToCurrentStage(),
             'faqUrl' => $request->url($context->getPath()) . '/faq',
             'csrfToken' => $request->getSession()->token(),
         ];
@@ -102,7 +122,7 @@ class ScieloModerationStagesHandler extends Handler
             $data['previousStageName'] = $moderationStage->getPreviousStageName();
         }
 
-        return json_encode($data);
+        return new JSONMessage(true, $data);
     }
 
     public function getReminderBody($args, $request)
@@ -110,7 +130,7 @@ class ScieloModerationStagesHandler extends Handler
         $context = $request->getContext();
 
         if (is_null($context)) {
-            return http_response_code(400);
+            return new JSONMessage(false);
         }
 
         $role = $args['role'] ?? null;
@@ -127,19 +147,19 @@ class ScieloModerationStagesHandler extends Handler
             $expectedUserGroup = $moderationReminderHelper->getAreaModeratorsUserGroup($context->getId());
             $moderationTimeLimit = $plugin->getSetting($context->getId(), 'areaModerationTimeLimit');
         } else {
-            return http_response_code(400);
+            return new JSONMessage(false);
         }
 
         $userGroupId = (int) ($args['userGroup'] ?? 0);
 
         if (is_null($expectedUserGroup) || (int) $expectedUserGroup->id !== $userGroupId) {
-            return http_response_code(400);
+            return new JSONMessage(false);
         }
 
         $userToRemind = Repo::user()->get((int) ($args['user'] ?? 0));
 
         if (is_null($userToRemind)) {
-            return http_response_code(400);
+            return new JSONMessage(false);
         }
 
         $moderationStageDao = new ModerationStageDAO();
@@ -168,22 +188,25 @@ class ScieloModerationStagesHandler extends Handler
         );
         $reminderEmail = $moderationReminderEmailBuilder->buildEmail();
 
-        return json_encode(['reminderBody' => $reminderEmail->view]);
+        return new JSONMessage(true, ['reminderBody' => $reminderEmail->view]);
     }
 
     public function updateSubmissionStageData($args, $request)
     {
         if (!$request->checkCSRF()) {
-            return http_response_code(403);
+            return new JSONMessage(false);
         }
 
         $submission = $this->getSubmission();
         $moderationStage = new ModerationStage($submission);
 
-        foreach (['formatStageEntryDate', 'contentStageEntryDate', 'areaStageEntryDate'] as $dateField) {
-            if (isset($args[$dateField]) && is_string($args[$dateField]) && $this->isValidEntryDate($args[$dateField])) {
-                $submission->setData($dateField, $args[$dateField]);
-            }
+        $entryDates = $this->readEntryDates($args);
+        if (is_null($entryDates)) {
+            return new JSONMessage(false);
+        }
+
+        foreach ($entryDates as $dateField => $date) {
+            $submission->setData($dateField, $date);
         }
 
         $stageChangeAction = $args['stageChangeAction'] ?? null;
@@ -209,7 +232,7 @@ class ScieloModerationStagesHandler extends Handler
         }
 
         Repo::submission()->edit($submission, []);
-        return http_response_code(200);
+        return new JSONMessage(true);
     }
 
     private function registerStageChange(ModerationStage $moderationStage, string $logMessageKey): void
@@ -217,6 +240,36 @@ class ScieloModerationStagesHandler extends Handler
         $moderationStageRegister = new ModerationStageRegister();
         $moderationStageRegister->registerModerationStageOnDatabase($moderationStage);
         $moderationStageRegister->registerModerationStageOnSubmissionLog($moderationStage, $logMessageKey);
+    }
+
+    private function readEntryDates(array $args): ?array
+    {
+        $entryDates = [];
+
+        foreach (self::ENTRY_DATE_FIELDS as $dateField) {
+            if (!array_key_exists($dateField, $args)) {
+                continue;
+            }
+
+            $date = $args[$dateField];
+            if (!is_string($date)) {
+                return null;
+            }
+
+            $date = trim($date);
+            if ($date === '') {
+                $entryDates[$dateField] = null;
+                continue;
+            }
+
+            if (!$this->isValidEntryDate($date)) {
+                return null;
+            }
+
+            $entryDates[$dateField] = $date;
+        }
+
+        return $entryDates;
     }
 
     private function isValidEntryDate(string $date): bool
@@ -227,27 +280,34 @@ class ScieloModerationStagesHandler extends Handler
 
     public function getSubmissionExhibitData($args, $request)
     {
-        $submissionId = $this->getSubmission()->getId();
-        $exhibitData = ['submissionId' => $submissionId];
+        $submission = $this->getSubmission();
+        $exhibitData = ['submissionId' => $submission->getId()];
 
-        if (!$this->currentUserIsAuthor()) {
+        if ($this->currentUserIsEditorial()) {
             $exhibitData = array_merge(
                 $exhibitData,
-                $this->getAreaModerators($submissionId),
-                $this->getTimeResponsible($submissionId),
-                $this->getTimeAreaModerator($submissionId)
+                $this->getAreaModerators($submission->getId()),
+                $this->getTimeResponsible($submission),
+                $this->getTimeAreaModerator($submission)
             );
         }
 
-        return json_encode($exhibitData);
+        return new JSONMessage(true, $exhibitData);
     }
 
-    private function currentUserIsAuthor(): bool
+    private function currentUserIsEditorial(): bool
     {
-        $userRoles = (array) $this->getAuthorizedContextObject(Application::ASSOC_TYPE_USER_ROLES);
-        $editorialRoles = [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR];
+        return !empty(array_intersect($this->currentUserRoles(), self::EDITORIAL_ROLES));
+    }
 
-        return count(array_intersect($userRoles, $editorialRoles)) === 0;
+    private function currentUserCanUpdateStageData(): bool
+    {
+        return !empty(array_intersect($this->currentUserRoles(), self::STAGE_DATA_UPDATE_ROLES));
+    }
+
+    private function currentUserRoles(): array
+    {
+        return (array) $this->getAuthorizedContextObject(Application::ASSOC_TYPE_USER_ROLES);
     }
 
     /**
@@ -260,11 +320,10 @@ class ScieloModerationStagesHandler extends Handler
         $context = $request->getContext();
         $user = $request->getUser();
 
-        $editorialRoles = [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_ASSISTANT];
-        $userRoles = (array) $this->getAuthorizedContextObject(Application::ASSOC_TYPE_USER_ROLES);
+        $userRoles = $this->currentUserRoles();
 
-        if (!$context || !$user || empty(array_intersect($editorialRoles, $userRoles))) {
-            return json_encode([]);
+        if (!$context || !$user || !$this->currentUserIsEditorial()) {
+            return new JSONMessage(true, []);
         }
 
         $canAccessUnassignedSubmission = !empty(array_intersect([Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER], $userRoles));
@@ -272,7 +331,8 @@ class ScieloModerationStagesHandler extends Handler
         $moderationStageDao = new ModerationStageDAO();
         $counts = $moderationStageDao->countSubmissionsByModerationStage(
             $context->getId(),
-            $canAccessUnassignedSubmission ? null : $user->getId()
+            $canAccessUnassignedSubmission ? null : $user->getId(),
+            self::EDITORIAL_ROLES
         );
 
         $stages = [
@@ -286,7 +346,7 @@ class ScieloModerationStagesHandler extends Handler
             $result['moderation-stage-' . $stage] = $counts[$stage] ?? 0;
         }
 
-        return json_encode($result);
+        return new JSONMessage(true, $result);
     }
 
     private function getAreaModerators($submissionId)
@@ -305,23 +365,36 @@ class ScieloModerationStagesHandler extends Handler
 
     private function getAssignedUsers($submissionId, $abbrev): array
     {
-        $stageAssignments = StageAssignment::withSubmissionIds([$submissionId])
-            ->withRoleIds([Role::ROLE_ID_SUB_EDITOR])
-            ->withStageIds([self::SUBMISSION_STAGE_ID])
-            ->get();
         $assignedUsers = [];
 
-        foreach ($stageAssignments as $stageAssignment) {
-            $userGroup = Repo::userGroup()->get($stageAssignment->userGroupId);
-            $userGroupAbbrev = strtolower($userGroup->getLocalizedData('abbrev', 'en', UserGroup::LOCALE_MATCH_STRICT));
-
-            if ($userGroupAbbrev == $abbrev) {
+        foreach ($this->getModerationStageAssignments($submissionId) as $stageAssignment) {
+            if ($this->getUserGroupAbbrev($stageAssignment->userGroupId) == $abbrev) {
                 $user = Repo::user()->get($stageAssignment->userId, false);
                 $assignedUsers[$user->getData('username')] = $user->getFullName();
             }
         }
 
         return $assignedUsers;
+    }
+
+    private function getModerationStageAssignments($submissionId)
+    {
+        return $this->stageAssignments[$submissionId] ??= StageAssignment::withSubmissionIds([$submissionId])
+            ->withRoleIds([Role::ROLE_ID_SUB_EDITOR])
+            ->withStageIds([self::SUBMISSION_STAGE_ID])
+            ->get();
+    }
+
+    private function getUserGroupAbbrev($userGroupId): string
+    {
+        if (!isset($this->userGroupAbbrevs[$userGroupId])) {
+            $userGroup = Repo::userGroup()->get($userGroupId);
+            $this->userGroupAbbrevs[$userGroupId] = is_null($userGroup)
+                ? ''
+                : strtolower($userGroup->getLocalizedData('abbrev', 'en', UserGroup::LOCALE_MATCH_STRICT));
+        }
+
+        return $this->userGroupAbbrevs[$userGroupId];
     }
 
     private function getSecondDateParamsForTimeExhibitors($submission): array
@@ -366,17 +439,10 @@ class ScieloModerationStagesHandler extends Handler
 
     private function getLastAssignmentDate($submissionId, $abbrev): string
     {
-        $stageAssignments = StageAssignment::withSubmissionIds([$submissionId])
-            ->withRoleIds([Role::ROLE_ID_SUB_EDITOR])
-            ->withStageIds([self::SUBMISSION_STAGE_ID])
-            ->get();
         $lastAssignmentDate = "";
 
-        foreach ($stageAssignments as $stageAssignment) {
-            $userGroup = Repo::userGroup()->get($stageAssignment->userGroupId);
-            $currentUserGroupAbbrev = strtolower($userGroup->getLocalizedData('abbrev', 'en', UserGroup::LOCALE_MATCH_STRICT));
-
-            if ($currentUserGroupAbbrev == $abbrev) {
+        foreach ($this->getModerationStageAssignments($submissionId) as $stageAssignment) {
+            if ($this->getUserGroupAbbrev($stageAssignment->userGroupId) == $abbrev) {
                 if (empty($lastAssignmentDate) or ($stageAssignment->dateAssigned > $lastAssignmentDate)) {
                     $lastAssignmentDate = $stageAssignment->dateAssigned;
                 }
@@ -386,10 +452,9 @@ class ScieloModerationStagesHandler extends Handler
         return $lastAssignmentDate;
     }
 
-    private function getTimeResponsible($submissionId)
+    private function getTimeResponsible($submission)
     {
-        $submission = Repo::submission()->get($submissionId);
-        $lastAssignmentDate = $this->getLastAssignmentDate($submissionId, 'resp');
+        $lastAssignmentDate = $this->getLastAssignmentDate($submission->getId(), 'resp');
 
         if (empty($lastAssignmentDate)) {
             return ['TimeResponsible' => ''];
@@ -397,10 +462,9 @@ class ScieloModerationStagesHandler extends Handler
         return $this->getDataForTimeExhibitors($submission, $lastAssignmentDate, "TimeResponsible");
     }
 
-    private function getTimeAreaModerator($submissionId)
+    private function getTimeAreaModerator($submission)
     {
-        $submission = Repo::submission()->get($submissionId);
-        $lastAssignmentDate = $this->getLastAssignmentDate($submissionId, 'am');
+        $lastAssignmentDate = $this->getLastAssignmentDate($submission->getId(), 'am');
 
         if (empty($lastAssignmentDate)) {
             return ['TimeAreaModerator' => ''];

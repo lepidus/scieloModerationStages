@@ -73,6 +73,27 @@ describe("SciELO Moderation Stages - Workflow tab", function() {
             cy.get('input[name="formatStageEntryDate"]').should('have.value', yesterday);
         });
     });
+    it("Editor clears and refills submission's entry date", function() {
+        cy.login('dbarnes', null, 'publicknowledge');
+        cy.findSubmission('active', submissionData.title);
+
+        cy.openWorkflowMenu('Moderation Stages');
+
+        cy.get('input[name="formatStageEntryDate"]').clear();
+        cy.get('[data-cy="moderationStageSubmit"] button').click();
+        cy.get('[data-cy="moderationStageSaveMessage"]').should('contain', 'Saved');
+
+        cy.reload();
+        cy.get('[data-cy="formatStageEntryDateDiv"]').within(() => {
+            cy.get('input[name="formatStageEntryDate"]').should('have.value', '');
+            cy.get('input[name="formatStageEntryDate"]').type(today);
+        });
+        cy.get('[data-cy="moderationStageSubmit"] button').click();
+        cy.get('[data-cy="moderationStageSaveMessage"]').should('contain', 'Saved');
+
+        cy.reload();
+        cy.get('input[name="formatStageEntryDate"]').should('have.value', today);
+    });
     it("Editor advances moderation stage in workflow tab", function() {
         cy.login('dbarnes', null, 'publicknowledge');
         cy.findSubmission('active', submissionData.title);

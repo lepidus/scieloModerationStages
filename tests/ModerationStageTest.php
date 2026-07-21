@@ -133,6 +133,38 @@ class ModerationStageTest extends TestCase
         $this->assertArrayNotHasKey('areaStageEntryDate', $this->moderationStage->getStageEntryDates());
     }
 
+    public function testStageEntryDatesUpToCurrentStageKeepsFieldsWithoutDate(): void
+    {
+        $this->submission->setData('currentModerationStage', ModerationStage::SCIELO_MODERATION_STAGE_AREA);
+        $this->submission->setData('formatStageEntryDate', '2026-01-01 00:00:00');
+        $this->submission->setData('areaStageEntryDate', '2026-01-03 00:00:00');
+
+        $this->assertEquals(
+            [
+                'formatStageEntryDate' => '2026-01-01',
+                'contentStageEntryDate' => null,
+                'areaStageEntryDate' => '2026-01-03',
+            ],
+            $this->moderationStage->getStageEntryDatesUpToCurrentStage()
+        );
+    }
+
+    public function testStageEntryDatesUpToCurrentStageOmitsStagesNotReached(): void
+    {
+        $this->submission->setData('formatStageEntryDate', '2026-01-01 00:00:00');
+
+        $this->assertEquals(
+            ['formatStageEntryDate' => '2026-01-01'],
+            $this->moderationStage->getStageEntryDatesUpToCurrentStage()
+        );
+    }
+
+    public function testStageEntryDatesUpToCurrentStageOfSubmissionWithoutStage(): void
+    {
+        $moderationStage = new ModerationStage(new Submission());
+        $this->assertEquals([], $moderationStage->getStageEntryDatesUpToCurrentStage());
+    }
+
     public function testSubmissionOnIntermediateStageCanRegress(): void
     {
         $this->submission->setData('currentModerationStage', ModerationStage::SCIELO_MODERATION_STAGE_CONTENT);

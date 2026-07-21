@@ -67,7 +67,6 @@ const hasTimes = computed(() =>
 const hasExtraData = computed(() => hasPeople.value || hasTimes.value);
 
 onMounted(async () => {
-  // The handler decides which data the current user may see; no author flag is sent.
   const url =
     window.app.moderationStagesHandlerUrls.getSubmissionExhibitData +
     `?submissionId=${props.item.id}`;
@@ -76,7 +75,8 @@ onMounted(async () => {
     headers: { Accept: "application/json" },
     credentials: "same-origin",
   });
-  exhibit.value = await response.json();
+  const payload = await response.json();
+  exhibit.value = payload.content;
 });
 </script>
 

@@ -295,6 +295,6 @@ class ScieloModerationStagesPlugin extends GenericPlugin implements HasTaskSched
             }
         }
 
-        return $currentUserAssignedRoles[0] == Role::ROLE_ID_AUTHOR;
+        return ($currentUserAssignedRoles[0] ?? null) === Role::ROLE_ID_AUTHOR;
     }
 }

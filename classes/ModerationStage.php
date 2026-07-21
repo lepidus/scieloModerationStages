@@ -81,6 +81,25 @@ class ModerationStage
         return $stageEntryDates;
     }
 
+    public function getStageEntryDatesUpToCurrentStage(): array
+    {
+        $currentStage = $this->submission->getData('currentModerationStage');
+
+        if (is_null($currentStage)) {
+            return [];
+        }
+
+        $stageEntryDates = [];
+        for ($stage = self::SCIELO_MODERATION_STAGE_FORMAT; $stage <= $currentStage; $stage++) {
+            $entryDateField = $this->getModerationStageEntryConfig($stage);
+            $entryDate = $this->submission->getData($entryDateField);
+
+            $stageEntryDates[$entryDateField] = $entryDate ? substr($entryDate, 0, 10) : null;
+        }
+
+        return $stageEntryDates;
+    }
+
     public function getCurrentStageName(bool $translated = true): string
     {
         $currentStage = $this->submission->getData('currentModerationStage');
