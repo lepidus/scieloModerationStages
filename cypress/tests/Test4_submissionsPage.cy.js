@@ -24,7 +24,7 @@ describe('SciELO Moderation Stages - Features on submissions page', function () 
 
         cy.get('[data-cy="active-modal"]').within(() => {
             cy.contains('Moderation stage:');
-            cy.contains('Manuscript Type Pre-Moderation');
+            cy.contains('Format Pre-Moderation');
         });
     });
     it("Editor can browse submissions by moderation stage", function () {
@@ -35,7 +35,7 @@ describe('SciELO Moderation Stages - Features on submissions page', function () 
         cy.contains('table tr', submission1);
         cy.contains('table tr', submission3).should('not.exist');
 
-        cy.get('nav').contains('Manuscript Type Pre-Moderation').click();
+        cy.get('nav').contains('Format Pre-Moderation').click();
         cy.waitJQuery();
         cy.contains('table tr', submission3);
         cy.contains('table tr', submission1).should('not.exist');
