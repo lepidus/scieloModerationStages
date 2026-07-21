@@ -1,22 +1,42 @@
 import '../support/commands.js';
 
-function checkSendNextStageOptionIsPresent() {
-    cy.contains("This submission is in the Format Pre-Moderation stage, do you want to send it to the Manuscript Type Pre-Moderation stage? ");
-    cy.get('#checkboxSendNextStageAssignYes').parent().contains("Yes");
-    cy.get('#checkboxSendNextStageAssignNo').parent().contains("No");
-    cy.get('#checkboxSendNextStageAssignYes').should('not.be.checked');
-    cy.get('#checkboxSendNextStageAssignNo').should('not.be.checked');
+function openSubmissionAsEditor(title) {
+    cy.visit('index.php/publicknowledge/dashboard/editorial');
+    cy.findSubmission('active', title);
 }
 
-describe("SciELO Moderation Stages - Moderation stage advancement", function() {
+function openAssignParticipantForm() {
+    cy.get('[data-cy="participant-manager"] button:contains("Assign")').first().click();
+    cy.waitJQuery();
+    cy.get('#addParticipantForm', { timeout: 20000 }).should('be.visible');
+}
+
+function checkSendNextStageOptionIsPresent(currentStage, nextStage) {
+    cy.get('#addParticipantForm').within(() => {
+        cy.contains(`This submission is in the ${currentStage} stage, do you want to send it to the ${nextStage} stage?`);
+        cy.get('#checkboxSendNextStageAssignYes').parent().contains('Yes');
+        cy.get('#checkboxSendNextStageAssignNo').parent().contains('No');
+        cy.get('#checkboxSendNextStageAssignYes').should('not.be.checked');
+        cy.get('#checkboxSendNextStageAssignNo').should('not.be.checked');
+    });
+}
+
+function assignParticipantAndAdvanceStage() {
+    cy.get('tr[id^="component-grid-users-userselect-userselectgrid-row"] > .first_column > input').first().click();
+    cy.get('#checkboxSendNextStageAssignYes').click();
+    cy.get('#addParticipantForm > .formButtons > .submitFormButton').click();
+    cy.waitJQuery();
+}
+
+describe('SciELO Moderation Stages - Moderation stage advancement', function () {
     let submissionData;
-    
-    before(function() {
+
+    before(function () {
         Cypress.config('defaultCommandTimeout', 10000);
         submissionData = {
-            title: "Night of the Living Dead",
-			abstract: 'Some people get stuck in a house when the dead arise from their graves',
-			keywords: ['plugin', 'testing'],
+            title: 'Night of the Living Dead',
+            abstract: 'Some people get stuck in a house when the dead arise from their graves',
+            keywords: ['plugin', 'testing'],
             contributors: [
                 {
                     'given': 'George',
@@ -33,47 +53,49 @@ describe("SciELO Moderation Stages - Moderation stage advancement", function() {
                     'genre': 'Preprint Text'
                 }
             ]
-		};
+        };
     });
-    
-    it("Author creates submission. Asserts submission goes to Format Pre-Moderation stage", function() {
+
+    it('Author creates submission. Asserts submission goes to Format Pre-Moderation stage', function () {
         cy.login('fpaglieri', null, 'publicknowledge');
         cy.createSubmission(submissionData);
         cy.contains('The moderation of your submission has been initiated and it has been forwarded to the Format Pre-Moderation stage, where it will undergo a screening process');
         cy.contains('Please wait for a response from the editorial team or an update on the status of your submission');
     });
-    it("Checks submission is set to first moderation stage", function() {
+    it('Checks submission is set to first moderation stage', function () {
         cy.login('fpaglieri', null, 'publicknowledge');
         cy.findSubmission('myQueue', submissionData.title);
 
-        cy.contains('strong', 'Moderation stage:');
-        cy.contains('span', 'Format Pre-Moderation');
+        cy.get('[data-cy="active-modal"]').within(() => {
+            cy.contains('strong', 'Moderation stage:');
+            cy.contains('Format Pre-Moderation');
+        });
     });
-    it("Checks sending of submission to next moderation stage", function() {
+    it('Checks sending of submission to next moderation stage', function () {
         cy.login('dbarnes', null, 'publicknowledge');
         cy.findSubmission('active', submissionData.title);
 
-        cy.contains('strong', 'Moderation stage:');
-        cy.contains('span', 'Format Pre-Moderation');
+        cy.get('[data-cy="active-modal"]').within(() => {
+            cy.contains('strong', 'Moderation stage:');
+            cy.contains('Format Pre-Moderation');
+        });
 
-        cy.contains('a', 'Assign').click();
-        checkSendNextStageOptionIsPresent();
-        cy.get('tr[id^="component-grid-users-userselect-userselectgrid-row"] > .first_column > input').first().click();
-        cy.get('#checkboxSendNextStageAssignYes').click();
-        cy.get("#addParticipantForm > .formButtons > .submitFormButton").click();
-        cy.wait(3000);
-        cy.reload();
+        openAssignParticipantForm();
+        checkSendNextStageOptionIsPresent('Format Pre-Moderation', 'Manuscript Type Pre-Moderation');
+        assignParticipantAndAdvanceStage();
 
-        cy.contains('span', 'Manuscript Type Pre-Moderation');
-        cy.contains('button', 'Activity Log').click();
+        openSubmissionAsEditor(submissionData.title);
+        cy.get('[data-cy="active-modal"]').contains('Manuscript Type Pre-Moderation');
+
+        cy.get('[data-cy="active-modal"]').contains('button', 'Activity Log').click();
         cy.contains('The submission has been sent to the Manuscript Type Pre-Moderation stage');
     });
-    it("Checks sending of email notification after advancing moderation stage", function() {
+    it('Checks sending of email notification after advancing moderation stage', function () {
         cy.visit('localhost:8025');
         cy.contains('b', 'Advancement in Submission Moderation').should('have.length', 1);
         cy.contains('b', 'Advancement in Submission Moderation')
             .parent().parent().parent()
-            .within((node) => {
+            .within(() => {
                 cy.contains('fpaglieri@mailinator.com');
             });
         cy.contains('b', 'Advancement in Submission Moderation').click();
@@ -84,20 +106,20 @@ describe("SciELO Moderation Stages - Moderation stage advancement", function() {
         cy.contains('Optionally, you may also provide an endorsement for the preprint, if you have one');
         cy.contains('For more information, we recommend reading our FAQs #10 and #19');
     });
-    it("Checks stage advancing not present in last stage", function() {
+    it('Checks stage advancing not present in last stage', function () {
         cy.login('dbarnes', null, 'publicknowledge');
-        cy.findSubmission('active', submissionData.title);
+        openSubmissionAsEditor(submissionData.title);
 
-        cy.contains('a', 'Assign').click();
-        cy.get('tr[id^="component-grid-users-userselect-userselectgrid-row"] > .first_column > input').first().click();
-        cy.get('#checkboxSendNextStageAssignYes').click();
-        cy.get("#addParticipantForm > .formButtons > .submitFormButton").click();
-        cy.wait(3000);
-        cy.reload();
+        openAssignParticipantForm();
+        assignParticipantAndAdvanceStage();
 
-        cy.contains('span', 'Area Moderation');
-        cy.contains('a', 'Assign').click();
-        cy.get('#checkboxSendNextStageAssignYes').should('not.exist');
-        cy.get('#checkboxSendNextStageAssignNo').should('not.exist');
+        openSubmissionAsEditor(submissionData.title);
+        cy.get('[data-cy="active-modal"]').contains('Area Moderation');
+
+        openAssignParticipantForm();
+        cy.get('#addParticipantForm').within(() => {
+            cy.get('#checkboxSendNextStageAssignYes').should('not.exist');
+            cy.get('#checkboxSendNextStageAssignNo').should('not.exist');
+        });
     });
 });

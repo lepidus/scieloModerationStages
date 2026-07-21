@@ -1,20 +1,33 @@
 import '../support/commands.js';
 
+function openAssignParticipantForm() {
+    cy.get('[data-cy="participant-manager"] button:contains("Assign")').first().click();
+    cy.waitJQuery();
+    cy.get('#addParticipantForm', { timeout: 20000 }).should('be.visible');
+}
+
 function checkSendNextStageOptionIsNotPresent() {
-    cy.contains("This submission is in the Format Pre-Moderation stage").should('not.exist');
-    cy.get('#checkboxSendNextStageAssignYes').should('not.exist');
-    cy.get('#checkboxSendNextStageAssignNo').should('not.exist');
+    cy.get('#addParticipantForm').within(() => {
+        cy.contains("This submission is in the Format Pre-Moderation stage").should('not.exist');
+        cy.get('#checkboxSendNextStageAssignYes').should('not.exist');
+        cy.get('#checkboxSendNextStageAssignNo').should('not.exist');
+    });
+}
+
+function closeAssignParticipantForm() {
+    cy.get('.DialogClose:visible').last().click({ force: true });
+    cy.get('#addParticipantForm').should('not.exist');
 }
 
 describe("SciELO Moderation Stages - Stage advancement hidden scenarios", function() {
     let submissionData;
-    
+
     before(function() {
         Cypress.config('defaultCommandTimeout', 10000);
         submissionData = {
             title: "Candyman",
-			abstract: 'A ghost appears when you speak his name 5 times in front of a mirror',
-			keywords: ['plugin', 'testing'],
+            abstract: 'A ghost appears when you speak his name 5 times in front of a mirror',
+            keywords: ['plugin', 'testing'],
             contributors: [
                 {
                     'given': 'Clive',
@@ -31,7 +44,7 @@ describe("SciELO Moderation Stages - Stage advancement hidden scenarios", functi
                     'genre': 'Preprint Text'
                 }
             ]
-		};
+        };
     });
 
     it("Author creates submission", function() {
@@ -42,34 +55,34 @@ describe("SciELO Moderation Stages - Stage advancement hidden scenarios", functi
         cy.login('dbarnes', null, 'publicknowledge');
         cy.findSubmission('active', submissionData.title);
 
-        cy.get('#publication-button').click();
-        cy.get('.pkpHeader__actions button:contains("Post")').click();
-        cy.get('.pkp_modal_panel button:contains("Post")').click();
+        // Post the preprint
+        cy.get('button:contains("Post the preprint")').click();
+        cy.get('button:contains("Post"):visible').click();
+        cy.get('[id^="publish"] button:contains("Post")').click();
         cy.waitJQuery();
-        cy.contains('span', 'Posted');
-        cy.reload();
-        
-        cy.get('#workflow-button').click();
-        cy.contains('a', 'Assign').click();
+
+        // While posted, the advance-stage option must be hidden in the assign form
+        cy.openWorkflowMenu('Production');
+        openAssignParticipantForm();
         checkSendNextStageOptionIsNotPresent();
-        cy.get('a.pkpModalCloseButton:visible').click();
-        cy.on('window:confirm', () => true);
-        cy.wait(3000);
+        closeAssignParticipantForm();
 
-        cy.get('#publication-button').click();
-		cy.get('.pkpHeader__actions button:contains("Unpost")').click();
-        cy.get('.modal__panel button:contains("Unpost")').click();
+        // Unpost the preprint
+        cy.openWorkflowMenu('Title & Abstract');
+        cy.get('button').contains('Unpost').click();
+        cy.get('[data-cy=dialog] button').contains('Unpost').click();
         cy.waitJQuery();
-        cy.contains('span', 'Unposted');
-        cy.reload();
 
-        cy.get('#workflow-button').click();
-        cy.contains('a', 'Decline Submission').click();
-        cy.contains('button', 'Skip this email').click();
-        cy.contains('button', 'Record Decision').click();
-        cy.contains('a', 'View Submission').click();
+        // Decline the submission
+        cy.openWorkflowMenu('Production');
+        cy.clickDecision('Decline Submission');
+        cy.get('button:contains("Record Decision")').click();
+        cy.get('a.pkpButton:contains("View Submission")').click();
+        cy.waitJQuery();
 
-        cy.contains('a', 'Assign').click();
+        // While declined, the advance-stage option must be hidden in the assign form
+        cy.openWorkflowMenu('Production');
+        openAssignParticipantForm();
         checkSendNextStageOptionIsNotPresent();
     });
 });

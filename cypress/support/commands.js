@@ -1,5 +1,5 @@
 function beginSubmission(submissionData) {
-    cy.get('input[name="locale"][value="en"]').click();
+    cy.get('label:contains("English")').click();
     cy.setTinyMceContent('startSubmission-title-control', submissionData.title);
     cy.get('input[name="submissionRequirements"]').check();
     cy.get('input[name="privacyConsent"]').check();
@@ -13,7 +13,7 @@ function detailsStep(submissionData) {
         cy.get('#titleAbstract-keywords-control-en').type(keyword, {delay: 0});
         cy.get('#titleAbstract-keywords-control-en').type('{enter}', {delay: 0});
     });
-    
+
     cy.contains('button', 'Continue').click();
 }
 
@@ -25,12 +25,14 @@ function filesStep(submissionData) {
 function contributorsStep(submissionData) {
     submissionData.contributors.forEach(authorData => {
         cy.contains('button', 'Add Contributor').click();
-        cy.get('input[name="givenName-en"]').type(authorData.given, {delay: 0});
-        cy.get('input[name="familyName-en"]').type(authorData.family, {delay: 0});
-        cy.get('input[name="email"]').type(authorData.email, {delay: 0});
-        cy.get('select[name="country"]').select(authorData.country);
-        
-        cy.get('.modal__panel:contains("Add Contributor")').find('button').contains('Save').click();
+        cy.wait(1000);
+        cy.get('div[role=dialog]:contains("Add Contributor")').within(() => {
+            cy.get('input[name="givenName-en"]').type(authorData.given, {delay: 0});
+            cy.get('input[name="familyName-en"]').type(authorData.family, {delay: 0});
+            cy.get('input[name="email"]').type(authorData.email, {delay: 0});
+            cy.get('select[name="country"]').select(authorData.country);
+            cy.contains('button', 'Save').click();
+        });
         cy.waitJQuery();
     });
 
@@ -38,8 +40,8 @@ function contributorsStep(submissionData) {
 }
 
 Cypress.Commands.add('createSubmission', function (submissionData) {
-    cy.get('div#myQueue a:contains("New Submission")').click();
-    
+    cy.get('a:contains("New Submission")').first().click();
+
     beginSubmission(submissionData);
     detailsStep(submissionData);
     filesStep(submissionData);
@@ -47,19 +49,26 @@ Cypress.Commands.add('createSubmission', function (submissionData) {
     cy.get('input[name="relationStatus"][value="1"]').check();
     cy.contains('button', 'Continue').click();
     cy.contains('button', 'Submit').click();
-    cy.get('.modal__panel:visible').within(() => {
+    cy.get('[data-cy="dialog"]').within(() => {
         cy.contains('button', 'Submit').click();
     });
-    
+
     cy.waitJQuery();
     cy.contains('h1', 'Submission complete');
 });
 
-Cypress.Commands.add('findSubmission', function(tab, title) {
-	cy.wait(3000);
-    cy.get('#' + tab + '-button').click();
-    cy.get('.listPanel__itemSubtitle:visible:contains("' + title + '")').first()
-        .parent().parent().within(() => {
-            cy.get('.pkpButton:contains("View")').click();
-        });
+Cypress.Commands.add('findSubmission', function(view, title) {
+    const viewNames = {
+        myQueue: 'My Submissions as Author',
+        active: 'Active submissions',
+        archive: 'Published',
+    };
+    const viewName = viewNames[view] || view;
+
+    cy.get('nav').contains(viewName).click();
+    cy.contains('table tr', title)
+        .contains('button', /^\s*View\s*$/)
+        .scrollIntoView()
+        .should('be.visible')
+        .click({force: true});
 });
