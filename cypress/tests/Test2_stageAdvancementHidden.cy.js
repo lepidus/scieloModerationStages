@@ -76,8 +76,9 @@ describe("SciELO Moderation Stages - Stage advancement hidden scenarios", functi
         // Decline the submission
         cy.openWorkflowMenu('Production');
         cy.clickDecision('Decline Submission');
+        cy.contains('button', 'Skip this email').click();
         cy.get('button:contains("Record Decision")').click();
-        cy.get('a.pkpButton:contains("View Submission")').click();
+        cy.contains('a, button', 'View Submission').click();
         cy.waitJQuery();
 
         // While declined, the advance-stage option must be hidden in the assign form

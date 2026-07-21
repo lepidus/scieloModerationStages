@@ -43,33 +43,33 @@ describe("SciELO Moderation Stages - Workflow tab", function() {
         cy.login('fpaglieri', null, 'publicknowledge');
         cy.findSubmission('myQueue', submissionData.title);
 
-        cy.get('#scieloModerationStages-button').click();
+        cy.openWorkflowMenu('Moderation Stages');
 
         cy.contains('Your submission is currently at the Format Pre-Moderation stage, where it is undergoing a screening process');
         cy.contains('Please wait for a response from the editorial team or an update on the status of your submission');
-        cy.get('#formatStageEntryDateDiv').within(() => {
+        cy.get('[data-cy="formatStageEntryDateDiv"]').within(() => {
             cy.contains('label', 'Format Pre-Moderation');
-            cy.contains('label', 'The submission has entered in this moderation stage in the following data');
+            cy.contains('The submission has entered in this moderation stage in the following data');
             cy.get('input[name="formatStageEntryDate"]').should('have.value', today);
             cy.get('input[name="formatStageEntryDate"]').should('be.disabled');
         });
-        cy.get('#moderationStageSubmit').should('not.exist');
+        cy.get('[data-cy="moderationStageSubmit"]').should('not.exist');
     });
     it("Editor edits submission's entry dates", function() {
         cy.login('dbarnes', null, 'publicknowledge');
         cy.findSubmission('active', submissionData.title);
 
-        cy.get('#publication-button').click();
-        cy.get('#scieloModerationStages-button').click();
+        cy.openWorkflowMenu('Moderation Stages');
 
-        cy.get('#formatStageEntryDateDiv').within(() => {
+        cy.get('[data-cy="formatStageEntryDateDiv"]').within(() => {
             cy.get('input[name="formatStageEntryDate"]').should('have.value', today);
-            cy.get('input[name="formatStageEntryDate"]').type(yesterday);
+            cy.get('input[name="formatStageEntryDate"]').clear().type(yesterday);
         });
-        cy.get('#moderationStageSubmit').click();
+        cy.get('[data-cy="moderationStageSubmit"] button').click();
+        cy.get('[data-cy="moderationStageSaveMessage"]').should('contain', 'Saved');
 
         cy.reload();
-        cy.get('#formatStageEntryDateDiv').within(() => {
+        cy.get('[data-cy="formatStageEntryDateDiv"]').within(() => {
             cy.get('input[name="formatStageEntryDate"]').should('have.value', yesterday);
         });
     });
@@ -77,15 +77,15 @@ describe("SciELO Moderation Stages - Workflow tab", function() {
         cy.login('dbarnes', null, 'publicknowledge');
         cy.findSubmission('active', submissionData.title);
 
-        cy.get('#publication-button').click();
-        cy.get('#scieloModerationStages-button').click();
+        cy.openWorkflowMenu('Moderation Stages');
 
-        cy.get('#checkboxSendNextStageMenuYes').check();
-        cy.get('#moderationStageSubmit').click();
+        cy.get('[data-cy="stageChangeAdvance"]').check();
+        cy.get('[data-cy="moderationStageSubmit"] button').click();
+        cy.get('[data-cy="moderationStageSaveMessage"]').should('contain', 'Saved');
 
         cy.reload();
-        cy.get('#formatStageEntryDateDiv');
-        cy.get('#contentStageEntryDateDiv').within(() => {
+        cy.get('[data-cy="formatStageEntryDateDiv"]');
+        cy.get('[data-cy="contentStageEntryDateDiv"]').within(() => {
             cy.get('input[name="contentStageEntryDate"]').should('have.value', today);
         });
     });
@@ -93,13 +93,13 @@ describe("SciELO Moderation Stages - Workflow tab", function() {
         cy.login('fpaglieri', null, 'publicknowledge');
         cy.findSubmission('myQueue', submissionData.title);
 
-        cy.get('#scieloModerationStages-button').click();
+        cy.openWorkflowMenu('Moderation Stages');
 
         cy.contains('Your submission is currently at the Manuscript Type Pre-Moderation stage and is undergoing a review');
         cy.contains('For more information, we recommend reading our FAQs #10 and #19');
     });
     it("Checks sending of email notification after advancing moderation stage", function() {
-        cy.visit('localhost:8025');
+        cy.visit('http://127.0.0.1:8025');
         cy.contains('b', 'Advancement in Submission Moderation')
             .first()
             .parent().parent().parent()

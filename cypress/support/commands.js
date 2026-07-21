@@ -62,6 +62,7 @@ Cypress.Commands.add('findSubmission', function(view, title) {
         myQueue: 'My Submissions as Author',
         active: 'Active submissions',
         archive: 'Published',
+        declined: 'Declined',
     };
     const viewName = viewNames[view] || view;
 

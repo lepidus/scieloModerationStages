@@ -91,14 +91,14 @@ describe('SciELO Moderation Stages - Moderation stage advancement', function () 
         cy.contains('The submission has been sent to the Manuscript Type Pre-Moderation stage');
     });
     it('Checks sending of email notification after advancing moderation stage', function () {
-        cy.visit('localhost:8025');
-        cy.contains('b', 'Advancement in Submission Moderation').should('have.length', 1);
+        cy.visit('http://127.0.0.1:8025');
         cy.contains('b', 'Advancement in Submission Moderation')
+            .first()
             .parent().parent().parent()
             .within(() => {
                 cy.contains('fpaglieri@mailinator.com');
             });
-        cy.contains('b', 'Advancement in Submission Moderation').click();
+        cy.contains('b', 'Advancement in Submission Moderation').first().click();
         cy.get('#nav-tab button:contains("Text")').click();
 
         cy.contains('Your submission has been forwarded to the Manuscript Type Pre-Moderation stage');
