@@ -82,6 +82,9 @@ msgstr "Permanecer no estágio atual"
 msgid "plugins.generic.scieloModerationStages.menuDates.fieldDescription"
 msgstr "A submissão entrou nesse estágio de moderação na seguinte data"
 
+msgid "plugins.generic.scieloModerationStages.filter.pendingAction"
+msgstr "Pendente de ação"
+
 msgid "plugins.generic.scieloModerationStages.currentStageStatusLabel"
 msgstr "Estágio de Moderação:"
 
