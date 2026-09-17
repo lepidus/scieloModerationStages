@@ -5,9 +5,12 @@ namespace APP\plugins\generic\scieloModerationStages\classes\dispatchers;
 use PKP\plugins\Hook;
 use APP\core\Application;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
+use Illuminate\Support\Facades\DB;
 
 class DashboardDispatcher
 {
+    private const PRE_MODERATION_REQUIRED_TITLE = '[SciELO Preprints] Pré-Moderação necessária';
+
     private $plugin;
 
     public function __construct($plugin)
@@ -88,7 +91,7 @@ class DashboardDispatcher
             'heading' => __('plugins.generic.scieloModerationStages.moderation'),
             'filters' => [
                 [
-                    'param' => 'pendingAction',
+                    'param' => 'pendingModerationAction',
                     'value' => true,
                     'title' => __('plugins.generic.scieloModerationStages.filter.pendingAction'),
                 ]
@@ -101,12 +104,54 @@ class DashboardDispatcher
     {
         $query = &$params[0];
         $request = Application::get()->getRequest();
+        $user = $request->getUser();
         $moderationStages = $request->getUserVar('moderationStages');
+        $pendingModerationAction = $request->getUserVar('pendingModerationAction');
 
         if ($moderationStages) {
             $query->leftJoin('submission_settings as sub_s', 's.submission_id', '=', 'sub_s.submission_id')
                 ->where('sub_s.setting_name', 'currentModerationStage')
                 ->whereIn('sub_s.setting_value', $moderationStages);
+        }
+
+        if ($pendingModerationAction) {
+            $query->whereExists(function ($pendingActionQuery) use ($user) {
+                $pendingActionQuery
+                    ->select(DB::raw(1))
+                    ->from('queries as q')
+                    ->join('query_participants as qp', function ($join) use ($user) {
+                        $join->on('qp.query_id', '=', 'q.query_id')
+                            ->where('qp.user_id', '=', $user->getId());
+                    })
+                    ->join('notes as first_note', function ($join) {
+                        $join->on('first_note.assoc_id', '=', 'q.query_id')
+                            ->where('first_note.assoc_type', '=', Application::ASSOC_TYPE_QUERY);
+                    })
+                    ->join('notes as last_note', function ($join) {
+                        $join->on('last_note.assoc_id', '=', 'q.query_id')
+                            ->where('last_note.assoc_type', '=', Application::ASSOC_TYPE_QUERY);
+                    })
+                    ->where('q.assoc_type', Application::ASSOC_TYPE_SUBMISSION)
+                    ->whereColumn('q.assoc_id', 's.submission_id')
+                    ->where('first_note.title', 'like', '%' . self::PRE_MODERATION_REQUIRED_TITLE . '%')
+                    ->where('last_note.user_id', '<>', $user->getId())
+                    ->whereNotExists(function ($earlierNoteQuery) {
+                        $earlierNoteQuery
+                            ->select(DB::raw(1))
+                            ->from('notes as earlier_note')
+                            ->whereColumn('earlier_note.assoc_id', 'q.query_id')
+                            ->where('earlier_note.assoc_type', Application::ASSOC_TYPE_QUERY)
+                            ->whereColumn('earlier_note.date_created', '<', 'first_note.date_created');
+                    })
+                    ->whereNotExists(function ($laterNoteQuery) {
+                        $laterNoteQuery
+                            ->select(DB::raw(1))
+                            ->from('notes as later_note')
+                            ->whereColumn('later_note.assoc_id', 'q.query_id')
+                            ->where('later_note.assoc_type', Application::ASSOC_TYPE_QUERY)
+                            ->whereColumn('later_note.date_created', '>', 'last_note.date_created');
+                    });
+            });
         }
     }
 }
