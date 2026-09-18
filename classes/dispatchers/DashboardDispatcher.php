@@ -51,8 +51,8 @@ class DashboardDispatcher
         }
 
         $submissionsListPanels = $templateMgr->getState('components');
-        $submissionsListPanels = array_map([$this, 'addModerationStagesFilterToListPanel'], $submissionsListPanels);
         $submissionsListPanels = array_map([$this, 'addPendingActionFilterToListPanel'], $submissionsListPanels);
+        $submissionsListPanels = array_map([$this, 'addModerationStagesFilterToListPanel'], $submissionsListPanels);
 
         $templateMgr->setState(['components' => $submissionsListPanels]);
 
@@ -61,33 +61,34 @@ class DashboardDispatcher
 
     private function addModerationStagesFilterToListPanel($listPanel)
     {
-        $moderationStagesFilters = [
-            [
-                'param' => 'moderationStages',
-                'value' => ModerationStage::SCIELO_MODERATION_STAGE_FORMAT,
-                'title' => __('plugins.generic.scieloModerationStages.stages.formatStage'),
-            ],
-            [
-                'param' => 'moderationStages',
-                'value' => ModerationStage::SCIELO_MODERATION_STAGE_CONTENT,
-                'title' => __('plugins.generic.scieloModerationStages.stages.contentStage'),
-            ],
-            [
-                'param' => 'moderationStages',
-                'value' => ModerationStage::SCIELO_MODERATION_STAGE_AREA,
-                'title' => __('plugins.generic.scieloModerationStages.stages.areaStage'),
+        $moderationStagesFilter = [
+            'heading' => __('plugins.generic.scieloModerationStages.displayNameWorkflow'),
+            'filters' => [
+                [
+                    'param' => 'moderationStages',
+                    'value' => ModerationStage::SCIELO_MODERATION_STAGE_FORMAT,
+                    'title' => __('plugins.generic.scieloModerationStages.stages.formatStage'),
+                ],
+                [
+                    'param' => 'moderationStages',
+                    'value' => ModerationStage::SCIELO_MODERATION_STAGE_CONTENT,
+                    'title' => __('plugins.generic.scieloModerationStages.stages.contentStage'),
+                ],
+                [
+                    'param' => 'moderationStages',
+                    'value' => ModerationStage::SCIELO_MODERATION_STAGE_AREA,
+                    'title' => __('plugins.generic.scieloModerationStages.stages.areaStage'),
+                ]
             ]
         ];
-        $listPanel['filters'][] = [
-            'heading' => __('plugins.generic.scieloModerationStages.displayNameWorkflow'),
-            'filters' => $moderationStagesFilters
-        ];
+
+        $listPanel['filters'] = $this->insertNewFilterOnListPanel($listPanel['filters'], $moderationStagesFilter, 2);
         return $listPanel;
     }
 
     private function addPendingActionFilterToListPanel($listPanel)
     {
-        $listPanel['filters'][] = [
+        $pendingActionFilter = [
             'heading' => __('plugins.generic.scieloModerationStages.moderation'),
             'filters' => [
                 [
@@ -97,7 +98,19 @@ class DashboardDispatcher
                 ]
             ]
         ];
+
+        $listPanel['filters'] = $this->insertNewFilterOnListPanel($listPanel['filters'], $pendingActionFilter, 1);
+
         return $listPanel;
+    }
+
+    private function insertNewFilterOnListPanel(array $filters, array $newFilter, int $position): array
+    {
+        return array_merge(
+            array_slice($filters, 0, $position),
+            [$newFilter],
+            array_slice($filters, $position),
+        );
     }
 
     public function addFiltersToSubmissionCollector($hookName, $params)
