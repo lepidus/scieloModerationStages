@@ -82,6 +82,9 @@ msgstr "Remain in the current stage"
 msgid "plugins.generic.scieloModerationStages.menuDates.fieldDescription"
 msgstr "The submission has entered in this moderation stage in the following data"
 
+msgid "plugins.generic.scieloModerationStages.filter.pendingAction"
+msgstr "Pending of action"
+
 msgid "plugins.generic.scieloModerationStages.currentStageStatusLabel"
 msgstr "Moderation stage:"
 
