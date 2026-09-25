@@ -231,25 +231,6 @@ class ScieloModerationStagesHandler extends Handler
         return ['submissionId' => $submissionId, 'ModerationStage' => ''];
     }
 
-    private function getResponsibles($submissionId)
-    {
-        $responsibleUsers = $this->getAssignedUsers($submissionId, 'resp');
-
-        $responsiblesText = "";
-
-        if (count($responsibleUsers) > 1) {
-            unset($responsibleUsers['scielo-brasil']);
-        }
-
-        if (count($responsibleUsers) == 1) {
-            $responsiblesText = __('plugins.generic.scieloModerationStages.responsible', ['responsible' =>  array_pop($responsibleUsers)]);
-        } elseif (count($responsibleUsers) > 1) {
-            $responsiblesText = __('plugins.generic.scieloModerationStages.responsibles', ['responsibles' => implode(", ", $responsibleUsers)]);
-        }
-
-        return ['Responsibles' => $responsiblesText];
-    }
-
     private function getAreaModerators($submissionId)
     {
         $areaModeratorUsers = $this->getAssignedUsers($submissionId, 'am');
@@ -262,25 +243,6 @@ class ScieloModerationStagesHandler extends Handler
         }
 
         return ['AreaModerators' => $areaModeratorsText];
-    }
-
-    private function getAssignedUsers($submissionId, $abbrev): array
-    {
-        $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
-        $stageAssignmentsResults = $stageAssignmentDao->getBySubmissionAndRoleId($submissionId, Role::ROLE_ID_SUB_EDITOR, self::SUBMISSION_STAGE_ID);
-        $assignedUsers = [];
-
-        while ($stageAssignment = $stageAssignmentsResults->next()) {
-            $userGroup = Repo::userGroup()->get($stageAssignment->getUserGroupId());
-            $userGroupAbbrev = strtolower($userGroup->getData('abbrev', 'en'));
-
-            if ($userGroupAbbrev == $abbrev) {
-                $user = Repo::user()->get($stageAssignment->getUserId(), false);
-                $assignedUsers[$user->getData('username')] = $user->getFullName();
-            }
-        }
-
-        return $assignedUsers;
     }
 
     private function getSecondDateParamsForTimeExhibitors($submission): array

@@ -1,0 +1,62 @@
+<?php
+
+use PHPUnit\Framework\TestCase;
+use APP\plugins\generic\scieloModerationStages\tests\helpers\TestableDashboardExhibitorsHelper;
+use APP\plugins\generic\scieloModerationStages\ScieloModerationStagesPlugin;
+
+class DashboardExhibitorsHelperTest extends TestCase
+{
+    private TestableDashboardExhibitorsHelper $helper;
+    private int $submissionId = 1;
+
+    public function setUp(): void
+    {
+        parent::setUp();
+        $this->initializePluginLocaleData();
+        $this->helper = new TestableDashboardExhibitorsHelper();
+    }
+
+    private function initializePluginLocaleData(): void
+    {
+        $plugin = new ScieloModerationStagesPlugin();
+        $plugin->pluginPath = 'plugins/generic/scieloModerationStages';
+        $plugin->addLocaleData();
+    }
+
+    public function testGetsResponsiblesNames()
+    {
+        $this->helper->usersByGroup['resp'] = [
+            'jorgeamado' => 'Jorge Amado'
+        ];
+
+        $expectedResponsiblesText = 'Responsible: Jorge Amado';
+        $this->assertEquals($expectedResponsiblesText, $this->helper->getResponsiblesText($this->submissionId));
+
+        $this->helper->usersByGroup['resp'] = [
+            'jorgeamado' => 'Jorge Amado',
+            'cchagas' => 'Carlos Chagas'
+        ];
+
+        $expectedResponsiblesText = 'Responsibles: Jorge Amado, Carlos Chagas';
+        $this->assertEquals($expectedResponsiblesText, $this->helper->getResponsiblesText($this->submissionId));
+    }
+
+    public function testHelperIgnoresScieloUserWhenGettingResponsiblesNames()
+    {
+        $this->helper->usersByGroup['resp'] = [
+            'stagima' => 'Jorge Amado',
+            'cchagas' => 'Carlos Chagas',
+            'scielo-brasil' => 'SciELO Brasil'
+        ];
+
+        $expectedResponsiblesText = 'Responsibles: Jorge Amado, Carlos Chagas';
+        $this->assertEquals($expectedResponsiblesText, $this->helper->getResponsiblesText($this->submissionId));
+    }
+
+    public function testGetsEmptyTextWhenThereIsNoResponsibles()
+    {
+        $this->helper->usersByGroup['resp'] = [];
+
+        $this->assertEquals('', $this->helper->getResponsiblesText($this->submissionId));
+    }
+}
