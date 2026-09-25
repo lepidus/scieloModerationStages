@@ -4,13 +4,36 @@ namespace APP\plugins\generic\scieloModerationStages\classes;
 
 use APP\facades\Repo;
 use PKP\db\DAORegistry;
+use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 
 class DashboardExhibitorsHelper
 {
     public const RESPONSIBLES_GROUP_ABBREV = 'resp';
     public const AREA_MODERATORS_GROUP_ABBREV = 'am';
 
-    // get submission moderation stage
+    public $moderationStageDao;
+
+    public function __construct()
+    {
+        $this->moderationStageDao = new ModerationStageDAO();
+    }
+
+    public function getSubmissionModerationStageText(int $submissionId)
+    {
+        $moderationStage = $this->moderationStageDao->getSubmissionModerationStage($submissionId);
+
+        if (!is_null($moderationStage)) {
+            $stageMap = [
+                ModerationStage::SCIELO_MODERATION_STAGE_FORMAT => 'plugins.generic.scieloModerationStages.stages.formatStage',
+                ModerationStage::SCIELO_MODERATION_STAGE_CONTENT => 'plugins.generic.scieloModerationStages.stages.contentStage',
+                ModerationStage::SCIELO_MODERATION_STAGE_AREA => 'plugins.generic.scieloModerationStages.stages.areaStage',
+            ];
+
+            return __('plugins.generic.scieloModerationStages.currentStageStatusLabel') . ' ' . __($stageMap[$moderationStage]);
+        }
+
+        return '';
+    }
 
     public function getResponsiblesText(int $submissionId): string
     {

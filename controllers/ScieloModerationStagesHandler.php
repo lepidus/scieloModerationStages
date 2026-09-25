@@ -211,26 +211,6 @@ class ScieloModerationStagesHandler extends Handler
         );
     }
 
-    protected function getSubmissionModerationStage($submissionId)
-    {
-        $moderationStageDAO = new ModerationStageDAO();
-
-        $moderationStage = $moderationStageDAO->getSubmissionModerationStage($submissionId);
-        if (!is_null($moderationStage)) {
-            $stageMap = [
-                ModerationStage::SCIELO_MODERATION_STAGE_FORMAT => 'plugins.generic.scieloModerationStages.stages.formatStage',
-                ModerationStage::SCIELO_MODERATION_STAGE_CONTENT => 'plugins.generic.scieloModerationStages.stages.contentStage',
-                ModerationStage::SCIELO_MODERATION_STAGE_AREA => 'plugins.generic.scieloModerationStages.stages.areaStage',
-            ];
-
-            $moderationStageText = __('plugins.generic.scieloModerationStages.currentStageStatusLabel') . ' ' . __($stageMap[$moderationStage]);
-
-            return ['submissionId' => $submissionId, 'ModerationStage' => $moderationStageText];
-        }
-
-        return ['submissionId' => $submissionId, 'ModerationStage' => ''];
-    }
-
     private function getSecondDateParamsForTimeExhibitors($submission): array
     {
         if ($submission->getData('status') == Submission::STATUS_PUBLISHED) {
