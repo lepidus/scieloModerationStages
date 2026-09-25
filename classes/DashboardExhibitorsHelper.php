@@ -8,6 +8,7 @@ use PKP\db\DAORegistry;
 class DashboardExhibitorsHelper
 {
     public const RESPONSIBLES_GROUP_ABBREV = 'resp';
+    public const AREA_MODERATORS_GROUP_ABBREV = 'am';
 
     // get submission moderation stage
 
@@ -30,7 +31,19 @@ class DashboardExhibitorsHelper
         return $responsiblesText;
     }
 
-    // getAreaModerators
+    public function getAreaModeratorsText(int $submissionId)
+    {
+        $areaModeratorUsers = $this->getAssignedUsersByGroupAbbrev($submissionId, self::AREA_MODERATORS_GROUP_ABBREV);
+
+        $areaModeratorsText = "";
+        if (count($areaModeratorUsers) == 1) {
+            $areaModeratorsText = __('plugins.generic.scieloModerationStages.areaModerator', ['areaModerator' => array_pop($areaModeratorUsers)]);
+        } elseif (count($areaModeratorUsers) > 1) {
+            $areaModeratorsText = __('plugins.generic.scieloModerationStages.areaModerators', ['areaModerators' => implode(", ", $areaModeratorUsers)]);
+        }
+
+        return $areaModeratorsText;
+    }
 
     protected function getAssignedUsersByGroupAbbrev(int $submissionId, string $abbrev): array
     {

@@ -59,4 +59,29 @@ class DashboardExhibitorsHelperTest extends TestCase
 
         $this->assertEquals('', $this->helper->getResponsiblesText($this->submissionId));
     }
+
+    public function testGetsAreaModeratorsNames()
+    {
+        $this->helper->usersByGroup['am'] = [
+            'vmoraes' => 'Vinicius de Moraes'
+        ];
+
+        $expectedModeratorsText = 'Area moderator: Vinicius de Moraes';
+        $this->assertEquals($expectedModeratorsText, $this->helper->getAreaModeratorsText($this->submissionId));
+
+        $this->helper->usersByGroup['am'] = [
+            'vmoraes' => 'Vinicius de Moraes',
+            'cbuarque' => 'Chico Buarque'
+        ];
+
+        $expectedModeratorsText = 'Area moderators: Vinicius de Moraes, Chico Buarque';
+        $this->assertEquals($expectedModeratorsText, $this->helper->getAreaModeratorsText($this->submissionId));
+    }
+
+    public function testGetsEmptyTextWhenThereIsNoAreaModerators()
+    {
+        $this->helper->usersByGroup['am'] = [];
+
+        $this->assertEquals('', $this->helper->getAreaModeratorsText($this->submissionId));
+    }
 }

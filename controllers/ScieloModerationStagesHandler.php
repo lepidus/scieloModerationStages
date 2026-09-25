@@ -231,20 +231,6 @@ class ScieloModerationStagesHandler extends Handler
         return ['submissionId' => $submissionId, 'ModerationStage' => ''];
     }
 
-    private function getAreaModerators($submissionId)
-    {
-        $areaModeratorUsers = $this->getAssignedUsers($submissionId, 'am');
-
-        $areaModeratorsText = "";
-        if (count($areaModeratorUsers) == 1) {
-            $areaModeratorsText = __('plugins.generic.scieloModerationStages.areaModerator', ['areaModerator' => array_pop($areaModeratorUsers)]);
-        } elseif (count($areaModeratorUsers) > 1) {
-            $areaModeratorsText = __('plugins.generic.scieloModerationStages.areaModerators', ['areaModerators' => implode(", ", $areaModeratorUsers)]);
-        }
-
-        return ['AreaModerators' => $areaModeratorsText];
-    }
-
     private function getSecondDateParamsForTimeExhibitors($submission): array
     {
         if ($submission->getData('status') == Submission::STATUS_PUBLISHED) {
