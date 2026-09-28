@@ -207,18 +207,6 @@ class ScieloModerationStagesHandler extends Handler
         );
     }
 
-    private function getTimeSubmitted($submissionId)
-    {
-        $submission = Repo::submission()->get($submissionId);
-        $dateSubmitted = $submission->getData('dateSubmitted');
-
-        if (empty($dateSubmitted)) {
-            return ['TimeSubmitted' => ''];
-        }
-
-        return $this->getDataForTimeExhibitors($submission, $dateSubmitted, "TimeSubmitted");
-    }
-
     private function getLastAssignmentDate($submissionId, $abbrev): string
     {
         $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');

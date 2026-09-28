@@ -147,4 +147,25 @@ class DashboardExhibitorsHelperTest extends TestCase
         $exhibitorData = $this->helper->getDataForTimeExhibitor($this->submission, '2026-09-26', 'TimeAreaModerator');
         $this->assertEquals($expectedExhibitorData, $exhibitorData);
     }
+
+    public function testGetsDateSubmittedData(): void
+    {
+        $this->submission->setData('dateSubmitted', '2026-09-26');
+        $this->helper->submissionFinalDate = ['datePublished', '2026-09-28'];
+
+        $expectedDateSubmittedData = ['TimeSubmitted' => 'Submission made 2 days before posting'];
+        $dateSubmittedData = $this->helper->getTimeSubmittedData($this->submission);
+
+        $this->assertEquals($expectedDateSubmittedData, $dateSubmittedData);
+    }
+
+    public function testGetsEmptyTextWhenThereIsNoDateSubmitted(): void
+    {
+        $this->helper->submissionFinalDate = ['currentDate', '2026-09-28'];
+
+        $expectedDateSubmittedData = ['TimeSubmitted' => ''];
+        $dateSubmittedData = $this->helper->getTimeSubmittedData($this->submission);
+
+        $this->assertEquals($expectedDateSubmittedData, $dateSubmittedData);
+    }
 }

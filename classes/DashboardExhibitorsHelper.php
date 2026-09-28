@@ -92,7 +92,16 @@ class DashboardExhibitorsHelper
         return $assignedUsers;
     }
 
-    // time submitted
+    public function getTimeSubmittedData(Submission $submission)
+    {
+        $dateSubmitted = $submission->getData('dateSubmitted');
+
+        if (empty($dateSubmitted)) {
+            return ['TimeSubmitted' => ''];
+        }
+
+        return $this->getDataForTimeExhibitor($submission, $dateSubmitted, "TimeSubmitted");
+    }
 
     // time responsible
 
