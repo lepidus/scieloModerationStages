@@ -4,12 +4,17 @@ namespace APP\plugins\generic\scieloModerationStages\classes;
 
 use APP\facades\Repo;
 use PKP\db\DAORegistry;
+use Illuminate\Support\Facades\DB;
+use PKP\core\Core;
+use APP\submission\Submission;
+use APP\decision\Decision;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 
 class DashboardExhibitorsHelper
 {
     public const RESPONSIBLES_GROUP_ABBREV = 'resp';
     public const AREA_MODERATORS_GROUP_ABBREV = 'am';
+    private const THRESHOLD_TIME_EXHIBITORS = 2;
 
     public $moderationStageDao;
 
@@ -18,7 +23,7 @@ class DashboardExhibitorsHelper
         $this->moderationStageDao = new ModerationStageDAO();
     }
 
-    public function getSubmissionModerationStageText(int $submissionId)
+    public function getSubmissionModerationStageText(int $submissionId): string
     {
         $moderationStage = $this->moderationStageDao->getSubmissionModerationStage($submissionId);
 
@@ -86,4 +91,52 @@ class DashboardExhibitorsHelper
 
         return $assignedUsers;
     }
+
+    // time submitted
+
+    // time responsible
+
+    // time area moderator
+
+    public function getDataForTimeExhibitor(Submission $submission, string $firstDate, string $exhibitor): array
+    {
+        list($dateType, $secondDate) = $this->getSubmissionFinalDateParams($submission);
+        $firstDate = new \DateTime($firstDate);
+        $secondDate = new \DateTime($secondDate);
+
+        $daysPassed = $secondDate->diff($firstDate)->format('%a');
+
+        if ($daysPassed == 0) {
+            return [$exhibitor => __("plugins.generic.scieloModerationStages.$exhibitor.$dateType.lessThanOneDay")];
+        } elseif ($daysPassed > self::THRESHOLD_TIME_EXHIBITORS) {
+            return [
+                $exhibitor => __("plugins.generic.scieloModerationStages.$exhibitor.$dateType", ['daysPassed' => $daysPassed]),
+                "{$exhibitor}RedFlag" => true
+            ];
+        }
+
+        return [$exhibitor => __("plugins.generic.scieloModerationStages.$exhibitor.$dateType", ['daysPassed' => $daysPassed])];
+    }
+
+    protected function getSubmissionFinalDateParams(Submission $submission): array
+    {
+        if ($submission->getData('status') == Submission::STATUS_PUBLISHED) {
+            $publication = $submission->getCurrentPublication();
+            return ['datePublished', $publication->getData('datePublished')];
+        }
+
+        if ($submission->getData('status') == Submission::STATUS_DECLINED) {
+            $result = DB::table('edit_decisions')
+                ->where('submission_id', $submission->getId())
+                ->whereIn('decision', [Decision::DECLINE, Decision::INITIAL_DECLINE])
+                ->orderBy('date_decided', 'asc')
+                ->first();
+
+            return ['dateDeclined', get_object_vars($result)['date_decided']];
+        }
+
+        return ['currentDate', Core::getCurrentDate()];
+    }
+
+    //last assignment date
 }

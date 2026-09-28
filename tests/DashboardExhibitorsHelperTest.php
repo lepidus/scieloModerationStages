@@ -1,6 +1,7 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
+use APP\submission\Submission;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 use APP\plugins\generic\scieloModerationStages\tests\helpers\TestableDashboardExhibitorsHelper;
 use APP\plugins\generic\scieloModerationStages\ScieloModerationStagesPlugin;
@@ -9,12 +10,14 @@ class DashboardExhibitorsHelperTest extends TestCase
 {
     private TestableDashboardExhibitorsHelper $helper;
     private int $submissionId = 1;
+    private Submission $submission;
 
     public function setUp(): void
     {
         parent::setUp();
         $this->initializePluginLocaleData();
         $this->helper = new TestableDashboardExhibitorsHelper();
+        $this->submission = new Submission();
     }
 
     private function initializePluginLocaleData(): void
@@ -100,5 +103,48 @@ class DashboardExhibitorsHelperTest extends TestCase
         $this->helper->usersByGroup['am'] = [];
 
         $this->assertEquals('', $this->helper->getAreaModeratorsText($this->submissionId));
+    }
+
+    public function testTimeExhibitorsDataAdaptsToDaysPassed(): void
+    {
+        $this->helper->submissionFinalDate = ['currentDate', '2026-09-28'];
+
+        $expectedExhibitorData = ['TimeSubmitted' => 'Submission made less than a day ago'];
+        $exhibitorData = $this->helper->getDataForTimeExhibitor($this->submission, '2026-09-28', 'TimeSubmitted');
+        $this->assertEquals($expectedExhibitorData, $exhibitorData);
+
+        $expectedExhibitorData = ['TimeSubmitted' => 'Submission made 2 days ago'];
+        $exhibitorData = $this->helper->getDataForTimeExhibitor($this->submission, '2026-09-26', 'TimeSubmitted');
+        $this->assertEquals($expectedExhibitorData, $exhibitorData);
+
+        $expectedExhibitorData = ['TimeSubmitted' => 'Submission made 8 days ago', 'TimeSubmittedRedFlag' => true];
+        $exhibitorData = $this->helper->getDataForTimeExhibitor($this->submission, '2026-09-20', 'TimeSubmitted');
+        $this->assertEquals($expectedExhibitorData, $exhibitorData);
+    }
+
+    public function testTimeExhibitorsDataAdaptsToDifferentFinalDates(): void
+    {
+        $this->helper->submissionFinalDate = ['dateDeclined', '2026-09-28'];
+        $expectedExhibitorData = ['TimeSubmitted' => 'Submission made 2 days before rejection'];
+        $exhibitorData = $this->helper->getDataForTimeExhibitor($this->submission, '2026-09-26', 'TimeSubmitted');
+        $this->assertEquals($expectedExhibitorData, $exhibitorData);
+
+        $this->helper->submissionFinalDate = ['datePublished', '2026-09-28'];
+        $expectedExhibitorData = ['TimeSubmitted' => 'Submission made 2 days before posting'];
+        $exhibitorData = $this->helper->getDataForTimeExhibitor($this->submission, '2026-09-26', 'TimeSubmitted');
+        $this->assertEquals($expectedExhibitorData, $exhibitorData);
+    }
+
+    public function testTimeExhibitorsDataAdaptsToDifferentExhibitors(): void
+    {
+        $this->helper->submissionFinalDate = ['datePublished', '2026-09-28'];
+
+        $expectedExhibitorData = ['TimeResponsible' => 'Responsible assigned 2 days before posting'];
+        $exhibitorData = $this->helper->getDataForTimeExhibitor($this->submission, '2026-09-26', 'TimeResponsible');
+        $this->assertEquals($expectedExhibitorData, $exhibitorData);
+
+        $expectedExhibitorData = ['TimeAreaModerator' => 'Area moderator assigned 2 days before posting'];
+        $exhibitorData = $this->helper->getDataForTimeExhibitor($this->submission, '2026-09-26', 'TimeAreaModerator');
+        $this->assertEquals($expectedExhibitorData, $exhibitorData);
     }
 }

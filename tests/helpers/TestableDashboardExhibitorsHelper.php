@@ -7,9 +7,15 @@ use APP\plugins\generic\scieloModerationStages\classes\DashboardExhibitorsHelper
 class TestableDashboardExhibitorsHelper extends DashboardExhibitorsHelper
 {
     public array $usersByGroup = [];
+    public array $submissionFinalDate = [];
 
     protected function getAssignedUsersByGroupAbbrev(int $submissionId, string $abbrev): array
     {
         return $this->usersByGroup[$abbrev];
+    }
+
+    protected function getSubmissionFinalDateParams($submission): array
+    {
+        return $this->submissionFinalDate;
     }
 }

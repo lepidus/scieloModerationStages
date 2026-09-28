@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use PKP\plugins\PluginRegistry;
 use APP\core\Application;
@@ -12,8 +11,6 @@ use PKP\security\authorization\ContextAccessPolicy;
 use PKP\security\authorization\SubmissionAccessPolicy;
 use PKP\db\DAORegistry;
 use PKP\core\JSONMessage;
-use APP\submission\Submission;
-use APP\decision\Decision;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageRegister;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageDAO;
@@ -24,7 +21,6 @@ use APP\plugins\generic\scieloModerationStages\classes\mail\builders\StageAdvanc
 class ScieloModerationStagesHandler extends Handler
 {
     private const SUBMISSION_STAGE_ID = 5;
-    private const THRESHOLD_TIME_EXHIBITORS = 2;
     private const SUBMISSION_SCOPED_OPERATIONS = ['updateSubmissionStageData', 'getSubmissionExhibitData'];
 
     public function __construct()
@@ -209,46 +205,6 @@ class ScieloModerationStagesHandler extends Handler
             $this->getTimeResponsible($submissionId),
             $this->getTimeAreaModerator($submissionId)
         );
-    }
-
-    private function getSecondDateParamsForTimeExhibitors($submission): array
-    {
-        if ($submission->getData('status') == Submission::STATUS_PUBLISHED) {
-            $publication = $submission->getCurrentPublication();
-            return ['datePublished', $publication->getData('datePublished')];
-        }
-
-        if ($submission->getData('status') == Submission::STATUS_DECLINED) {
-            $result = DB::table('edit_decisions')
-                ->where('submission_id', $submission->getId())
-                ->whereIn('decision', [Decision::DECLINE, Decision::INITIAL_DECLINE])
-                ->orderBy('date_decided', 'asc')
-                ->first();
-
-            return ['dateDeclined', get_object_vars($result)['date_decided']];
-        }
-
-        return ['currentDate', Core::getCurrentDate()];
-    }
-
-    private function getDataForTimeExhibitors($submission, $firstDate, $exhibitor): array
-    {
-        list($dateType, $secondDate) = $this->getSecondDateParamsForTimeExhibitors($submission);
-        $firstDate = new DateTime($firstDate);
-        $secondDate = new DateTime($secondDate);
-
-        $daysPassed = $secondDate->diff($firstDate)->format('%a');
-
-        if ($daysPassed == 0) {
-            return [$exhibitor => __("plugins.generic.scieloModerationStages.$exhibitor.$dateType.lessThanOneDay")];
-        } elseif ($daysPassed > self::THRESHOLD_TIME_EXHIBITORS) {
-            return [
-                $exhibitor => __("plugins.generic.scieloModerationStages.$exhibitor.$dateType", ['daysPassed' => $daysPassed]),
-                "{$exhibitor}RedFlag" => true
-            ];
-        }
-
-        return [$exhibitor => __("plugins.generic.scieloModerationStages.$exhibitor.$dateType", ['daysPassed' => $daysPassed])];
     }
 
     private function getTimeSubmitted($submissionId)
