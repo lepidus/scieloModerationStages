@@ -18,6 +18,7 @@ class DashboardExhibitorsHelperTest extends TestCase
         $this->initializePluginLocaleData();
         $this->helper = new TestableDashboardExhibitorsHelper();
         $this->submission = new Submission();
+        $this->submission->setData('id', $this->submissionId);
     }
 
     private function initializePluginLocaleData(): void
@@ -167,5 +168,47 @@ class DashboardExhibitorsHelperTest extends TestCase
         $dateSubmittedData = $this->helper->getTimeSubmittedData($this->submission);
 
         $this->assertEquals($expectedDateSubmittedData, $dateSubmittedData);
+    }
+
+    public function testGetsTimeResponsibleData(): void
+    {
+        $this->helper->lastAssignmentDateByGroup['resp'] = '2026-09-26';
+        $this->helper->submissionFinalDate = ['datePublished', '2026-09-28'];
+
+        $expectedTimeResponsibleData = ['TimeResponsible' => 'Responsible assigned 2 days before posting'];
+        $timeResponsibleData = $this->helper->getTimeResponsibleData($this->submission);
+
+        $this->assertEquals($expectedTimeResponsibleData, $timeResponsibleData);
+    }
+
+    public function testGetsEmptyTextWhenThereIsNoResponsible(): void
+    {
+        $this->helper->submissionFinalDate = ['currentDate', '2026-09-28'];
+
+        $expectedTimeResponsibleData = ['TimeResponsible' => ''];
+        $timeResponsibleData = $this->helper->getTimeResponsibleData($this->submission);
+
+        $this->assertEquals($expectedTimeResponsibleData, $timeResponsibleData);
+    }
+
+    public function testGetsTimeAreaModeratorData(): void
+    {
+        $this->helper->lastAssignmentDateByGroup['am'] = '2026-09-26';
+        $this->helper->submissionFinalDate = ['datePublished', '2026-09-28'];
+
+        $expectedTimeModeratorData = ['TimeAreaModerator' => 'Area moderator assigned 2 days before posting'];
+        $timeModeratorData = $this->helper->getTimeAreaModeratorData($this->submission);
+
+        $this->assertEquals($expectedTimeModeratorData, $timeModeratorData);
+    }
+
+    public function testGetsEmptyTextWhenThereIsNoAreaModerator(): void
+    {
+        $this->helper->submissionFinalDate = ['currentDate', '2026-09-28'];
+
+        $expectedTimeModeratorData = ['TimeAreaModerator' => ''];
+        $timeModeratorData = $this->helper->getTimeAreaModeratorData($this->submission);
+
+        $this->assertEquals($expectedTimeModeratorData, $timeModeratorData);
     }
 }

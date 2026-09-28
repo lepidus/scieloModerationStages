@@ -206,48 +206,4 @@ class ScieloModerationStagesHandler extends Handler
             $this->getTimeAreaModerator($submissionId)
         );
     }
-
-    private function getLastAssignmentDate($submissionId, $abbrev): string
-    {
-        $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
-
-        $stageAssignmentsResults = $stageAssignmentDao->getBySubmissionAndRoleId($submissionId, Role::ROLE_ID_SUB_EDITOR, self::SUBMISSION_STAGE_ID);
-        $lastAssignmentDate = "";
-
-        while ($stageAssignment = $stageAssignmentsResults->next()) {
-            $userGroup = Repo::userGroup()->get($stageAssignment->getUserGroupId());
-            $currentUserGroupAbbrev = strtolower($userGroup->getData('abbrev', 'en'));
-
-            if ($currentUserGroupAbbrev == $abbrev) {
-                if (empty($lastAssignmentDate) or ($stageAssignment->getData('dateAssigned') > $lastAssignmentDate)) {
-                    $lastAssignmentDate = $stageAssignment->getData('dateAssigned');
-                }
-            }
-        }
-
-        return $lastAssignmentDate;
-    }
-
-    private function getTimeResponsible($submissionId)
-    {
-        $submission = Repo::submission()->get($submissionId);
-        $lastAssignmentDate = $this->getLastAssignmentDate($submissionId, 'resp');
-
-        if (empty($lastAssignmentDate)) {
-            return ['TimeResponsible' => ''];
-        }
-        return $this->getDataForTimeExhibitors($submission, $lastAssignmentDate, "TimeResponsible");
-    }
-
-    private function getTimeAreaModerator($submissionId)
-    {
-        $submission = Repo::submission()->get($submissionId);
-        $lastAssignmentDate = $this->getLastAssignmentDate($submissionId, 'am');
-
-        if (empty($lastAssignmentDate)) {
-            return ['TimeAreaModerator' => ''];
-        }
-
-        return $this->getDataForTimeExhibitors($submission, $lastAssignmentDate, "TimeAreaModerator");
-    }
 }

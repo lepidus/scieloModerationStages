@@ -103,9 +103,26 @@ class DashboardExhibitorsHelper
         return $this->getDataForTimeExhibitor($submission, $dateSubmitted, "TimeSubmitted");
     }
 
-    // time responsible
+    public function getTimeResponsibleData(Submission $submission)
+    {
+        $lastAssignmentDate = $this->getLastAssignmentDateByGroupAbbrev($submission->getId(), self::RESPONSIBLES_GROUP_ABBREV);
 
-    // time area moderator
+        if (empty($lastAssignmentDate)) {
+            return ['TimeResponsible' => ''];
+        }
+        return $this->getDataForTimeExhibitor($submission, $lastAssignmentDate, "TimeResponsible");
+    }
+
+    public function getTimeAreaModeratorData(Submission $submission)
+    {
+        $lastAssignmentDate = $this->getLastAssignmentDateByGroupAbbrev($submission->getId(), self::AREA_MODERATORS_GROUP_ABBREV);
+
+        if (empty($lastAssignmentDate)) {
+            return ['TimeAreaModerator' => ''];
+        }
+
+        return $this->getDataForTimeExhibitor($submission, $lastAssignmentDate, "TimeAreaModerator");
+    }
 
     public function getDataForTimeExhibitor(Submission $submission, string $firstDate, string $exhibitor): array
     {
@@ -147,5 +164,23 @@ class DashboardExhibitorsHelper
         return ['currentDate', Core::getCurrentDate()];
     }
 
-    //last assignment date
+    protected function getLastAssignmentDateByGroupAbbrev(int $submissionId, string $abbrev): string
+    {
+        $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
+        $stageAssignmentsResults = $stageAssignmentDao->getBySubmissionAndStageId($submissionId);
+        $lastAssignmentDate = "";
+
+        while ($stageAssignment = $stageAssignmentsResults->next()) {
+            $userGroup = Repo::userGroup()->get($stageAssignment->getUserGroupId());
+            $currentUserGroupAbbrev = strtolower($userGroup->getData('abbrev', 'en'));
+
+            if ($currentUserGroupAbbrev == $abbrev) {
+                if (empty($lastAssignmentDate) or ($stageAssignment->getData('dateAssigned') > $lastAssignmentDate)) {
+                    $lastAssignmentDate = $stageAssignment->getData('dateAssigned');
+                }
+            }
+        }
+
+        return $lastAssignmentDate;
+    }
 }
