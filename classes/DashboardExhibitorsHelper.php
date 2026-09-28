@@ -23,6 +23,26 @@ class DashboardExhibitorsHelper
         $this->moderationStageDao = new ModerationStageDAO();
     }
 
+    protected function getUserUserGroups(int $userId, int $contextId): array
+    {
+        $userGroups = Repo::userGroup()->getCollector()
+            ->filterByContextIds([$contextId])
+            ->filterByUserIds([$userId])
+            ->getMany();
+
+        $userUserGroups = [];
+        foreach ($userGroups as $userGroup) {
+            $role = $userGroup->getRoleId();
+            if (!isset($userUserGroups[$role])) {
+                $userUserGroups[$role] = [];
+            }
+
+            $userUserGroups[$role][$userGroup->getId()] = $userGroup->getData('abbrev');
+        }
+
+        return $userUserGroups;
+    }
+
     public function getSubmissionModerationStageText(int $submissionId): string
     {
         $moderationStage = $this->moderationStageDao->getSubmissionModerationStage($submissionId);
