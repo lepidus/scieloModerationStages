@@ -296,11 +296,12 @@ class DashboardExhibitorsHelperTest extends TestCase
         $expectedExhibitorsData = [
             'submissionId' => $this->submissionId,
             'ModerationStage' => 'Moderation stage: Format Pre-Moderation',
-            'Responsibles' => 'Carlos Chagas',
-            'AreaModerators' => 'Vinicius de Moraes',
+            'Responsibles' => 'Responsible: Carlos Chagas',
+            'AreaModerators' => 'Area moderator: Vinicius de Moraes',
             'TimeSubmitted' => 'Submission made 2 days ago',
             'TimeResponsible' => 'Responsible assigned 3 days ago',
-            'TimeAreaModerator' => 'Area moderator assigned 2 days ago'
+            'TimeAreaModerator' => 'Area moderator assigned 2 days ago',
+            'TimeResponsibleRedFlag' => true
         ];
         $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId);
         $this->assertEquals($expectedExhibitorsData, $exhibitorsData);
@@ -318,7 +319,7 @@ class DashboardExhibitorsHelperTest extends TestCase
         $expectedExhibitorsData = [
             'submissionId' => $this->submissionId,
             'ModerationStage' => 'Moderation stage: Format Pre-Moderation',
-            'AreaModerators' => 'Vinicius de Moraes',
+            'AreaModerators' => 'Area moderator: Vinicius de Moraes',
             'TimeAreaModerator' => 'Area moderator assigned 2 days ago'
         ];
         $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId);

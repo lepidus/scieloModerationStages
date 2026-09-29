@@ -24,6 +24,41 @@ class DashboardExhibitorsHelper
         $this->moderationStageDao = new ModerationStageDAO();
     }
 
+    public function getExhibitorsData(Submission $submission, int $userId, int $contextId): array
+    {
+        $userMainUserGroup = $this->getUserMainUserGroup($userId, $contextId);
+
+        if (empty($userMainUserGroup) || $userMainUserGroup['role'] == Role::ROLE_ID_READER) {
+            return [];
+        }
+
+        $exhibitorsData = [
+            'submissionId' => $submission->getId(),
+            'ModerationStage' => $this->getSubmissionModerationStageText($submission->getId())
+        ];
+
+        if ($userMainUserGroup['role'] == Role::ROLE_ID_MANAGER) {
+            $exhibitorsData = array_merge(
+                $exhibitorsData,
+                [
+                    'Responsibles' => $this->getResponsiblesText($submission->getId()),
+                    'AreaModerators' => $this->getAreaModeratorsText($submission->getId()),
+                ],
+                $this->getTimeSubmittedData($submission),
+                $this->getTimeResponsibleData($submission),
+                $this->getTimeAreaModeratorData($submission)
+            );
+        } elseif ($userMainUserGroup['role'] == Role::ROLE_ID_SUB_EDITOR && $userMainUserGroup['abbrev'] == self::RESPONSIBLES_GROUP_ABBREV) {
+            $exhibitorsData = array_merge(
+                $exhibitorsData,
+                ['AreaModerators' => $this->getAreaModeratorsText($submission->getId())],
+                $this->getTimeAreaModeratorData($submission)
+            );
+        }
+
+        return $exhibitorsData;
+    }
+
     public function getUserMainUserGroup(int $userId, int $contextId): array
     {
         $roles = [Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_AUTHOR, Role::ROLE_ID_READER];
