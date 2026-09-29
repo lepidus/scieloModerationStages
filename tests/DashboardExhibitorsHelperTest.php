@@ -2,6 +2,7 @@
 
 use PHPUnit\Framework\TestCase;
 use APP\submission\Submission;
+use PKP\security\Role;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 use APP\plugins\generic\scieloModerationStages\tests\helpers\TestableDashboardExhibitorsHelper;
 use APP\plugins\generic\scieloModerationStages\ScieloModerationStagesPlugin;
@@ -9,6 +10,8 @@ use APP\plugins\generic\scieloModerationStages\ScieloModerationStagesPlugin;
 class DashboardExhibitorsHelperTest extends TestCase
 {
     private TestableDashboardExhibitorsHelper $helper;
+    private int $userId = 33;
+    private int $contextId = 2;
     private int $submissionId = 1;
     private Submission $submission;
 
@@ -210,5 +213,73 @@ class DashboardExhibitorsHelperTest extends TestCase
         $timeModeratorData = $this->helper->getTimeAreaModeratorData($this->submission);
 
         $this->assertEquals($expectedTimeModeratorData, $timeModeratorData);
+    }
+
+    public function testGetsUserMainUserGroupForManagers()
+    {
+        $this->helper->userUserGroups = [
+            Role::ROLE_ID_MANAGER => [
+                1 => [
+                    'en' => 'PSM',
+                    'pt_BR' => 'ASP'
+                ],
+                2 => [
+                    'en' => 'JE',
+                    'pt_BR' => 'JE'
+                ]
+            ],
+            Role::ROLE_ID_AUTHOR => [
+                5 => [
+                    'en' => 'AU',
+                    'pt_BR' => 'AU'
+                ]
+            ]
+        ];
+
+        $expectedUserMainGroup = ['role' => Role::ROLE_ID_MANAGER, 'abbrev' => 'PSM'];
+        $userMainGroup = $this->helper->getUserMainUserGroup($this->userId, $this->contextId);
+        $this->assertEquals($expectedUserMainGroup, $userMainGroup);
+
+        unset($this->helper->userUserGroups[Role::ROLE_ID_MANAGER]);
+
+        $expectedUserMainGroup = ['role' => Role::ROLE_ID_AUTHOR, 'abbrev' => 'AU'];
+        $userMainGroup = $this->helper->getUserMainUserGroup($this->userId, $this->contextId);
+        $this->assertEquals($expectedUserMainGroup, $userMainGroup);
+    }
+
+    public function testGetsUserMainUserGroupForEditors()
+    {
+        $this->helper->userUserGroups = [
+            Role::ROLE_ID_SUB_EDITOR => [
+                2 => [
+                    'en' => 'ED',
+                    'pt_BR' => 'ED'
+                ],
+                3 => [
+                    'en' => 'RESP',
+                    'pt_BR' => 'RESP'
+                ],
+                4 => [
+                    'en' => 'AM',
+                    'pt_BR' => 'MA'
+                ]
+            ],
+            Role::ROLE_ID_AUTHOR => [
+                5 => [
+                    'en' => 'AU',
+                    'pt_BR' => 'AU'
+                ]
+            ]
+        ];
+
+        $expectedUserMainGroup = ['role' => Role::ROLE_ID_SUB_EDITOR, 'abbrev' => 'RESP'];
+        $userMainGroup = $this->helper->getUserMainUserGroup($this->userId, $this->contextId);
+        $this->assertEquals($expectedUserMainGroup, $userMainGroup);
+
+        unset($this->helper->userUserGroups[Role::ROLE_ID_SUB_EDITOR][3]);
+
+        $expectedUserMainGroup = ['role' => Role::ROLE_ID_SUB_EDITOR, 'abbrev' => 'AM'];
+        $userMainGroup = $this->helper->getUserMainUserGroup($this->userId, $this->contextId);
+        $this->assertEquals($expectedUserMainGroup, $userMainGroup);
     }
 }
