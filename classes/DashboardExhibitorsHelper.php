@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use PKP\core\Core;
 use APP\submission\Submission;
 use APP\decision\Decision;
+use PKP\security\Role;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 
 class DashboardExhibitorsHelper
@@ -21,6 +22,31 @@ class DashboardExhibitorsHelper
     public function __construct()
     {
         $this->moderationStageDao = new ModerationStageDAO();
+    }
+
+    public function getUserMainUserGroup(int $userId, int $contextId): array
+    {
+        $roles = [Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_AUTHOR, Role::ROLE_ID_READER];
+        $userUserGroups = $this->getUserUserGroups($userId, $contextId);
+
+        foreach ($roles as $role) {
+            if (!isset($userUserGroups[$role])) {
+                continue;
+            }
+
+            if ($role == Role::ROLE_ID_SUB_EDITOR) {
+                if (in_array(self::RESPONSIBLES_GROUP_ABBREV, $userUserGroups[$role])) {
+                    return ['role' => $role, 'abbrev' => self::RESPONSIBLES_GROUP_ABBREV];
+                } elseif (in_array(self::AREA_MODERATORS_GROUP_ABBREV, $userUserGroups[$role])) {
+                    return ['role' => $role, 'abbrev' => self::AREA_MODERATORS_GROUP_ABBREV];
+                }
+            }
+
+            $userGroupAbbrev = reset($userUserGroups[$role]);
+            return ['role' => $role, 'abbrev' => $userGroupAbbrev];
+        }
+
+        return [];
     }
 
     protected function getUserUserGroups(int $userId, int $contextId): array
@@ -37,7 +63,7 @@ class DashboardExhibitorsHelper
                 $userUserGroups[$role] = [];
             }
 
-            $userUserGroups[$role][$userGroup->getId()] = $userGroup->getData('abbrev');
+            $userUserGroups[$role][$userGroup->getId()] = strtolower($userGroup->getLocalizedData('abbrev', 'en'));
         }
 
         return $userUserGroups;

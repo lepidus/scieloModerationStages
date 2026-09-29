@@ -219,30 +219,21 @@ class DashboardExhibitorsHelperTest extends TestCase
     {
         $this->helper->userUserGroups = [
             Role::ROLE_ID_MANAGER => [
-                1 => [
-                    'en' => 'PSM',
-                    'pt_BR' => 'ASP'
-                ],
-                2 => [
-                    'en' => 'JE',
-                    'pt_BR' => 'JE'
-                ]
+                1 => 'psm',
+                2 => 'je'
             ],
             Role::ROLE_ID_AUTHOR => [
-                5 => [
-                    'en' => 'AU',
-                    'pt_BR' => 'AU'
-                ]
+                5 => 'au'
             ]
         ];
 
-        $expectedUserMainGroup = ['role' => Role::ROLE_ID_MANAGER, 'abbrev' => 'PSM'];
+        $expectedUserMainGroup = ['role' => Role::ROLE_ID_MANAGER, 'abbrev' => 'psm'];
         $userMainGroup = $this->helper->getUserMainUserGroup($this->userId, $this->contextId);
         $this->assertEquals($expectedUserMainGroup, $userMainGroup);
 
         unset($this->helper->userUserGroups[Role::ROLE_ID_MANAGER]);
 
-        $expectedUserMainGroup = ['role' => Role::ROLE_ID_AUTHOR, 'abbrev' => 'AU'];
+        $expectedUserMainGroup = ['role' => Role::ROLE_ID_AUTHOR, 'abbrev' => 'au'];
         $userMainGroup = $this->helper->getUserMainUserGroup($this->userId, $this->contextId);
         $this->assertEquals($expectedUserMainGroup, $userMainGroup);
     }
@@ -251,34 +242,26 @@ class DashboardExhibitorsHelperTest extends TestCase
     {
         $this->helper->userUserGroups = [
             Role::ROLE_ID_SUB_EDITOR => [
-                2 => [
-                    'en' => 'ED',
-                    'pt_BR' => 'ED'
-                ],
-                3 => [
-                    'en' => 'RESP',
-                    'pt_BR' => 'RESP'
-                ],
-                4 => [
-                    'en' => 'AM',
-                    'pt_BR' => 'MA'
-                ]
+                2 => 'ed',
+                3 => 'resp',
+                4 => 'am',
             ],
             Role::ROLE_ID_AUTHOR => [
-                5 => [
-                    'en' => 'AU',
-                    'pt_BR' => 'AU'
-                ]
+                5 => 'au',
             ]
         ];
 
-        $expectedUserMainGroup = ['role' => Role::ROLE_ID_SUB_EDITOR, 'abbrev' => 'RESP'];
+        $expectedUserMainGroup = ['role' => Role::ROLE_ID_SUB_EDITOR, 'abbrev' => 'resp'];
         $userMainGroup = $this->helper->getUserMainUserGroup($this->userId, $this->contextId);
         $this->assertEquals($expectedUserMainGroup, $userMainGroup);
 
         unset($this->helper->userUserGroups[Role::ROLE_ID_SUB_EDITOR][3]);
+        $expectedUserMainGroup = ['role' => Role::ROLE_ID_SUB_EDITOR, 'abbrev' => 'am'];
+        $userMainGroup = $this->helper->getUserMainUserGroup($this->userId, $this->contextId);
+        $this->assertEquals($expectedUserMainGroup, $userMainGroup);
 
-        $expectedUserMainGroup = ['role' => Role::ROLE_ID_SUB_EDITOR, 'abbrev' => 'AM'];
+        unset($this->helper->userUserGroups[Role::ROLE_ID_SUB_EDITOR][4]);
+        $expectedUserMainGroup = ['role' => Role::ROLE_ID_SUB_EDITOR, 'abbrev' => 'ed'];
         $userMainGroup = $this->helper->getUserMainUserGroup($this->userId, $this->contextId);
         $this->assertEquals($expectedUserMainGroup, $userMainGroup);
     }
