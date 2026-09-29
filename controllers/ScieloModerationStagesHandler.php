@@ -16,6 +16,7 @@ use APP\plugins\generic\scieloModerationStages\classes\ModerationStageRegister;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageDAO;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationReminderEmailBuilder;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationReminderHelper;
+use APP\plugins\generic\scieloModerationStages\classes\DashboardExhibitorsHelper;
 use APP\plugins\generic\scieloModerationStages\classes\mail\builders\StageAdvancementEmailBuilder;
 
 class ScieloModerationStagesHandler extends Handler
@@ -28,11 +29,11 @@ class ScieloModerationStagesHandler extends Handler
         parent::__construct();
         $this->addRoleAssignment(
             [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_ASSISTANT],
-            ['getReminderBody', 'updateSubmissionStageData', 'getSubmissionExhibitData', 'getUserIsAuthor']
+            ['getReminderBody', 'updateSubmissionStageData', 'getSubmissionExhibitData']
         );
         $this->addRoleAssignment(
             [Role::ROLE_ID_AUTHOR],
-            ['getSubmissionExhibitData', 'getUserIsAuthor']
+            ['getSubmissionExhibitData']
         );
     }
 
@@ -173,37 +174,14 @@ class ScieloModerationStagesHandler extends Handler
 
     public function getSubmissionExhibitData($args, $request)
     {
-        $submissionId = $this->getSubmission()->getId();
-        $exhibitData = $this->getSubmissionModerationStage($submissionId);
+        $submission = $this->getSubmission();
+        $request = Application::get()->getRequest();
+        $userId = $request->getUser()->getId();
+        $contextId = $request->getContext()->getId();
 
-        if (!$this->currentUserIsAuthor()) {
-            $exhibitData = array_merge($exhibitData, $this->getEditorialExhibitData($submissionId));
-        }
+        $exhibitorsHelper = new DashboardExhibitorsHelper();
+        $exhibitData = $exhibitorsHelper->getExhibitorsData($submission, $userId, $contextId);
 
         return json_encode($exhibitData);
-    }
-
-    public function getUserIsAuthor($args, $request)
-    {
-        return json_encode($this->currentUserIsAuthor() ? 1 : 0);
-    }
-
-    protected function currentUserIsAuthor(): bool
-    {
-        $userRoles = $this->getAuthorizedContextObject(Application::ASSOC_TYPE_USER_ROLES);
-        $editorialRoles = [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR];
-
-        return count(array_intersect($userRoles, $editorialRoles)) === 0;
-    }
-
-    protected function getEditorialExhibitData($submissionId): array
-    {
-        return array_merge(
-            $this->getResponsibles($submissionId),
-            $this->getAreaModerators($submissionId),
-            $this->getTimeSubmitted($submissionId),
-            $this->getTimeResponsible($submissionId),
-            $this->getTimeAreaModerator($submissionId)
-        );
     }
 }
