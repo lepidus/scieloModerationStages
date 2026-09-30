@@ -6,6 +6,7 @@ function insertAfter(newNode, referenceNode) {
 
 function createExhibitorNode(submissionId, exhibitorName, text) {
     let node = document.createElement('div');
+    node.classList.add('moderationStagesExhibitor');
     node.classList.add('listPanel__item' + exhibitorName);
     node.classList.add('submission' + exhibitorName + '--' + submissionId);
     if(labeledExhibitorNodes.includes(exhibitorName)) {
@@ -39,13 +40,6 @@ function addTextToLabeledExhibitor(exhibitorNode, text) {
     exhibitorNode.appendChild(document.createTextNode(contentText));
 }
 
-function addRedColorToTimeExhibitor(exhibitorNodeName, submissionId) {
-    var exhibitorNodes = document.getElementsByClassName('submission' + exhibitorNodeName + '--' + submissionId);
-    for(let exhibitorNode of exhibitorNodes) {
-        exhibitorNode.classList.add('itemTimeRed');
-    }
-}
-
 function addSubmissionExhibitorNodes(response) {
     response = JSON.parse(response);
     const submissionId = response['submissionId'];
@@ -55,7 +49,7 @@ function addSubmissionExhibitorNodes(response) {
     
     for (let idNode of submissionIdNodes) {
         const submissionIdentityNode = idNode.parentNode;
-        const alreadyHasExhibitors = submissionIdentityNode.getElementsByClassName('listPanel__itemModerationStage').length > 0;
+        const alreadyHasExhibitors = submissionIdentityNode.getElementsByClassName('moderationStagesExhibitor').length > 0;
         let previousNode = submissionIdentityNode.getElementsByClassName('listPanel__itemSubtitle')[0];
 
         if (alreadyHasExhibitors) {
@@ -67,16 +61,20 @@ function addSubmissionExhibitorNodes(response) {
                 continue;
             }
 
-            if(exhibitorName == 'exhibitorsSeparator') {
+            if(exhibitorName.includes('ExhibitorsSeparator')) {
                 newExhibitorNode = createExhibitorsSeparator(submissionId);
             } else {
                 newExhibitorNode = createExhibitorNode(submissionId, exhibitorName, response[exhibitorName]);
                 if(exhibitorName+'RedFlag' in response) {
-                    addRedColorToTimeExhibitor(exhibitorName, submissionId);
+                    newExhibitorNode.classList.add('itemTimeRed')
                 }
             }
             insertAfter(newExhibitorNode, previousNode);
-            previousNode = addLineBreakAfterExhibitor(newExhibitorNode);
+            previousNode = newExhibitorNode;
+
+            if (!exhibitorName.includes('ExhibitorsSeparator')) {
+                previousNode = addLineBreakAfterExhibitor(newExhibitorNode);
+            }
         }
     }
 }
@@ -89,7 +87,7 @@ function getSubmissionIdFromDiv(parentDiv) {
 async function addSubmissionExhibitors() {
     let submissionSubtitles = document.getElementsByClassName('listPanel__itemSubtitle');
     for (let subtitle of submissionSubtitles) {
-        const hasExhibitors = subtitle.parentNode.getElementsByClassName('listPanel__itemModerationStage').length > 0;
+        const hasExhibitors = subtitle.parentNode.getElementsByClassName('moderationStagesExhibitor').length > 0;
         if(!hasExhibitors) {
             const submissionId = getSubmissionIdFromDiv(subtitle.parentNode);
             $.get(
