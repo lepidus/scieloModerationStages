@@ -34,25 +34,32 @@ class DashboardExhibitorsHelper
 
         $exhibitorsData = [
             'submissionId' => $submission->getId(),
-            'ModerationStage' => $this->getSubmissionModerationStageText($submission->getId())
+            'ModerationStage' => $this->getSubmissionModerationStageText($submission->getId()),
         ];
 
-        if ($userMainUserGroup['role'] == Role::ROLE_ID_MANAGER) {
+        if (
+            $userMainUserGroup['role'] == Role::ROLE_ID_MANAGER
+            || ($userMainUserGroup['role'] == Role::ROLE_ID_SUB_EDITOR && $userMainUserGroup['abbrev'] == self::RESPONSIBLES_GROUP_ABBREV)
+        ) {
+            if ($userMainUserGroup['role'] == Role::ROLE_ID_MANAGER) {
+                $exhibitorsData = array_merge(
+                    $exhibitorsData,
+                    [
+                        ...$this->getTimeSubmittedData($submission),
+                        'ExhibitorsSeparator0' => '--',
+                        'Responsibles' => $this->getResponsiblesText($submission->getId()),
+                        ...$this->getTimeResponsibleData($submission)
+                    ]
+                );
+            }
+
             $exhibitorsData = array_merge(
                 $exhibitorsData,
                 [
-                    'Responsibles' => $this->getResponsiblesText($submission->getId()),
+                    'ExhibitorsSeparator1' => '--',
                     'AreaModerators' => $this->getAreaModeratorsText($submission->getId()),
-                ],
-                $this->getTimeSubmittedData($submission),
-                $this->getTimeResponsibleData($submission),
-                $this->getTimeAreaModeratorData($submission)
-            );
-        } elseif ($userMainUserGroup['role'] == Role::ROLE_ID_SUB_EDITOR && $userMainUserGroup['abbrev'] == self::RESPONSIBLES_GROUP_ABBREV) {
-            $exhibitorsData = array_merge(
-                $exhibitorsData,
-                ['AreaModerators' => $this->getAreaModeratorsText($submission->getId())],
-                $this->getTimeAreaModeratorData($submission)
+                    ...$this->getTimeAreaModeratorData($submission)
+                ]
             );
         }
 
