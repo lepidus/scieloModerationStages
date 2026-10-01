@@ -59,6 +59,19 @@ class DashboardExhibitorsHelper
             );
         }
 
+        return $this->trimExhibitorsData($exhibitorsData);
+    }
+
+    public function trimExhibitorsData(array $exhibitorsData): array
+    {
+        foreach (array_reverse($exhibitorsData, true) as $name => $data) {
+            if (!str_contains($name, 'ExhibitorsSeparator')) {
+                break;
+            }
+
+            unset($exhibitorsData[$name]);
+        }
+
         return $exhibitorsData;
     }
 
@@ -191,7 +204,7 @@ class DashboardExhibitorsHelper
         $dateSubmitted = $submission->getData('dateSubmitted');
 
         if (empty($dateSubmitted)) {
-            return ['TimeSubmitted' => ''];
+            return [];
         }
 
         return $this->getDataForTimeExhibitor($submission, $dateSubmitted, "TimeSubmitted");
@@ -202,7 +215,7 @@ class DashboardExhibitorsHelper
         $lastAssignmentDate = $this->getLastAssignmentDateByGroupAbbrev($submission->getId(), self::RESPONSIBLES_GROUP_ABBREV);
 
         if (empty($lastAssignmentDate)) {
-            return ['TimeResponsible' => ''];
+            return [];
         }
         return $this->getDataForTimeExhibitor($submission, $lastAssignmentDate, "TimeResponsible");
     }
@@ -212,7 +225,7 @@ class DashboardExhibitorsHelper
         $lastAssignmentDate = $this->getLastAssignmentDateByGroupAbbrev($submission->getId(), self::AREA_MODERATORS_GROUP_ABBREV);
 
         if (empty($lastAssignmentDate)) {
-            return ['TimeAreaModerator' => ''];
+            return [];
         }
 
         return $this->getDataForTimeExhibitor($submission, $lastAssignmentDate, "TimeAreaModerator");

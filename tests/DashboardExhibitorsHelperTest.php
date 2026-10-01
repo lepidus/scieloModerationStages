@@ -104,7 +104,7 @@ class DashboardExhibitorsHelperTest extends TestCase
         $this->assertEquals($expectedModeratorsData, $this->helper->getAreaModeratorsData($this->submissionId));
     }
 
-    public function testGetsEmptyTextWhenThereIsNoAreaModerators(): void
+    public function testGetsEmptyDataWhenThereIsNoAreaModerators(): void
     {
         $this->helper->usersByGroup['am'] = [];
 
@@ -165,14 +165,12 @@ class DashboardExhibitorsHelperTest extends TestCase
         $this->assertEquals($expectedDateSubmittedData, $dateSubmittedData);
     }
 
-    public function testGetsEmptyTextWhenThereIsNoDateSubmitted(): void
+    public function testGetsEmptyDataWhenThereIsNoDateSubmitted(): void
     {
         $this->helper->submissionFinalDate = ['currentDate', '2026-09-28'];
 
-        $expectedDateSubmittedData = ['TimeSubmitted' => ''];
         $dateSubmittedData = $this->helper->getTimeSubmittedData($this->submission);
-
-        $this->assertEquals($expectedDateSubmittedData, $dateSubmittedData);
+        $this->assertEquals([], $dateSubmittedData);
     }
 
     public function testGetsTimeResponsibleData(): void
@@ -186,14 +184,12 @@ class DashboardExhibitorsHelperTest extends TestCase
         $this->assertEquals($expectedTimeResponsibleData, $timeResponsibleData);
     }
 
-    public function testGetsEmptyTextWhenThereIsNoResponsible(): void
+    public function testGetsEmptyDataWhenThereIsNoResponsible(): void
     {
         $this->helper->submissionFinalDate = ['currentDate', '2026-09-28'];
 
-        $expectedTimeResponsibleData = ['TimeResponsible' => ''];
         $timeResponsibleData = $this->helper->getTimeResponsibleData($this->submission);
-
-        $this->assertEquals($expectedTimeResponsibleData, $timeResponsibleData);
+        $this->assertEquals([], $timeResponsibleData);
     }
 
     public function testGetsTimeAreaModeratorData(): void
@@ -207,17 +203,15 @@ class DashboardExhibitorsHelperTest extends TestCase
         $this->assertEquals($expectedTimeModeratorData, $timeModeratorData);
     }
 
-    public function testGetsEmptyTextWhenThereIsNoAreaModerator(): void
+    public function testGetsEmptyDataWhenThereIsNoAreaModerator(): void
     {
         $this->helper->submissionFinalDate = ['currentDate', '2026-09-28'];
 
-        $expectedTimeModeratorData = ['TimeAreaModerator' => ''];
         $timeModeratorData = $this->helper->getTimeAreaModeratorData($this->submission);
-
-        $this->assertEquals($expectedTimeModeratorData, $timeModeratorData);
+        $this->assertEquals([], $timeModeratorData);
     }
 
-    public function testGetsUserMainUserGroupForManagers()
+    public function testGetsUserMainUserGroupForManagers(): void
     {
         $this->helper->userUserGroups = [
             Role::ROLE_ID_MANAGER => [
@@ -240,7 +234,7 @@ class DashboardExhibitorsHelperTest extends TestCase
         $this->assertEquals($expectedUserMainGroup, $userMainGroup);
     }
 
-    public function testGetsUserMainUserGroupForEditors()
+    public function testGetsUserMainUserGroupForEditors(): void
     {
         $this->helper->userUserGroups = [
             Role::ROLE_ID_SUB_EDITOR => [
@@ -268,7 +262,7 @@ class DashboardExhibitorsHelperTest extends TestCase
         $this->assertEquals($expectedUserMainGroup, $userMainGroup);
     }
 
-    private function setBaseDataForExhibitorsTests()
+    private function setBaseDataForExhibitorsTests(): void
     {
         $mockModerationStageDao = new class () {
             public function getSubmissionModerationStage(int $submissionId): ?int
@@ -286,7 +280,7 @@ class DashboardExhibitorsHelperTest extends TestCase
         $this->helper->submissionFinalDate = ['currentDate', '2026-09-28'];
     }
 
-    public function testGetsExhibitorsDataForManagers()
+    public function testGetsExhibitorsDataForManagers(): void
     {
         $this->setBaseDataForExhibitorsTests();
         $this->helper->userUserGroups = [
@@ -311,7 +305,7 @@ class DashboardExhibitorsHelperTest extends TestCase
         $this->assertEquals($expectedExhibitorsData, $exhibitorsData);
     }
 
-    public function testGetsExhibitorsDataForResponsibles()
+    public function testGetsExhibitorsDataForResponsibles(): void
     {
         $this->setBaseDataForExhibitorsTests();
         $this->helper->userUserGroups = [
@@ -331,7 +325,7 @@ class DashboardExhibitorsHelperTest extends TestCase
         $this->assertEquals($expectedExhibitorsData, $exhibitorsData);
     }
 
-    public function testGetsExhibitorsDataForAreaModerators()
+    public function testGetsExhibitorsDataForAreaModerators(): void
     {
         $this->setBaseDataForExhibitorsTests();
         $this->helper->userUserGroups = [
@@ -348,7 +342,7 @@ class DashboardExhibitorsHelperTest extends TestCase
         $this->assertEquals($expectedExhibitorsData, $exhibitorsData);
     }
 
-    public function testGetsExhibitorsDataForAuthors()
+    public function testGetsExhibitorsDataForAuthors(): void
     {
         $this->setBaseDataForExhibitorsTests();
         $this->helper->userUserGroups = [
@@ -365,7 +359,7 @@ class DashboardExhibitorsHelperTest extends TestCase
         $this->assertEquals($expectedExhibitorsData, $exhibitorsData);
     }
 
-    public function testGetsExhibitorsDataForReadersOrUsersOutsideOfContext()
+    public function testGetsExhibitorsDataForReadersOrUsersOutsideOfContext(): void
     {
         $this->setBaseDataForExhibitorsTests();
         $this->helper->userUserGroups = [
@@ -382,7 +376,19 @@ class DashboardExhibitorsHelperTest extends TestCase
         $this->assertEmpty($exhibitorsData);
     }
 
-    public function testGetsExhibitorsDataForLegacySubmissions()
+    public function testTrimsExcessiveExhibitorsFromExhibitorsData(): void
+    {
+        $dummyExhibitorsData = [
+            'submissionId' => 1,
+            'ExhibitorsSeparator0' => '--',
+            'ExhibitorsSeparator1' => '--'
+        ];
+        $trimmedData = $this->helper->trimExhibitorsData($dummyExhibitorsData);
+
+        $this->assertEquals(['submissionId' => 1], $trimmedData);
+    }
+
+    public function testGetsExhibitorsDataForLegacySubmissions(): void
     {
         $mockModerationStageDao = new class () {
             public function getSubmissionModerationStage(int $submissionId): ?int
