@@ -34,7 +34,7 @@ class DashboardExhibitorsHelper
 
         $exhibitorsData = [
             'submissionId' => $submission->getId(),
-            'ModerationStage' => $this->getSubmissionModerationStageText($submission->getId()),
+            ...$this->getSubmissionModerationStageData($submission->getId()),
         ];
 
         if (
@@ -44,22 +44,18 @@ class DashboardExhibitorsHelper
             if ($userMainUserGroup['role'] == Role::ROLE_ID_MANAGER) {
                 $exhibitorsData = array_merge(
                     $exhibitorsData,
-                    [
-                        ...$this->getTimeSubmittedData($submission),
-                        'ExhibitorsSeparator0' => '--',
-                        'Responsibles' => $this->getResponsiblesText($submission->getId()),
-                        ...$this->getTimeResponsibleData($submission)
-                    ]
+                    $this->getTimeSubmittedData($submission),
+                    ['ExhibitorsSeparator0' => '--'],
+                    $this->getResponsiblesData($submission->getId()),
+                    $this->getTimeResponsibleData($submission)
                 );
             }
 
             $exhibitorsData = array_merge(
                 $exhibitorsData,
-                [
-                    'ExhibitorsSeparator1' => '--',
-                    'AreaModerators' => $this->getAreaModeratorsText($submission->getId()),
-                    ...$this->getTimeAreaModeratorData($submission)
-                ]
+                ['ExhibitorsSeparator1' => '--'],
+                $this->getAreaModeratorsData($submission->getId()),
+                $this->getTimeAreaModeratorData($submission)
             );
         }
 
@@ -111,7 +107,7 @@ class DashboardExhibitorsHelper
         return $userUserGroups;
     }
 
-    public function getSubmissionModerationStageText(int $submissionId): string
+    public function getSubmissionModerationStageData(int $submissionId): array
     {
         $moderationStage = $this->moderationStageDao->getSubmissionModerationStage($submissionId);
 
@@ -122,13 +118,15 @@ class DashboardExhibitorsHelper
                 ModerationStage::SCIELO_MODERATION_STAGE_AREA => 'plugins.generic.scieloModerationStages.stages.areaStage',
             ];
 
-            return __('plugins.generic.scieloModerationStages.currentStageStatusLabel') . ' ' . __($stageMap[$moderationStage]);
+            return [
+                'ModerationStage' => __('plugins.generic.scieloModerationStages.currentStageStatusLabel') . ' ' . __($stageMap[$moderationStage])
+            ];
         }
 
-        return '';
+        return [];
     }
 
-    public function getResponsiblesText(int $submissionId): string
+    public function getResponsiblesData(int $submissionId): array
     {
         $responsibleUsers = $this->getAssignedUsersByGroupAbbrev($submissionId, self::RESPONSIBLES_GROUP_ABBREV);
 
@@ -144,10 +142,14 @@ class DashboardExhibitorsHelper
             $responsiblesText = __('plugins.generic.scieloModerationStages.responsibles', ['responsibles' => implode(", ", $responsibleUsers)]);
         }
 
-        return $responsiblesText;
+        if (empty($responsiblesText)) {
+            return [];
+        }
+
+        return ['Responsibles' => $responsiblesText];
     }
 
-    public function getAreaModeratorsText(int $submissionId)
+    public function getAreaModeratorsData(int $submissionId): array
     {
         $areaModeratorUsers = $this->getAssignedUsersByGroupAbbrev($submissionId, self::AREA_MODERATORS_GROUP_ABBREV);
 
@@ -158,7 +160,11 @@ class DashboardExhibitorsHelper
             $areaModeratorsText = __('plugins.generic.scieloModerationStages.areaModerators', ['areaModerators' => implode(", ", $areaModeratorUsers)]);
         }
 
-        return $areaModeratorsText;
+        if (empty($areaModeratorsText)) {
+            return [];
+        }
+
+        return ['AreaModerators' => $areaModeratorsText];
     }
 
     protected function getAssignedUsersByGroupAbbrev(int $submissionId, string $abbrev): array

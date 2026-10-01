@@ -41,10 +41,10 @@ class DashboardExhibitorsHelperTest extends TestCase
         };
         $this->helper->moderationStageDao = $mockModerationStageDao;
 
-        $expectedModerationStageText = 'Moderation stage: Format Pre-Moderation';
-        $moderationStageText = $this->helper->getSubmissionModerationStageText($this->submissionId);
+        $expectedModerationStageData = ['ModerationStage' => 'Moderation stage: Format Pre-Moderation'];
+        $moderationStageData = $this->helper->getSubmissionModerationStageData($this->submissionId);
 
-        $this->assertEquals($expectedModerationStageText, $moderationStageText);
+        $this->assertEquals($expectedModerationStageData, $moderationStageData);
     }
 
     public function testGetsResponsiblesNames(): void
@@ -53,16 +53,18 @@ class DashboardExhibitorsHelperTest extends TestCase
             'jorgeamado' => 'Jorge Amado'
         ];
 
-        $expectedResponsiblesText = 'Responsible: Jorge Amado';
-        $this->assertEquals($expectedResponsiblesText, $this->helper->getResponsiblesText($this->submissionId));
+        $expectedResponsiblesData = ['Responsibles' => 'Responsible: Jorge Amado'];
+        $responsiblesData = $this->helper->getResponsiblesData($this->submissionId);
+        $this->assertEquals($expectedResponsiblesData, $responsiblesData);
 
         $this->helper->usersByGroup['resp'] = [
             'jorgeamado' => 'Jorge Amado',
             'cchagas' => 'Carlos Chagas'
         ];
 
-        $expectedResponsiblesText = 'Responsibles: Jorge Amado, Carlos Chagas';
-        $this->assertEquals($expectedResponsiblesText, $this->helper->getResponsiblesText($this->submissionId));
+        $expectedResponsiblesData = ['Responsibles' => 'Responsibles: Jorge Amado, Carlos Chagas'];
+        $responsiblesData = $this->helper->getResponsiblesData($this->submissionId);
+        $this->assertEquals($expectedResponsiblesData, $responsiblesData);
     }
 
     public function testHelperIgnoresScieloUserWhenGettingResponsiblesNames(): void
@@ -73,15 +75,15 @@ class DashboardExhibitorsHelperTest extends TestCase
             'scielo-brasil' => 'SciELO Brasil'
         ];
 
-        $expectedResponsiblesText = 'Responsibles: Jorge Amado, Carlos Chagas';
-        $this->assertEquals($expectedResponsiblesText, $this->helper->getResponsiblesText($this->submissionId));
+        $expectedResponsiblesData = ['Responsibles' => 'Responsibles: Jorge Amado, Carlos Chagas'];
+        $this->assertEquals($expectedResponsiblesData, $this->helper->getResponsiblesData($this->submissionId));
     }
 
     public function testGetsEmptyTextWhenThereIsNoResponsibles(): void
     {
         $this->helper->usersByGroup['resp'] = [];
 
-        $this->assertEquals('', $this->helper->getResponsiblesText($this->submissionId));
+        $this->assertEquals([], $this->helper->getResponsiblesData($this->submissionId));
     }
 
     public function testGetsAreaModeratorsNames(): void
@@ -90,23 +92,23 @@ class DashboardExhibitorsHelperTest extends TestCase
             'vmoraes' => 'Vinicius de Moraes'
         ];
 
-        $expectedModeratorsText = 'Area moderator: Vinicius de Moraes';
-        $this->assertEquals($expectedModeratorsText, $this->helper->getAreaModeratorsText($this->submissionId));
+        $expectedModeratorsData = ['AreaModerators' => 'Area moderator: Vinicius de Moraes'];
+        $this->assertEquals($expectedModeratorsData, $this->helper->getAreaModeratorsData($this->submissionId));
 
         $this->helper->usersByGroup['am'] = [
             'vmoraes' => 'Vinicius de Moraes',
             'cbuarque' => 'Chico Buarque'
         ];
 
-        $expectedModeratorsText = 'Area moderators: Vinicius de Moraes, Chico Buarque';
-        $this->assertEquals($expectedModeratorsText, $this->helper->getAreaModeratorsText($this->submissionId));
+        $expectedModeratorsData = ['AreaModerators' => 'Area moderators: Vinicius de Moraes, Chico Buarque'];
+        $this->assertEquals($expectedModeratorsData, $this->helper->getAreaModeratorsData($this->submissionId));
     }
 
     public function testGetsEmptyTextWhenThereIsNoAreaModerators(): void
     {
         $this->helper->usersByGroup['am'] = [];
 
-        $this->assertEquals('', $this->helper->getAreaModeratorsText($this->submissionId));
+        $this->assertEquals([], $this->helper->getAreaModeratorsData($this->submissionId));
     }
 
     public function testTimeExhibitorsDataAdaptsToDaysPassed(): void
