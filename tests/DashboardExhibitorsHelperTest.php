@@ -271,7 +271,7 @@ class DashboardExhibitorsHelperTest extends TestCase
     private function setBaseDataForExhibitorsTests()
     {
         $mockModerationStageDao = new class () {
-            public function getSubmissionModerationStage(int $submissionId): int
+            public function getSubmissionModerationStage(int $submissionId): ?int
             {
                 return ModerationStage::SCIELO_MODERATION_STAGE_FORMAT;
             }
@@ -380,5 +380,30 @@ class DashboardExhibitorsHelperTest extends TestCase
         $this->helper->userUserGroups = [];
         $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId);
         $this->assertEmpty($exhibitorsData);
+    }
+
+    public function testGetsExhibitorsDataForLegacySubmissions()
+    {
+        $mockModerationStageDao = new class () {
+            public function getSubmissionModerationStage(int $submissionId): ?int
+            {
+                return null;
+            }
+        };
+        $this->helper->moderationStageDao = $mockModerationStageDao;
+        $this->submission->setData('dateSubmitted', '2026-09-26');
+        $this->helper->submissionFinalDate = ['currentDate', '2026-09-28'];
+        $this->helper->userUserGroups = [
+            Role::ROLE_ID_MANAGER => [
+                1 => 'psm',
+            ]
+        ];
+
+        $expectedExhibitorsData = [
+            'submissionId' => $this->submissionId,
+            'TimeSubmitted' => 'Submission made 2 days ago',
+        ];
+        $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId);
+        $this->assertEquals($expectedExhibitorsData, $exhibitorsData);
     }
 }

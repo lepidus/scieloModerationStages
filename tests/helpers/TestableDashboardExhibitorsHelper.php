@@ -13,7 +13,7 @@ class TestableDashboardExhibitorsHelper extends DashboardExhibitorsHelper
 
     protected function getAssignedUsersByGroupAbbrev(int $submissionId, string $abbrev): array
     {
-        return $this->usersByGroup[$abbrev];
+        return $this->usersByGroup[$abbrev] ?? [];
     }
 
     protected function getLastAssignmentDateByGroupAbbrev(int $submissionId, string $abbrev): string
