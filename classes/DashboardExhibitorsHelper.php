@@ -1,0 +1,336 @@
+<?php
+
+namespace APP\plugins\generic\scieloModerationStages\classes;
+
+use APP\core\Application;
+use APP\facades\Repo;
+use PKP\db\DAORegistry;
+use Illuminate\Support\Facades\DB;
+use PKP\core\Core;
+use APP\submission\Submission;
+use APP\decision\Decision;
+use PKP\security\Role;
+use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
+
+class DashboardExhibitorsHelper
+{
+    public const SUBMISSION_INCOMPLETE = 'start';
+    public const RESPONSIBLES_GROUP_ABBREV = 'resp';
+    public const AREA_MODERATORS_GROUP_ABBREV = 'am';
+    private const THRESHOLD_TIME_EXHIBITORS = 2;
+
+    public $moderationStageDao;
+
+    public function __construct()
+    {
+        $this->moderationStageDao = new ModerationStageDAO();
+    }
+
+    public function getExhibitorsData(Submission $submission, int $userId, int $contextId): array
+    {
+        $userMainUserGroup = $this->getUserMainUserGroup($userId, $contextId);
+
+        if (empty($userMainUserGroup) || $userMainUserGroup['role'] == Role::ROLE_ID_READER) {
+            return [];
+        }
+
+        $exhibitorsData = [
+            'submissionId' => $submission->getId(),
+            ...$this->getSubmissionModerationStageData($submission->getId()),
+        ];
+
+        if ($userMainUserGroup['role'] == Role::ROLE_ID_MANAGER) {
+            $exhibitorsData = array_merge(
+                $exhibitorsData,
+                $this->getTimeSubmittedData($submission),
+                ['ExhibitorsSeparator0' => '--'],
+                $this->getResponsiblesData($submission->getId()),
+                $this->getTimeResponsibleData($submission),
+                ['ExhibitorsSeparator1' => '--'],
+                $this->getAreaModeratorsData($submission->getId()),
+                $this->getTimeAreaModeratorData($submission)
+            );
+        } elseif ($userMainUserGroup['role'] == Role::ROLE_ID_SUB_EDITOR
+                && $userMainUserGroup['abbrev'] == self::RESPONSIBLES_GROUP_ABBREV
+        ) {
+            $exhibitorsData = array_merge(
+                $exhibitorsData,
+                ['ExhibitorsSeparator0' => '--'],
+                $this->getAreaModeratorsData($submission->getId()),
+                $this->getTimeAreaModeratorData($submission),
+                ['ExhibitorsSeparator1' => '--'],
+                $this->getPdfViewLinkData($submission),
+                ['LocaleKeyViewPdf' => __('plugins.generic.scieloModerationStages.viewPdf')]
+            );
+        }
+
+        return $this->trimExhibitorsData($exhibitorsData);
+    }
+
+    public function trimExhibitorsData(array $exhibitorsData): array
+    {
+        foreach (array_reverse($exhibitorsData, true) as $name => $data) {
+            if (!str_contains($name, 'ExhibitorsSeparator')) {
+                break;
+            }
+
+            unset($exhibitorsData[$name]);
+        }
+
+        return $exhibitorsData;
+    }
+
+    public function getUserMainUserGroup(int $userId, int $contextId): array
+    {
+        $roles = [Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_AUTHOR, Role::ROLE_ID_READER];
+        $userUserGroups = $this->getUserUserGroups($userId, $contextId);
+
+        foreach ($roles as $role) {
+            if (!isset($userUserGroups[$role])) {
+                continue;
+            }
+
+            if ($role == Role::ROLE_ID_SUB_EDITOR) {
+                if (in_array(self::RESPONSIBLES_GROUP_ABBREV, $userUserGroups[$role])) {
+                    return ['role' => $role, 'abbrev' => self::RESPONSIBLES_GROUP_ABBREV];
+                } elseif (in_array(self::AREA_MODERATORS_GROUP_ABBREV, $userUserGroups[$role])) {
+                    return ['role' => $role, 'abbrev' => self::AREA_MODERATORS_GROUP_ABBREV];
+                }
+            }
+
+            $userGroupAbbrev = reset($userUserGroups[$role]);
+            return ['role' => $role, 'abbrev' => $userGroupAbbrev];
+        }
+
+        return [];
+    }
+
+    protected function getUserUserGroups(int $userId, int $contextId): array
+    {
+        $userGroups = Repo::userGroup()->getCollector()
+            ->filterByContextIds([$contextId])
+            ->filterByUserIds([$userId])
+            ->getMany();
+
+        $userUserGroups = [];
+        foreach ($userGroups as $userGroup) {
+            $role = $userGroup->getRoleId();
+            if (!isset($userUserGroups[$role])) {
+                $userUserGroups[$role] = [];
+            }
+
+            $userUserGroups[$role][$userGroup->getId()] = strtolower($userGroup->getLocalizedData('abbrev', 'en'));
+        }
+
+        return $userUserGroups;
+    }
+
+    public function getSubmissionModerationStageData(int $submissionId): array
+    {
+        $moderationStage = $this->moderationStageDao->getSubmissionModerationStage($submissionId);
+
+        if (!is_null($moderationStage)) {
+            $stageMap = [
+                ModerationStage::SCIELO_MODERATION_STAGE_FORMAT => 'plugins.generic.scieloModerationStages.stages.formatStage',
+                ModerationStage::SCIELO_MODERATION_STAGE_CONTENT => 'plugins.generic.scieloModerationStages.stages.contentStage',
+                ModerationStage::SCIELO_MODERATION_STAGE_AREA => 'plugins.generic.scieloModerationStages.stages.areaStage',
+            ];
+
+            return [
+                'ModerationStage' => __('plugins.generic.scieloModerationStages.currentStageStatusLabel') . ' ' . __($stageMap[$moderationStage])
+            ];
+        }
+
+        return [];
+    }
+
+    public function getResponsiblesData(int $submissionId): array
+    {
+        $responsibleUsers = $this->getAssignedUsersByGroupAbbrev($submissionId, self::RESPONSIBLES_GROUP_ABBREV);
+
+        $responsiblesText = "";
+
+        if (count($responsibleUsers) > 1) {
+            unset($responsibleUsers['scielo-brasil']);
+        }
+
+        if (count($responsibleUsers) == 1) {
+            $responsiblesText = __('plugins.generic.scieloModerationStages.responsible', ['responsible' =>  array_pop($responsibleUsers)]);
+        } elseif (count($responsibleUsers) > 1) {
+            $responsiblesText = __('plugins.generic.scieloModerationStages.responsibles', ['responsibles' => implode(", ", $responsibleUsers)]);
+        }
+
+        if (empty($responsiblesText)) {
+            return [];
+        }
+
+        return ['Responsibles' => $responsiblesText];
+    }
+
+    public function getAreaModeratorsData(int $submissionId): array
+    {
+        $areaModeratorUsers = $this->getAssignedUsersByGroupAbbrev($submissionId, self::AREA_MODERATORS_GROUP_ABBREV);
+
+        $areaModeratorsText = "";
+        if (count($areaModeratorUsers) == 1) {
+            $areaModeratorsText = __('plugins.generic.scieloModerationStages.areaModerator', ['areaModerator' => array_pop($areaModeratorUsers)]);
+        } elseif (count($areaModeratorUsers) > 1) {
+            $areaModeratorsText = __('plugins.generic.scieloModerationStages.areaModerators', ['areaModerators' => implode(", ", $areaModeratorUsers)]);
+        }
+
+        if (empty($areaModeratorsText)) {
+            return [];
+        }
+
+        return ['AreaModerators' => $areaModeratorsText];
+    }
+
+    protected function getAssignedUsersByGroupAbbrev(int $submissionId, string $abbrev): array
+    {
+        $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
+        $stageAssignmentsResults = $stageAssignmentDao->getBySubmissionAndStageId($submissionId);
+        $assignedUsers = [];
+
+        while ($stageAssignment = $stageAssignmentsResults->next()) {
+            $userGroup = Repo::userGroup()->get($stageAssignment->getUserGroupId());
+            $userGroupAbbrev = strtolower($userGroup->getData('abbrev', 'en'));
+
+            if ($userGroupAbbrev == $abbrev) {
+                $user = Repo::user()->get($stageAssignment->getUserId(), false);
+                $assignedUsers[$user->getData('username')] = $user->getFullName();
+            }
+        }
+
+        return $assignedUsers;
+    }
+
+    public function getPdfViewLinkData(Submission $submission): array
+    {
+        if ($submission->getData('submissionProgress') == self::SUBMISSION_INCOMPLETE) {
+            return [];
+        }
+
+        $pdfViewLink = $this->getPdfViewLink($submission);
+        if (empty($pdfViewLink)) {
+            return [];
+        }
+
+        return ['PdfViewLink' => $pdfViewLink];
+    }
+
+    public function getTimeSubmittedData(Submission $submission): array
+    {
+        $dateSubmitted = $submission->getData('dateSubmitted');
+
+        if (empty($dateSubmitted)) {
+            return [];
+        }
+
+        return $this->getDataForTimeExhibitor($submission, $dateSubmitted, "TimeSubmitted");
+    }
+
+    public function getTimeResponsibleData(Submission $submission): array
+    {
+        $lastAssignmentDate = $this->getLastAssignmentDateByGroupAbbrev($submission->getId(), self::RESPONSIBLES_GROUP_ABBREV);
+
+        if (empty($lastAssignmentDate)) {
+            return [];
+        }
+        return $this->getDataForTimeExhibitor($submission, $lastAssignmentDate, "TimeResponsible");
+    }
+
+    public function getTimeAreaModeratorData(Submission $submission): array
+    {
+        $lastAssignmentDate = $this->getLastAssignmentDateByGroupAbbrev($submission->getId(), self::AREA_MODERATORS_GROUP_ABBREV);
+
+        if (empty($lastAssignmentDate)) {
+            return [];
+        }
+
+        return $this->getDataForTimeExhibitor($submission, $lastAssignmentDate, "TimeAreaModerator");
+    }
+
+    public function getDataForTimeExhibitor(Submission $submission, string $firstDate, string $exhibitor): array
+    {
+        list($dateType, $secondDate) = $this->getSubmissionFinalDateParams($submission);
+        $firstDate = new \DateTime($firstDate);
+        $secondDate = new \DateTime($secondDate);
+
+        $daysPassed = $secondDate->diff($firstDate)->format('%a');
+
+        if ($daysPassed == 0) {
+            return [$exhibitor => __("plugins.generic.scieloModerationStages.$exhibitor.$dateType.lessThanOneDay")];
+        } elseif ($daysPassed > self::THRESHOLD_TIME_EXHIBITORS) {
+            return [
+                $exhibitor => __("plugins.generic.scieloModerationStages.$exhibitor.$dateType", ['daysPassed' => $daysPassed]),
+                "{$exhibitor}RedFlag" => true
+            ];
+        }
+
+        return [$exhibitor => __("plugins.generic.scieloModerationStages.$exhibitor.$dateType", ['daysPassed' => $daysPassed])];
+    }
+
+    protected function getSubmissionFinalDateParams(Submission $submission): array
+    {
+        if ($submission->getData('status') == Submission::STATUS_PUBLISHED) {
+            $publication = $submission->getCurrentPublication();
+            return ['datePublished', $publication->getData('datePublished')];
+        }
+
+        if ($submission->getData('status') == Submission::STATUS_DECLINED) {
+            $result = DB::table('edit_decisions')
+                ->where('submission_id', $submission->getId())
+                ->whereIn('decision', [Decision::DECLINE, Decision::INITIAL_DECLINE])
+                ->orderBy('date_decided', 'asc')
+                ->first();
+
+            return ['dateDeclined', get_object_vars($result)['date_decided']];
+        }
+
+        return ['currentDate', Core::getCurrentDate()];
+    }
+
+    protected function getLastAssignmentDateByGroupAbbrev(int $submissionId, string $abbrev): string
+    {
+        $stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
+        $stageAssignmentsResults = $stageAssignmentDao->getBySubmissionAndStageId($submissionId);
+        $lastAssignmentDate = "";
+
+        while ($stageAssignment = $stageAssignmentsResults->next()) {
+            $userGroup = Repo::userGroup()->get($stageAssignment->getUserGroupId());
+            $currentUserGroupAbbrev = strtolower($userGroup->getData('abbrev', 'en'));
+
+            if ($currentUserGroupAbbrev == $abbrev) {
+                if (empty($lastAssignmentDate) or ($stageAssignment->getData('dateAssigned') > $lastAssignmentDate)) {
+                    $lastAssignmentDate = $stageAssignment->getData('dateAssigned');
+                }
+            }
+        }
+
+        return $lastAssignmentDate;
+    }
+
+    protected function getPdfViewLink(Submission $submission): string
+    {
+        $galleys = Repo::galley()
+            ->getCollector()
+            ->filterByPublicationIds([$submission->getCurrentPublication()->getId()])
+            ->getMany()
+            ->toArray();
+
+        if (empty($galleys)) {
+            return '';
+        }
+
+        $request = Application::get()->getRequest();
+        $pdfGalley = $galleys[0];
+        return $request->getDispatcher()->url(
+            $request,
+            Application::ROUTE_PAGE,
+            $request->getContext()->getPath(),
+            'preprint',
+            'view',
+            $submission->getId(). '/' . $pdfGalley->getId()
+        );
+    }
+}

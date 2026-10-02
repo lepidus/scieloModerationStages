@@ -1,30 +1,47 @@
 let labeledExhibitorNodes = ['ModerationStage', 'Responsibles', 'AreaModerators'];
-let exhibitorNodesAdmin = ['exhibitorsSeparator', 'Responsibles', 'AreaModerators', 'TimeSubmitted', 'TimeResponsible', 'TimeAreaModerator'];
-var userIsAuthor = '1';
 
 function insertAfter(newNode, referenceNode) {
     referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
 }
 
-function createExhibitorNode(submissionId, type) {
-    var node = document.createElement('div');
-    node.classList.add('listPanel__item' + type);
-    node.classList.add('submission' + type + '--' + submissionId);
-    node.classList.add('withoutDataYet');
+function createExhibitorNode(submissionId, exhibitorName, text) {
+    let node = document.createElement('div');
+    node.classList.add('moderationStagesExhibitor');
+    node.classList.add('listPanel__item' + exhibitorName);
+    node.classList.add('submission' + exhibitorName + '--' + submissionId);
+    if(labeledExhibitorNodes.includes(exhibitorName)) {
+        addTextToLabeledExhibitor(node, text);
+    }
+    else {
+        node.textContent = text;
+    }
     return node;
 }
 
 function createExhibitorsSeparator(submissionId) {
-    var node = document.createElement('hr');
+    let node = document.createElement('hr');
     node.classList.add('exhibitorsSeparator');
     node.classList.add('submissionExhibitorSeparator' + '--' + submissionId);
-    node.style.display = 'none';
+    return node;
+}
+
+function createPdfViewLinkNode(text, link) {
+    let node = document.createElement('a');
+    node.href = link;
+    node.classList.add('pkpButton');
+    node.classList.add('pdfViewExhibitor');
+    node.textContent = text;
+    node.target = '_blank';
+    node.relList.add('noopener');
+    node.relList.add('noreferrer');
+
     return node;
 }
 
 function addLineBreakAfterExhibitor(exhibitorNode) {
-    var br = document.createElement('br');
+    let br = document.createElement('br');
     insertAfter(br, exhibitorNode);
+    return br;
 }
 
 function addTextToLabeledExhibitor(exhibitorNode, text) {
@@ -36,56 +53,45 @@ function addTextToLabeledExhibitor(exhibitorNode, text) {
     exhibitorNode.appendChild(document.createTextNode(contentText));
 }
 
-function updateExhibitorNode(exhibitorNodeName, text, submissionId) {
-    var exhibitorNodes = document.getElementsByClassName('submission' + exhibitorNodeName + '--' + submissionId);
-    for(let exhibitorNode of exhibitorNodes) {
-        if(exhibitorNode.classList.contains('withoutDataYet')) {
-            exhibitorNode.classList.remove('withoutDataYet');
-        
-            if(labeledExhibitorNodes.includes(exhibitorNodeName)) {
-                addTextToLabeledExhibitor(exhibitorNode, text);
-            }
-            else {
-                exhibitorNode.textContent = text;
-            }
-            addLineBreakAfterExhibitor(exhibitorNode);
-        }
-    }
-}
-
-function updateExhibitorsSeparator(submissionId) {
-    var exhibitorsSeparators = document.getElementsByClassName('submissionExhibitorSeparator--' + submissionId);
-    for(let separator of exhibitorsSeparators) {
-        separator.style.display = 'block';
-    }
-}
-
-function addRedColorToTimeExhibitor(exhibitorNodeName, submissionId) {
-    var exhibitorNodes = document.getElementsByClassName('submission' + exhibitorNodeName + '--' + submissionId);
-    for(let exhibitorNode of exhibitorNodes) {
-        exhibitorNode.classList.add('itemTimeRed');
-    }
-}
-
-function updateExhibitorNodes(response) {
+function addSubmissionExhibitorNodes(response) {
     response = JSON.parse(response);
     const submissionId = response['submissionId'];
+    const submissionIdNodes = [...document.querySelectorAll('div.listPanel__item--submission__id')]
+        .filter(div => div.textContent.trim() == submissionId);
+    delete response['submissionId'];
+    
+    for (let idNode of submissionIdNodes) {
+        const submissionIdentityNode = idNode.parentNode;
+        const alreadyHasExhibitors = submissionIdentityNode.getElementsByClassName('moderationStagesExhibitor').length > 0;
+        let previousNode = submissionIdentityNode.getElementsByClassName('listPanel__itemSubtitle')[0];
 
-    if(response['ModerationStage'] != '') {
-        updateExhibitorNode('ModerationStage', response['ModerationStage'], submissionId);
-    }
+        if (alreadyHasExhibitors) {
+            continue;
+        }
 
-    if(userIsAuthor == false) {
-        for (const exhibitorNodeName of exhibitorNodesAdmin) {
-            if(exhibitorNodeName == 'exhibitorsSeparator') {
-                updateExhibitorsSeparator(submissionId);
+        for (const exhibitorName in response) {
+            if (response[exhibitorName] == ''
+                || exhibitorName.includes('RedFlag')
+                || exhibitorName.includes('LocaleKey')
+            ) {
+                continue;
             }
-            else if(response[exhibitorNodeName] != '') {
-                updateExhibitorNode(exhibitorNodeName, response[exhibitorNodeName], submissionId);
 
-                if(exhibitorNodeName+'RedFlag' in response) {
-                    addRedColorToTimeExhibitor(exhibitorNodeName, submissionId);
+            if(exhibitorName.includes('ExhibitorsSeparator')) {
+                newExhibitorNode = createExhibitorsSeparator(submissionId);
+            } else if (exhibitorName == 'PdfViewLink') {
+                newExhibitorNode = createPdfViewLinkNode(response['LocaleKeyViewPdf'], response[exhibitorName]);
+            } else {
+                newExhibitorNode = createExhibitorNode(submissionId, exhibitorName, response[exhibitorName]);
+                if(exhibitorName+'RedFlag' in response) {
+                    newExhibitorNode.classList.add('itemTimeRed')
                 }
+            }
+            insertAfter(newExhibitorNode, previousNode);
+            previousNode = newExhibitorNode;
+
+            if (!exhibitorName.includes('ExhibitorsSeparator')) {
+                previousNode = addLineBreakAfterExhibitor(newExhibitorNode);
             }
         }
     }
@@ -97,38 +103,16 @@ function getSubmissionIdFromDiv(parentDiv) {
 }
 
 async function addSubmissionExhibitors() {
-    userIsAuthor = await $.get(
-        app.moderationStagesHandlerUrl + 'get-user-is-author'
-    );
-
     let submissionSubtitles = document.getElementsByClassName('listPanel__itemSubtitle');
     for (let subtitle of submissionSubtitles) {
-        const hasExhibitors = subtitle.parentNode.getElementsByClassName('listPanel__itemModerationStage').length > 0;
+        const hasExhibitors = subtitle.parentNode.getElementsByClassName('moderationStagesExhibitor').length > 0;
         if(!hasExhibitors) {
             const submissionId = getSubmissionIdFromDiv(subtitle.parentNode);
             $.get(
                 app.moderationStagesHandlerUrl + 'get-submission-exhibit-data',
-                {
-                    submissionId: submissionId,
-                    userIsAuthor: userIsAuthor
-                },
-                updateExhibitorNodes
+                {submissionId: submissionId},
+                addSubmissionExhibitorNodes
             );
-
-            var newExhibitorNode = createExhibitorNode(submissionId, 'ModerationStage');
-            insertAfter(newExhibitorNode, subtitle);
-            var previousNode = newExhibitorNode;
-            
-            if(userIsAuthor == false) {
-                for(const exhibitorNodeName of exhibitorNodesAdmin) {
-                    if(exhibitorNodeName == 'exhibitorsSeparator')
-                        newExhibitorNode = createExhibitorsSeparator(submissionId);
-                    else
-                        newExhibitorNode = createExhibitorNode(submissionId, exhibitorNodeName);
-                    insertAfter(newExhibitorNode, previousNode);
-                    previousNode = newExhibitorNode;
-                }
-            }
         }
     }
 }

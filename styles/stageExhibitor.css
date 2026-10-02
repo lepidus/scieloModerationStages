@@ -1,6 +1,4 @@
-.listPanel__itemModerationStage:not(.withoutDataYet),
-.listPanel__itemTimeSubmitted:not(.withoutDataYet) {
-    color: #00b28d;
+.moderationStagesExhibitor {
     margin-top: 0.5em;
     margin-right: 0.5em;
     padding: 0.25em 1em;
@@ -9,17 +7,16 @@
     display: inline-block;
 }
 
-.listPanel__itemAreaModerators:not(.withoutDataYet),
-.listPanel__itemTimeAreaModerator:not(.withoutDataYet),
-.listPanel__itemResponsibles:not(.withoutDataYet),
-.listPanel__itemTimeResponsible:not(.withoutDataYet) {
+.listPanel__itemModerationStage,
+.listPanel__itemTimeSubmitted {
+    color: #00b28d;
+}
+
+.listPanel__itemAreaModerators,
+.listPanel__itemTimeAreaModerator,
+.listPanel__itemResponsibles,
+.listPanel__itemTimeResponsible {
     color: #006798;
-    margin-top: 0.5em;
-    margin-right: 0.5em;
-    padding: 0.25em 1em;
-    font-size: 0.85rem;
-    line-height: 1.5em;
-    display: inline-block;
 }
 
 .exhibitorsSeparator {
@@ -28,6 +25,10 @@
     width: 95%;
     border-top: 1px solid #ccc;
     border-bottom: 0px;
+}
+
+.pdfViewExhibitor {
+    margin: 1em;
 }
 
 .itemTimeRed {
