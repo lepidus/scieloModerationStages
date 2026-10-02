@@ -290,6 +290,7 @@ class DashboardExhibitorsHelperTest extends TestCase
             }
         };
         $this->helper->moderationStageDao = $mockModerationStageDao;
+        $this->submission->setData('submissionProgress', '');
         $this->submission->setData('dateSubmitted', '2026-09-26');
         $this->helper->usersByGroup = [
             'resp' => ['cchagas' => 'Carlos Chagas'],
@@ -336,9 +337,11 @@ class DashboardExhibitorsHelperTest extends TestCase
         $expectedExhibitorsData = [
             'submissionId' => $this->submissionId,
             'ModerationStage' => 'Moderation stage: Format Pre-Moderation',
-            'ExhibitorsSeparator1' => '--',
+            'ExhibitorsSeparator0' => '--',
             'AreaModerators' => 'Area moderator: Vinicius de Moraes',
-            'TimeAreaModerator' => 'Area moderator assigned 2 days ago'
+            'TimeAreaModerator' => 'Area moderator assigned 2 days ago',
+            'ExhibitorsSeparator1' => '--',
+            'PdfViewLink' => 'https://dummy/pdf/link'
         ];
         $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId);
         $this->assertEquals($expectedExhibitorsData, $exhibitorsData);

@@ -29,10 +29,6 @@ class DashboardExhibitorsHelper
     {
         $userMainUserGroup = $this->getUserMainUserGroup($userId, $contextId);
 
-        if ($submission->getId() == 517) {
-            error_log('Progresso :' . $submission->getData('submissionProgress'));
-        }
-
         if (empty($userMainUserGroup) || $userMainUserGroup['role'] == Role::ROLE_ID_READER) {
             return [];
         }
@@ -42,25 +38,27 @@ class DashboardExhibitorsHelper
             ...$this->getSubmissionModerationStageData($submission->getId()),
         ];
 
-        if (
-            $userMainUserGroup['role'] == Role::ROLE_ID_MANAGER
-            || ($userMainUserGroup['role'] == Role::ROLE_ID_SUB_EDITOR && $userMainUserGroup['abbrev'] == self::RESPONSIBLES_GROUP_ABBREV)
-        ) {
-            if ($userMainUserGroup['role'] == Role::ROLE_ID_MANAGER) {
-                $exhibitorsData = array_merge(
-                    $exhibitorsData,
-                    $this->getTimeSubmittedData($submission),
-                    ['ExhibitorsSeparator0' => '--'],
-                    $this->getResponsiblesData($submission->getId()),
-                    $this->getTimeResponsibleData($submission)
-                );
-            }
-
+        if ($userMainUserGroup['role'] == Role::ROLE_ID_MANAGER) {
             $exhibitorsData = array_merge(
                 $exhibitorsData,
+                $this->getTimeSubmittedData($submission),
+                ['ExhibitorsSeparator0' => '--'],
+                $this->getResponsiblesData($submission->getId()),
+                $this->getTimeResponsibleData($submission),
                 ['ExhibitorsSeparator1' => '--'],
                 $this->getAreaModeratorsData($submission->getId()),
                 $this->getTimeAreaModeratorData($submission)
+            );
+        } elseif ($userMainUserGroup['role'] == Role::ROLE_ID_SUB_EDITOR
+                && $userMainUserGroup['abbrev'] == self::RESPONSIBLES_GROUP_ABBREV
+        ) {
+            $exhibitorsData = array_merge(
+                $exhibitorsData,
+                ['ExhibitorsSeparator0' => '--'],
+                $this->getAreaModeratorsData($submission->getId()),
+                $this->getTimeAreaModeratorData($submission),
+                ['ExhibitorsSeparator1' => '--'],
+                $this->getPdfViewLinkData($submission)
             );
         }
 
