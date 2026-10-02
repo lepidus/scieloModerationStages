@@ -59,7 +59,8 @@ class DashboardExhibitorsHelper
                 $this->getAreaModeratorsData($submission->getId()),
                 $this->getTimeAreaModeratorData($submission),
                 ['ExhibitorsSeparator1' => '--'],
-                $this->getPdfViewLinkData($submission)
+                $this->getPdfViewLinkData($submission),
+                ['LocaleKeyViewPdf' => __('plugins.generic.scieloModerationStages.viewPdf')]
             );
         }
 

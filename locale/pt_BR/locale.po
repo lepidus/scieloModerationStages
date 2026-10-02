@@ -228,6 +228,9 @@ msgstr "Submissão realizada há {$numberOfDays} dias"
 msgid "plugins.generic.scieloModerationStages.submissionMade.nDaysAgo.bold"
 msgstr "<strong>Submissão realizada há {$numberOfDays} dias</strong>"
 
+msgid "plugins.generic.scieloModerationStages.viewPdf"
+msgstr "Visualizar PDF"
+
 msgid "plugins.generic.scieloModerationStages.assignedFirstStage"
 msgstr ""
 "<p>A moderação da sua submissão foi iniciada e ela foi encaminhada para a estágio de Pré-Moderação de Formato, onde passará por uma triagem.</p>"

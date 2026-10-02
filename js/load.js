@@ -19,9 +19,22 @@ function createExhibitorNode(submissionId, exhibitorName, text) {
 }
 
 function createExhibitorsSeparator(submissionId) {
-    var node = document.createElement('hr');
+    let node = document.createElement('hr');
     node.classList.add('exhibitorsSeparator');
     node.classList.add('submissionExhibitorSeparator' + '--' + submissionId);
+    return node;
+}
+
+function createPdfViewLinkNode(text, link) {
+    let node = document.createElement('a');
+    node.href = link;
+    node.classList.add('pkpButton');
+    node.classList.add('pdfViewExhibitor');
+    node.textContent = text;
+    node.target = '_blank';
+    node.relList.add('noopener');
+    node.relList.add('noreferrer');
+
     return node;
 }
 
@@ -57,12 +70,17 @@ function addSubmissionExhibitorNodes(response) {
         }
 
         for (const exhibitorName in response) {
-            if (response[exhibitorName] == '' || exhibitorName.includes('RedFlag')) {
+            if (response[exhibitorName] == ''
+                || exhibitorName.includes('RedFlag')
+                || exhibitorName.includes('LocaleKey')
+            ) {
                 continue;
             }
 
             if(exhibitorName.includes('ExhibitorsSeparator')) {
                 newExhibitorNode = createExhibitorsSeparator(submissionId);
+            } else if (exhibitorName == 'PdfViewLink') {
+                newExhibitorNode = createPdfViewLinkNode(response['LocaleKeyViewPdf'], response[exhibitorName]);
             } else {
                 newExhibitorNode = createExhibitorNode(submissionId, exhibitorName, response[exhibitorName]);
                 if(exhibitorName+'RedFlag' in response) {

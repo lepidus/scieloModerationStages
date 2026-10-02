@@ -27,6 +27,10 @@
     border-bottom: 0px;
 }
 
+.pdfViewExhibitor {
+    margin: 1em;
+}
+
 .itemTimeRed {
     color: #d00a6c !important;
     font-weight: 700;
