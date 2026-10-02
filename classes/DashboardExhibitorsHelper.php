@@ -13,6 +13,7 @@ use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 
 class DashboardExhibitorsHelper
 {
+    public const SUBMISSION_INCOMPLETE = 'start';
     public const RESPONSIBLES_GROUP_ABBREV = 'resp';
     public const AREA_MODERATORS_GROUP_ABBREV = 'am';
     private const THRESHOLD_TIME_EXHIBITORS = 2;
@@ -27,6 +28,10 @@ class DashboardExhibitorsHelper
     public function getExhibitorsData(Submission $submission, int $userId, int $contextId): array
     {
         $userMainUserGroup = $this->getUserMainUserGroup($userId, $contextId);
+
+        if ($submission->getId() == 517) {
+            error_log('Progresso :' . $submission->getData('submissionProgress'));
+        }
 
         if (empty($userMainUserGroup) || $userMainUserGroup['role'] == Role::ROLE_ID_READER) {
             return [];
@@ -199,7 +204,21 @@ class DashboardExhibitorsHelper
         return $assignedUsers;
     }
 
-    public function getTimeSubmittedData(Submission $submission)
+    public function getPdfViewLinkData(Submission $submission): array
+    {
+        if ($submission->getData('submissionProgress') == self::SUBMISSION_INCOMPLETE) {
+            return [];
+        }
+
+        $pdfViewLink = $this->getPdfViewLink($submission);
+        if (empty($pdfViewLink)) {
+            return [];
+        }
+
+        return ['PdfViewLink' => $pdfViewLink];
+    }
+
+    public function getTimeSubmittedData(Submission $submission): array
     {
         $dateSubmitted = $submission->getData('dateSubmitted');
 
@@ -210,7 +229,7 @@ class DashboardExhibitorsHelper
         return $this->getDataForTimeExhibitor($submission, $dateSubmitted, "TimeSubmitted");
     }
 
-    public function getTimeResponsibleData(Submission $submission)
+    public function getTimeResponsibleData(Submission $submission): array
     {
         $lastAssignmentDate = $this->getLastAssignmentDateByGroupAbbrev($submission->getId(), self::RESPONSIBLES_GROUP_ABBREV);
 
@@ -220,7 +239,7 @@ class DashboardExhibitorsHelper
         return $this->getDataForTimeExhibitor($submission, $lastAssignmentDate, "TimeResponsible");
     }
 
-    public function getTimeAreaModeratorData(Submission $submission)
+    public function getTimeAreaModeratorData(Submission $submission): array
     {
         $lastAssignmentDate = $this->getLastAssignmentDateByGroupAbbrev($submission->getId(), self::AREA_MODERATORS_GROUP_ABBREV);
 

@@ -1,5 +1,6 @@
 <?php
 
+use APP\plugins\generic\scieloModerationStages\classes\DashboardExhibitorsHelper;
 use PHPUnit\Framework\TestCase;
 use APP\submission\Submission;
 use PKP\security\Role;
@@ -209,6 +210,24 @@ class DashboardExhibitorsHelperTest extends TestCase
 
         $timeModeratorData = $this->helper->getTimeAreaModeratorData($this->submission);
         $this->assertEquals([], $timeModeratorData);
+    }
+
+    public function testGetsPdfViewLinkData(): void
+    {
+        $this->submission->setData('submissionProgress', '');
+
+        $expectedPdfViewLinkData = ['PdfViewLink' => 'https://dummy/pdf/link'];
+        $pdfViewLinkData = $this->helper->getPdfViewLinkData($this->submission);
+
+        $this->assertEquals($expectedPdfViewLinkData, $pdfViewLinkData);
+    }
+
+    public function testGetsPdfViewLinkDataForIncompleteSubmission(): void
+    {
+        $this->submission->setData('submissionProgress', DashboardExhibitorsHelper::SUBMISSION_INCOMPLETE);
+
+        $pdfViewLinkData = $this->helper->getPdfViewLinkData($this->submission);
+        $this->assertEquals([], $pdfViewLinkData);
     }
 
     public function testGetsUserMainUserGroupForManagers(): void

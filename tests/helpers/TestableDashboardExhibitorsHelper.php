@@ -30,4 +30,9 @@ class TestableDashboardExhibitorsHelper extends DashboardExhibitorsHelper
     {
         return $this->submissionFinalDate;
     }
+
+    protected function getPdfViewLink($submission): string
+    {
+        return 'https://dummy/pdf/link';
+    }
 }
