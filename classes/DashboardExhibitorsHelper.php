@@ -2,6 +2,7 @@
 
 namespace APP\plugins\generic\scieloModerationStages\classes;
 
+use APP\core\Application;
 use APP\facades\Repo;
 use PKP\db\DAORegistry;
 use Illuminate\Support\Facades\DB;
@@ -306,5 +307,29 @@ class DashboardExhibitorsHelper
         }
 
         return $lastAssignmentDate;
+    }
+
+    protected function getPdfViewLink(Submission $submission): string
+    {
+        $galleys = Repo::galley()
+            ->getCollector()
+            ->filterByPublicationIds([$submission->getCurrentPublication()->getId()])
+            ->getMany()
+            ->toArray();
+
+        if (empty($galleys)) {
+            return '';
+        }
+
+        $request = Application::get()->getRequest();
+        $pdfGalley = $galleys[0];
+        return $request->getDispatcher()->url(
+            $request,
+            Application::ROUTE_PAGE,
+            $request->getContext()->getPath(),
+            'preprint',
+            'view',
+            $submission->getId(). '/' . $pdfGalley->getId()
+        );
     }
 }
