@@ -39,42 +39,52 @@ class DashboardExhibitorsHelper
             ...$this->getSubmissionModerationStageData($submission->getId()),
         ];
 
-        if ($userMainUserGroup['role'] == Role::ROLE_ID_MANAGER) {
-            $exhibitorsData = array_merge(
-                $exhibitorsData,
-                $this->getTimeSubmittedData($submission),
-                ['ExhibitorsSeparator0' => '--'],
-                $this->getResponsiblesData($submission->getId()),
-                $this->getTimeResponsibleData($submission),
-                ['ExhibitorsSeparator1' => '--'],
-                $this->getAreaModeratorsData($submission->getId()),
-                $this->getTimeAreaModeratorData($submission)
-            );
-        } elseif ($userMainUserGroup['role'] == Role::ROLE_ID_SUB_EDITOR
-                && $userMainUserGroup['abbrev'] == self::RESPONSIBLES_GROUP_ABBREV
+        $i = 0;
+        if ($userMainUserGroup['role'] == Role::ROLE_ID_MANAGER
+            || ($userMainUserGroup['role'] == Role::ROLE_ID_SUB_EDITOR
+                && $userMainUserGroup['abbrev'] == self::RESPONSIBLES_GROUP_ABBREV)
         ) {
+            if ($userMainUserGroup['role'] == Role::ROLE_ID_MANAGER) {
+                $exhibitorsData = array_merge(
+                    $exhibitorsData,
+                    $this->getTimeSubmittedData($submission),
+                    ['ExhibitorsSeparator'.($i++) => '--'],
+                    $this->getResponsiblesData($submission->getId()),
+                    $this->getTimeResponsibleData($submission)
+                );
+            }
+
             $exhibitorsData = array_merge(
                 $exhibitorsData,
-                ['ExhibitorsSeparator0' => '--'],
+                ['ExhibitorsSeparator'.($i++) => '--'],
                 $this->getAreaModeratorsData($submission->getId()),
                 $this->getTimeAreaModeratorData($submission),
-                ['ExhibitorsSeparator1' => '--'],
+                ['ExhibitorsSeparator'.($i++) => '--'],
                 $this->getPdfViewLinkData($submission),
                 ['LocaleKeyViewPdf' => __('plugins.generic.scieloModerationStages.viewPdf')]
             );
         }
 
-        return $this->trimExhibitorsData($exhibitorsData);
+        return $this->cleanExcessiveExhibitors($exhibitorsData);
     }
 
-    public function trimExhibitorsData(array $exhibitorsData): array
+    public function cleanExcessiveExhibitors(array $exhibitorsData): array
     {
-        foreach (array_reverse($exhibitorsData, true) as $name => $data) {
-            if (!str_contains($name, 'ExhibitorsSeparator')) {
-                break;
+        $previousWasSeparator = false;
+
+        foreach ($exhibitorsData as $name => $data) {
+            $isSeparator = is_string($name) && str_starts_with($name, 'ExhibitorsSeparator');
+
+            if ($isSeparator && $previousWasSeparator) {
+                unset($exhibitorsData[$name]);
+                continue;
             }
 
-            unset($exhibitorsData[$name]);
+            $previousWasSeparator = $isSeparator;
+        }
+
+        if ($previousWasSeparator) {
+            array_pop($exhibitorsData);
         }
 
         return $exhibitorsData;

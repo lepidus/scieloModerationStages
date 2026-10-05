@@ -448,6 +448,9 @@ class DashboardExhibitorsHelperTest extends TestCase
         $expectedExhibitorsData = [
             'submissionId' => $this->submissionId,
             'TimeSubmitted' => 'Submission made 2 days ago',
+            'ExhibitorsSeparator0' => '--',
+            'PdfViewLink' => 'https://dummy/pdf/link',
+            'LocaleKeyViewPdf' => __('plugins.generic.scieloModerationStages.viewPdf')
         ];
         $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId);
         $this->assertEquals($expectedExhibitorsData, $exhibitorsData);
