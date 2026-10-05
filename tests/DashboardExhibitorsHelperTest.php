@@ -319,7 +319,10 @@ class DashboardExhibitorsHelperTest extends TestCase
             'TimeResponsibleRedFlag' => true,
             'ExhibitorsSeparator1' => '--',
             'AreaModerators' => 'Area moderator: Vinicius de Moraes',
-            'TimeAreaModerator' => 'Area moderator assigned 2 days ago'
+            'TimeAreaModerator' => 'Area moderator assigned 2 days ago',
+            'ExhibitorsSeparator2' => '--',
+            'PdfViewLink' => 'https://dummy/pdf/link',
+            'LocaleKeyViewPdf' => __('plugins.generic.scieloModerationStages.viewPdf')
         ];
         $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId);
         $this->assertEquals($expectedExhibitorsData, $exhibitorsData);
