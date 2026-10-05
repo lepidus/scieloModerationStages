@@ -402,16 +402,30 @@ class DashboardExhibitorsHelperTest extends TestCase
         $this->assertEmpty($exhibitorsData);
     }
 
-    public function testTrimsExcessiveExhibitorsFromExhibitorsData(): void
+    public function testCleansExcessiveExhibitorsFromExhibitorsData(): void
     {
         $dummyExhibitorsData = [
             'submissionId' => 1,
             'ExhibitorsSeparator0' => '--',
             'ExhibitorsSeparator1' => '--'
         ];
-        $trimmedData = $this->helper->trimExhibitorsData($dummyExhibitorsData);
+        $cleanedData = $this->helper->cleanExcessiveExhibitors($dummyExhibitorsData);
+        $this->assertEquals(['submissionId' => 1], $cleanedData);
 
-        $this->assertEquals(['submissionId' => 1], $trimmedData);
+        $dummyExhibitorsData = [
+            'submissionId' => 1,
+            'ExhibitorsSeparator0' => '--',
+            'ExhibitorsSeparator1' => '--',
+            'ExhibitorsSeparator2' => '--',
+            'PdfViewLink' => 'https://dummy/pdf/link'
+        ];
+        $expectedCleanedData = [
+            'submissionId' => 1,
+            'ExhibitorsSeparator0' => '--',
+            'PdfViewLink' => 'https://dummy/pdf/link'
+        ];
+        $cleanedData = $this->helper->cleanExcessiveExhibitors($dummyExhibitorsData);
+        $this->assertEquals($expectedCleanedData, $cleanedData);
     }
 
     public function testGetsExhibitorsDataForLegacySubmissions(): void
