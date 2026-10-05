@@ -319,7 +319,10 @@ class DashboardExhibitorsHelperTest extends TestCase
             'TimeResponsibleRedFlag' => true,
             'ExhibitorsSeparator1' => '--',
             'AreaModerators' => 'Area moderator: Vinicius de Moraes',
-            'TimeAreaModerator' => 'Area moderator assigned 2 days ago'
+            'TimeAreaModerator' => 'Area moderator assigned 2 days ago',
+            'ExhibitorsSeparator2' => '--',
+            'PdfViewLink' => 'https://dummy/pdf/link',
+            'LocaleKeyViewPdf' => __('plugins.generic.scieloModerationStages.viewPdf')
         ];
         $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId);
         $this->assertEquals($expectedExhibitorsData, $exhibitorsData);
@@ -399,16 +402,30 @@ class DashboardExhibitorsHelperTest extends TestCase
         $this->assertEmpty($exhibitorsData);
     }
 
-    public function testTrimsExcessiveExhibitorsFromExhibitorsData(): void
+    public function testCleansExcessiveExhibitorsFromExhibitorsData(): void
     {
         $dummyExhibitorsData = [
             'submissionId' => 1,
             'ExhibitorsSeparator0' => '--',
             'ExhibitorsSeparator1' => '--'
         ];
-        $trimmedData = $this->helper->trimExhibitorsData($dummyExhibitorsData);
+        $cleanedData = $this->helper->cleanExcessiveExhibitors($dummyExhibitorsData);
+        $this->assertEquals(['submissionId' => 1], $cleanedData);
 
-        $this->assertEquals(['submissionId' => 1], $trimmedData);
+        $dummyExhibitorsData = [
+            'submissionId' => 1,
+            'ExhibitorsSeparator0' => '--',
+            'ExhibitorsSeparator1' => '--',
+            'ExhibitorsSeparator2' => '--',
+            'PdfViewLink' => 'https://dummy/pdf/link'
+        ];
+        $expectedCleanedData = [
+            'submissionId' => 1,
+            'ExhibitorsSeparator0' => '--',
+            'PdfViewLink' => 'https://dummy/pdf/link'
+        ];
+        $cleanedData = $this->helper->cleanExcessiveExhibitors($dummyExhibitorsData);
+        $this->assertEquals($expectedCleanedData, $cleanedData);
     }
 
     public function testGetsExhibitorsDataForLegacySubmissions(): void
@@ -431,6 +448,9 @@ class DashboardExhibitorsHelperTest extends TestCase
         $expectedExhibitorsData = [
             'submissionId' => $this->submissionId,
             'TimeSubmitted' => 'Submission made 2 days ago',
+            'ExhibitorsSeparator0' => '--',
+            'PdfViewLink' => 'https://dummy/pdf/link',
+            'LocaleKeyViewPdf' => __('plugins.generic.scieloModerationStages.viewPdf')
         ];
         $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId);
         $this->assertEquals($expectedExhibitorsData, $exhibitorsData);
