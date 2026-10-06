@@ -322,25 +322,16 @@ class DashboardExhibitorsHelper
 
     protected function getPdfViewLink(Submission $submission): string
     {
-        $galleys = Repo::galley()
-            ->getCollector()
-            ->filterByPublicationIds([$submission->getCurrentPublication()->getId()])
-            ->getMany()
-            ->toArray();
-
-        if (empty($galleys)) {
-            return '';
-        }
-
         $request = Application::get()->getRequest();
-        $pdfGalley = $galleys[0];
-        return $request->getDispatcher()->url(
+        $url = $request->getDispatcher()->url(
             $request,
             Application::ROUTE_PAGE,
             $request->getContext()->getPath(),
-            'preprint',
-            'view',
-            $submission->getId(). '/' . $pdfGalley->getId()
+            'workflow',
+            'access',
+            $submission->getId()
         );
+
+        return "$url#publication/galleys";
     }
 }
