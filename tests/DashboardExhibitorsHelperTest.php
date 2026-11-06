@@ -351,6 +351,23 @@ class DashboardExhibitorsHelperTest extends TestCase
         $this->assertEquals($expectedExhibitorsData, $exhibitorsData);
     }
 
+    public function testHidesEditorialExhibitorsFromResponsibleWhoIsOnlyAuthorOfSubmission(): void
+    {
+        $this->setBaseDataForExhibitorsTests();
+        $this->helper->userUserGroups = [
+            Role::ROLE_ID_SUB_EDITOR => [
+                1 => 'resp',
+            ]
+        ];
+
+        $expectedExhibitorsData = [
+            'submissionId' => $this->submissionId,
+            'ModerationStage' => 'Moderation stage: Format Pre-Moderation',
+        ];
+        $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId, false);
+        $this->assertEquals($expectedExhibitorsData, $exhibitorsData);
+    }
+
     public function testGetsExhibitorsDataForAreaModerators(): void
     {
         $this->setBaseDataForExhibitorsTests();

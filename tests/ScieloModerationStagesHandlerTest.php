@@ -64,4 +64,12 @@ class ScieloModerationStagesHandlerTest extends TestCase
         $this->assertSame(['getSubmissionExhibitData'], $handler->getRoleAssignment(Role::ROLE_ID_ASSISTANT));
         $this->assertSame(['getSubmissionExhibitData'], $handler->getRoleAssignment(Role::ROLE_ID_AUTHOR));
     }
+
+    public function testEditorialAccessIsDecidedByRolesOnTheSubmission(): void
+    {
+        $this->assertFalse(TestableModerationStagesHandler::stagesGrantEditorialAccess([5 => [Role::ROLE_ID_AUTHOR]]));
+        $this->assertFalse(TestableModerationStagesHandler::stagesGrantEditorialAccess([]));
+        $this->assertTrue(TestableModerationStagesHandler::stagesGrantEditorialAccess([5 => [Role::ROLE_ID_SUB_EDITOR]]));
+        $this->assertTrue(TestableModerationStagesHandler::stagesGrantEditorialAccess([5 => [Role::ROLE_ID_MANAGER]]));
+    }
 }

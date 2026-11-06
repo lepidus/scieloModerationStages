@@ -235,9 +235,32 @@ class ScieloModerationStagesHandler extends Handler
         $userId = $request->getUser()->getId();
         $contextId = $request->getContext()->getId();
 
+        $accessibleWorkflowStages = Repo::user()->getAccessibleWorkflowStages(
+            $userId,
+            $contextId,
+            $submission,
+            $this->getAuthorizedContextObject(Application::ASSOC_TYPE_USER_ROLES)
+        );
+
         $exhibitorsHelper = new DashboardExhibitorsHelper();
-        $exhibitData = $exhibitorsHelper->getExhibitorsData($submission, $userId, $contextId);
+        $exhibitData = $exhibitorsHelper->getExhibitorsData(
+            $submission,
+            $userId,
+            $contextId,
+            self::stagesGrantEditorialAccess($accessibleWorkflowStages)
+        );
 
         return json_encode($exhibitData);
+    }
+
+    public static function stagesGrantEditorialAccess(array $accessibleWorkflowStages): bool
+    {
+        foreach ($accessibleWorkflowStages as $stageRoles) {
+            if (!empty(array_intersect((array) $stageRoles, self::EDITORIAL_ROLES))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
