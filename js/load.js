@@ -33,7 +33,7 @@ function addTextToLabeledExhibitor(exhibitorNode, text) {
 
     exhibitorNode.appendChild(labelStrong);
     labelStrong.textContent = labelText+':';
-    exhibitorNode.innerHTML += contentText;
+    exhibitorNode.appendChild(document.createTextNode(contentText));
 }
 
 function updateExhibitorNode(exhibitorNodeName, text, submissionId) {
