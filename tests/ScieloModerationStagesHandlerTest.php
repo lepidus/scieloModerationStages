@@ -114,4 +114,39 @@ class ScieloModerationStagesHandlerTest extends TestCase
 
         $this->assertSame('Responsible: Jane Doe', $response['Responsibles']);
     }
+
+    public function testUpdateSubmissionStageDataRejectsServerEditorWhoIsOnlyAuthorOfSubmission(): void
+    {
+        $handler = new TestableModerationStagesHandler();
+        $handler->accessibleWorkflowStages = [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_AUTHOR]];
+
+        $response = $handler->updateSubmissionStageData(
+            ['submissionId' => 1, 'sendNextStage' => 1, 'formatStageEntryDate' => '2020-01-01'],
+            new FakeModerationStagesRequest(true, true)
+        );
+
+        $this->assertInstanceOf(JSONMessage::class, $response);
+        $this->assertFalse($response->getStatus());
+    }
+
+    public function testStageDataUpdateRequiresUpdateRoleOnTheSubmission(): void
+    {
+        $roles = ScieloModerationStagesHandler::STAGE_DATA_UPDATE_ROLES;
+
+        $this->assertFalse(ScieloModerationStagesHandler::stagesGrantAnyRole([WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_AUTHOR]], $roles));
+        $this->assertFalse(ScieloModerationStagesHandler::stagesGrantAnyRole([WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_ASSISTANT]], $roles));
+        $this->assertFalse(ScieloModerationStagesHandler::stagesGrantAnyRole([], $roles));
+        $this->assertTrue(ScieloModerationStagesHandler::stagesGrantAnyRole([WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_SUB_EDITOR]], $roles));
+        $this->assertTrue(ScieloModerationStagesHandler::stagesGrantAnyRole([WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_MANAGER]], $roles));
+    }
+
+    public function testExhibitDataIncludesEditorialDataForUnassignedManager(): void
+    {
+        $handler = new TestableModerationStagesHandler();
+        $handler->accessibleWorkflowStages = [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_MANAGER]];
+
+        $response = json_decode($handler->getSubmissionExhibitData(['submissionId' => 1], null), true);
+
+        $this->assertSame('Responsible: Jane Doe', $response['Responsibles']);
+    }
 }

@@ -17,7 +17,7 @@ class ScieloModerationStagesHandler extends Handler
     private const THRESHOLD_TIME_EXHIBITORS = 2;
     private const SUBMISSION_SCOPED_OPERATIONS = ['updateSubmissionStageData', 'getSubmissionExhibitData'];
 
-    public const EXHIBITOR_EDITORIAL_ROLES = [ROLE_ID_SITE_ADMIN, ROLE_ID_SUB_EDITOR];
+    public const EXHIBITOR_EDITORIAL_ROLES = [ROLE_ID_SITE_ADMIN, ROLE_ID_MANAGER, ROLE_ID_SUB_EDITOR];
     public const STAGE_DATA_UPDATE_ROLES = [ROLE_ID_SITE_ADMIN, ROLE_ID_MANAGER, ROLE_ID_SUB_EDITOR];
     public const REMINDER_ROLES = [ROLE_ID_SITE_ADMIN, ROLE_ID_MANAGER];
 
@@ -125,8 +125,12 @@ class ScieloModerationStagesHandler extends Handler
             return new JSONMessage(false);
         }
 
-        $submissionDao = DAORegistry::getDAO('SubmissionDAO');
         $submission = $this->getSubmission();
+        if (!$this->currentUserCanUpdateSubmissionStageData($submission)) {
+            return new JSONMessage(false);
+        }
+
+        $submissionDao = DAORegistry::getDAO('SubmissionDAO');
         $moderationStage = new ModerationStage($submission);
 
         if (isset($args['formatStageEntryDate'])) {
@@ -190,8 +194,18 @@ class ScieloModerationStagesHandler extends Handler
 
     protected function currentUserHasEditorialAccessToSubmission($submission): bool
     {
-        foreach ($this->getAccessibleWorkflowStages($submission) as $stageRoles) {
-            if (count(array_intersect((array) $stageRoles, self::EXHIBITOR_EDITORIAL_ROLES)) > 0) {
+        return self::stagesGrantAnyRole($this->getAccessibleWorkflowStages($submission), self::EXHIBITOR_EDITORIAL_ROLES);
+    }
+
+    protected function currentUserCanUpdateSubmissionStageData($submission): bool
+    {
+        return self::stagesGrantAnyRole($this->getAccessibleWorkflowStages($submission), self::STAGE_DATA_UPDATE_ROLES);
+    }
+
+    public static function stagesGrantAnyRole(array $accessibleWorkflowStages, array $roleIds): bool
+    {
+        foreach ($accessibleWorkflowStages as $stageRoles) {
+            if (count(array_intersect((array) $stageRoles, $roleIds)) > 0) {
                 return true;
             }
         }

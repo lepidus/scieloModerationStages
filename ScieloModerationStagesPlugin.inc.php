@@ -321,8 +321,19 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             return false;
         }
 
-        return $currentUser->hasRole([ROLE_ID_MANAGER, ROLE_ID_SUB_EDITOR], $submission->getData('contextId'))
-            || $currentUser->hasRole([ROLE_ID_SITE_ADMIN], CONTEXT_SITE);
+        $accessibleWorkflowStages = Services::get('user')->getAccessibleWorkflowStages(
+            $currentUser->getId(),
+            $submission->getData('contextId'),
+            $submission
+        );
+
+        foreach ($accessibleWorkflowStages as $stageRoles) {
+            if (count(array_intersect((array) $stageRoles, [ROLE_ID_SITE_ADMIN, ROLE_ID_MANAGER, ROLE_ID_SUB_EDITOR])) > 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function sendSubmissionToNextModerationStage($hookName, $params)
