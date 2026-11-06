@@ -97,9 +97,13 @@ function getSubmissionIdFromDiv(parentDiv) {
 }
 
 async function addSubmissionExhibitors() {
-    userIsAuthor = await $.get(
-        app.moderationStagesHandlerUrl + 'get-user-is-author'
-    );
+    try {
+        userIsAuthor = await $.get(
+            app.moderationStagesHandlerUrl + 'get-user-is-author'
+        );
+    } catch (error) {
+        return;
+    }
 
     var submissionSubtitle = document.getElementsByClassName('listPanel__itemSubtitle');
     for (let subtitle of submissionSubtitle) {
