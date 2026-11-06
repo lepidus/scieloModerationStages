@@ -72,4 +72,28 @@ class ScieloModerationStagesHandlerTest extends TestCase
         $this->assertTrue(TestableModerationStagesHandler::stagesGrantEditorialAccess([5 => [Role::ROLE_ID_SUB_EDITOR]]));
         $this->assertTrue(TestableModerationStagesHandler::stagesGrantEditorialAccess([5 => [Role::ROLE_ID_MANAGER]]));
     }
+
+    public function testUpdateSubmissionStageDataRejectsServerEditorWhoIsOnlyAuthorOfSubmission(): void
+    {
+        $handler = new TestableModerationStagesHandler();
+        $handler->accessibleWorkflowStages = [5 => [Role::ROLE_ID_AUTHOR]];
+
+        $response = $handler->updateSubmissionStageData(
+            ['submissionId' => 1, 'stageChangeAction' => 'advance', 'formatStageEntryDate' => '2020-01-01'],
+            new FakeCsrfRequest(true)
+        );
+
+        $this->assertInstanceOf(JSONMessage::class, $response);
+        $this->assertFalse($response->getStatus());
+    }
+
+    public function testStageDataUpdateRequiresUpdateRoleOnTheSubmission(): void
+    {
+        $roles = TestableModerationStagesHandler::STAGE_DATA_UPDATE_ROLES;
+
+        $this->assertFalse(TestableModerationStagesHandler::stagesGrantAnyRole([5 => [Role::ROLE_ID_AUTHOR]], $roles));
+        $this->assertFalse(TestableModerationStagesHandler::stagesGrantAnyRole([5 => [Role::ROLE_ID_ASSISTANT]], $roles));
+        $this->assertTrue(TestableModerationStagesHandler::stagesGrantAnyRole([5 => [Role::ROLE_ID_SUB_EDITOR]], $roles));
+        $this->assertTrue(TestableModerationStagesHandler::stagesGrantAnyRole([5 => [Role::ROLE_ID_MANAGER]], $roles));
+    }
 }

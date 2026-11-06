@@ -56,7 +56,7 @@ class WorkflowDispatcher
                 'csrfToken' => $request->getSession()->getCSRFToken(),
                 'submissionId' => $submission->getId(),
                 'userIsAuthor' => $this->plugin->userIsAuthor($submission),
-                'canUpdateStageData' => $this->userCanUpdateStageData($request->getUser(), $context->getId()),
+                'canUpdateStageData' => $this->userCanUpdateStageData($request->getUser(), $context->getId(), $submission),
                 'currentStage' => $currentStageName,
                 'canAdvanceStage' => $canAdvanceStage,
                 'canRegressStage' => $canRegressStage,
@@ -79,14 +79,22 @@ class WorkflowDispatcher
         }
     }
 
-    private function userCanUpdateStageData($user, int $contextId): bool
+    private function userCanUpdateStageData($user, int $contextId, $submission): bool
     {
         if (!$user) {
             return false;
         }
 
-        return $user->hasRole([Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR], $contextId)
-            || $user->hasRole([Role::ROLE_ID_SITE_ADMIN], Application::CONTEXT_SITE);
+        $accessibleWorkflowStages = Repo::user()->getAccessibleWorkflowStages($user->getId(), $contextId, $submission);
+        $updateRoles = [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR];
+
+        foreach ($accessibleWorkflowStages as $stageRoles) {
+            if (!empty(array_intersect((array) $stageRoles, $updateRoles))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function addCurrentStageStatusToWorkflow($hookName, $params)

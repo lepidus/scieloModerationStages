@@ -148,6 +148,10 @@ class ScieloModerationStagesHandler extends Handler
         }
 
         $submission = $this->getSubmission();
+        if (!self::stagesGrantAnyRole($this->getAccessibleWorkflowStages($submission), self::STAGE_DATA_UPDATE_ROLES)) {
+            return new JSONMessage(false);
+        }
+
         $moderationStage = new ModerationStage($submission);
 
         foreach ($entryDates as $dateField => $date) {
@@ -235,12 +239,7 @@ class ScieloModerationStagesHandler extends Handler
         $userId = $request->getUser()->getId();
         $contextId = $request->getContext()->getId();
 
-        $accessibleWorkflowStages = Repo::user()->getAccessibleWorkflowStages(
-            $userId,
-            $contextId,
-            $submission,
-            $this->getAuthorizedContextObject(Application::ASSOC_TYPE_USER_ROLES)
-        );
+        $accessibleWorkflowStages = $this->getAccessibleWorkflowStages($submission);
 
         $exhibitorsHelper = new DashboardExhibitorsHelper();
         $exhibitData = $exhibitorsHelper->getExhibitorsData(
@@ -255,12 +254,29 @@ class ScieloModerationStagesHandler extends Handler
 
     public static function stagesGrantEditorialAccess(array $accessibleWorkflowStages): bool
     {
+        return self::stagesGrantAnyRole($accessibleWorkflowStages, self::EDITORIAL_ROLES);
+    }
+
+    public static function stagesGrantAnyRole(array $accessibleWorkflowStages, array $roleIds): bool
+    {
         foreach ($accessibleWorkflowStages as $stageRoles) {
-            if (!empty(array_intersect((array) $stageRoles, self::EDITORIAL_ROLES))) {
+            if (!empty(array_intersect((array) $stageRoles, $roleIds))) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    protected function getAccessibleWorkflowStages($submission): array
+    {
+        $request = Application::get()->getRequest();
+
+        return Repo::user()->getAccessibleWorkflowStages(
+            $request->getUser()->getId(),
+            $request->getContext()->getId(),
+            $submission,
+            $this->getAuthorizedContextObject(Application::ASSOC_TYPE_USER_ROLES)
+        );
     }
 }
