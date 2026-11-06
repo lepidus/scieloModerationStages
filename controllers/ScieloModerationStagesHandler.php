@@ -96,7 +96,7 @@ class ScieloModerationStagesHandler extends Handler
 
         $plugin = PluginRegistry::getPlugin('generic', 'scielomoderationstagesplugin');
         $context = $request->getContext();
-        $canUpdate = $this->currentUserCanUpdateStageData();
+        $canUpdate = $this->currentUserCanUpdateStageData($submission);
         $canAdvanceStage = $canUpdate && $moderationStage->canAdvanceStage();
         $canRegressStage = $canUpdate && $moderationStage->canRegressStage();
 
@@ -198,6 +198,10 @@ class ScieloModerationStagesHandler extends Handler
         }
 
         $submission = $this->getSubmission();
+        if (!$this->currentUserCanUpdateStageData($submission)) {
+            return new JSONMessage(false);
+        }
+
         $moderationStage = new ModerationStage($submission);
 
         $entryDates = $this->readEntryDates($args);
@@ -283,7 +287,7 @@ class ScieloModerationStagesHandler extends Handler
         $submission = $this->getSubmission();
         $exhibitData = ['submissionId' => $submission->getId()];
 
-        if ($this->currentUserHasEditorialAccessToSubmission($submission, $request)) {
+        if ($this->currentUserHasEditorialAccessToSubmission($submission)) {
             $exhibitData = array_merge(
                 $exhibitData,
                 $this->getAreaModerators($submission->getId()),
@@ -300,22 +304,32 @@ class ScieloModerationStagesHandler extends Handler
         return !empty(array_intersect($this->currentUserRoles(), self::EDITORIAL_ROLES));
     }
 
-    private function currentUserHasEditorialAccessToSubmission(Submission $submission, $request): bool
+    private function currentUserHasEditorialAccessToSubmission($submission): bool
     {
-        $accessibleWorkflowStages = Repo::user()->getAccessibleWorkflowStages(
+        return self::stagesGrantEditorialAccess($this->getAccessibleWorkflowStages($submission));
+    }
+
+    protected function getAccessibleWorkflowStages($submission): array
+    {
+        $request = Application::get()->getRequest();
+
+        return Repo::user()->getAccessibleWorkflowStages(
             $request->getUser()->getId(),
             $request->getContext()->getId(),
             $submission,
             $this->currentUserRoles()
         );
-
-        return self::stagesGrantEditorialAccess($accessibleWorkflowStages);
     }
 
     public static function stagesGrantEditorialAccess(array $accessibleWorkflowStages): bool
     {
+        return self::stagesGrantAnyRole($accessibleWorkflowStages, self::EDITORIAL_ROLES);
+    }
+
+    public static function stagesGrantAnyRole(array $accessibleWorkflowStages, array $roleIds): bool
+    {
         foreach ($accessibleWorkflowStages as $stageRoles) {
-            if (!empty(array_intersect((array) $stageRoles, self::EDITORIAL_ROLES))) {
+            if (!empty(array_intersect((array) $stageRoles, $roleIds))) {
                 return true;
             }
         }
@@ -323,9 +337,9 @@ class ScieloModerationStagesHandler extends Handler
         return false;
     }
 
-    private function currentUserCanUpdateStageData(): bool
+    private function currentUserCanUpdateStageData($submission): bool
     {
-        return !empty(array_intersect($this->currentUserRoles(), self::STAGE_DATA_UPDATE_ROLES));
+        return self::stagesGrantAnyRole($this->getAccessibleWorkflowStages($submission), self::STAGE_DATA_UPDATE_ROLES);
     }
 
     private function currentUserRoles(): array
