@@ -16,6 +16,8 @@ class SendModerationReminderForm extends Form
         $this->contextId = $contextId;
         $this->plugin = $plugin;
         parent::__construct($plugin->getTemplateResource('sendModerationReminderForm.tpl'));
+        $this->addCheck(new FormValidatorPost($this));
+        $this->addCheck(new FormValidatorCSRF($this));
     }
 
     private function getResponsiblesUserGroupId($contextId)

@@ -17,6 +17,8 @@ class ScieloModerationStagesSettingsForm extends Form
         $this->contextId = $contextId;
         $this->plugin = $plugin;
         parent::__construct($plugin->getTemplateResource('settingsForm.tpl'));
+        $this->addCheck(new FormValidatorPost($this));
+        $this->addCheck(new FormValidatorCSRF($this));
 
         $this->addCheck(new FormValidatorCustom($this, 'preModerationTimeLimit', 'required', 'plugins.generic.scieloModerationStages.settings.timeLimitError', function ($timeLimit) {
             return is_numeric($timeLimit) && intval($timeLimit) > 0;
