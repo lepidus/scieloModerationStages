@@ -21,6 +21,7 @@ class SchemaEditor
             $schema->properties->{$property} = (object) [
                 'type' => $type,
                 'apiSummary' => true,
+                'writeDisabledInApi' => true,
                 'validation' => ['nullable'],
             ];
         }
