@@ -23,17 +23,40 @@ class ScieloModerationStagesHandler extends Handler
 {
     private const SUBMISSION_STAGE_ID = 5;
     private const SUBMISSION_SCOPED_OPERATIONS = ['updateSubmissionStageData', 'getSubmissionExhibitData'];
+    private const ENTRY_DATE_FIELDS = ['formatStageEntryDate', 'contentStageEntryDate', 'areaStageEntryDate'];
+
+    public const EDITORIAL_ROLES = [
+        Role::ROLE_ID_SITE_ADMIN,
+        Role::ROLE_ID_MANAGER,
+        Role::ROLE_ID_SUB_EDITOR,
+        Role::ROLE_ID_ASSISTANT,
+    ];
+
+    public const STAGE_DATA_UPDATE_ROLES = [
+        Role::ROLE_ID_SITE_ADMIN,
+        Role::ROLE_ID_MANAGER,
+        Role::ROLE_ID_SUB_EDITOR,
+    ];
+
+    public const REMINDER_ROLES = [
+        Role::ROLE_ID_SITE_ADMIN,
+        Role::ROLE_ID_MANAGER,
+    ];
 
     public function __construct()
     {
         parent::__construct();
         $this->addRoleAssignment(
-            [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_ASSISTANT],
-            ['getReminderBody', 'updateSubmissionStageData', 'getSubmissionExhibitData']
+            [...self::EDITORIAL_ROLES, Role::ROLE_ID_AUTHOR],
+            ['getSubmissionExhibitData']
         );
         $this->addRoleAssignment(
-            [Role::ROLE_ID_AUTHOR],
-            ['getSubmissionExhibitData']
+            self::STAGE_DATA_UPDATE_ROLES,
+            ['updateSubmissionStageData']
+        );
+        $this->addRoleAssignment(
+            self::REMINDER_ROLES,
+            ['getReminderBody']
         );
     }
 
@@ -119,19 +142,16 @@ class ScieloModerationStagesHandler extends Handler
             return new JSONMessage(false);
         }
 
+        $entryDates = $this->readEntryDates($args);
+        if (is_null($entryDates)) {
+            return new JSONMessage(false);
+        }
+
         $submission = $this->getSubmission();
         $moderationStage = new ModerationStage($submission);
 
-        if (isset($args['formatStageEntryDate'])) {
-            $submission->setData('formatStageEntryDate', $args['formatStageEntryDate']);
-        }
-
-        if (isset($args['contentStageEntryDate'])) {
-            $submission->setData('contentStageEntryDate', $args['contentStageEntryDate']);
-        }
-
-        if (isset($args['areaStageEntryDate'])) {
-            $submission->setData('areaStageEntryDate', $args['areaStageEntryDate']);
+        foreach ($entryDates as $dateField => $date) {
+            $submission->setData($dateField, $date);
         }
 
         $stageChangeAction = $args['stageChangeAction'] ?? null;
@@ -158,6 +178,42 @@ class ScieloModerationStagesHandler extends Handler
 
         Repo::submission()->edit($submission, []);
         return new JSONMessage(true);
+    }
+
+    private function readEntryDates(array $args): ?array
+    {
+        $entryDates = [];
+
+        foreach (self::ENTRY_DATE_FIELDS as $dateField) {
+            if (!array_key_exists($dateField, $args)) {
+                continue;
+            }
+
+            $date = $args[$dateField];
+            if (!is_string($date)) {
+                return null;
+            }
+
+            $date = trim($date);
+            if ($date === '') {
+                $entryDates[$dateField] = null;
+                continue;
+            }
+
+            if (!$this->isValidEntryDate($date)) {
+                return null;
+            }
+
+            $entryDates[$dateField] = $date;
+        }
+
+        return $entryDates;
+    }
+
+    private function isValidEntryDate(string $date): bool
+    {
+        $parsedDate = DateTime::createFromFormat('Y-m-d', $date);
+        return $parsedDate && $parsedDate->format('Y-m-d') === $date;
     }
 
     public function getSubmission()

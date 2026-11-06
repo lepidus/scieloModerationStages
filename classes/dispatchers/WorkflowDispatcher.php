@@ -6,6 +6,7 @@ use PKP\plugins\Hook;
 use APP\core\Application;
 use APP\template\TemplateManager;
 use APP\facades\Repo;
+use PKP\security\Role;
 use Illuminate\Support\Facades\Mail;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageRegister;
@@ -55,6 +56,7 @@ class WorkflowDispatcher
                 'csrfToken' => $request->getSession()->getCSRFToken(),
                 'submissionId' => $submission->getId(),
                 'userIsAuthor' => $this->plugin->userIsAuthor($submission),
+                'canUpdateStageData' => $this->userCanUpdateStageData($request->getUser(), $context->getId()),
                 'currentStage' => $currentStageName,
                 'canAdvanceStage' => $canAdvanceStage,
                 'canRegressStage' => $canRegressStage,
@@ -75,6 +77,16 @@ class WorkflowDispatcher
                 $templateMgr->fetch($this->plugin->getTemplateResource('moderationStageMenu.tpl'))
             );
         }
+    }
+
+    private function userCanUpdateStageData($user, int $contextId): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        return $user->hasRole([Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR], $contextId)
+            || $user->hasRole([Role::ROLE_ID_SITE_ADMIN], Application::CONTEXT_SITE);
     }
 
     public function addCurrentStageStatusToWorkflow($hookName, $params)

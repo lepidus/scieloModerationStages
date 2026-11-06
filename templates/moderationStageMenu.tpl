@@ -20,25 +20,25 @@
         <div id="formatStageEntryDateDiv" class="stageDateField">
             <label class="label">{translate key="plugins.generic.scieloModerationStages.stages.formatStage"}</label>
             <label class="description">{translate key="plugins.generic.scieloModerationStages.menuDates.fieldDescription"}</label>
-            <input type="date" id='formatStageEntryDate' name='formatStageEntryDate' value="{$formatStageEntryDate}" {if $userIsAuthor}disabled{/if}/>
+            <input type="date" id='formatStageEntryDate' name='formatStageEntryDate' value="{$formatStageEntryDate|escape}" {if $userIsAuthor or not $canUpdateStageData}disabled{/if}/>
         </div>
     {/if}
     {if $contentStageEntryDate}
         <div id="contentStageEntryDateDiv" class="stageDateField">
             <label class="label">{translate key="plugins.generic.scieloModerationStages.stages.contentStage"}</label>
             <label class="description">{translate key="plugins.generic.scieloModerationStages.menuDates.fieldDescription"}</label>
-            <input type="date" id='contentStageEntryDate' name='contentStageEntryDate' value="{$contentStageEntryDate}"{if $userIsAuthor}disabled{/if}/>
+            <input type="date" id='contentStageEntryDate' name='contentStageEntryDate' value="{$contentStageEntryDate|escape}"{if $userIsAuthor or not $canUpdateStageData}disabled{/if}/>
         </div>
     {/if}
     {if $areaStageEntryDate}
         <div id="areaStageEntryDateDiv" class="stageDateField">
             <label class="label">{translate key="plugins.generic.scieloModerationStages.stages.areaStage"}</label>
             <label class="description">{translate key="plugins.generic.scieloModerationStages.menuDates.fieldDescription"}</label>
-            <input type="date" id='areaStageEntryDate' name='areaStageEntryDate' value="{$areaStageEntryDate}"{if $userIsAuthor}disabled{/if}/>
+            <input type="date" id='areaStageEntryDate' name='areaStageEntryDate' value="{$areaStageEntryDate|escape}"{if $userIsAuthor or not $canUpdateStageData}disabled{/if}/>
         </div>
     {/if}
 
-    {if not $userIsAuthor}
+    {if not $userIsAuthor and $canUpdateStageData}
         {if $canAdvanceStage or $canRegressStage}
             <div id="stageChangeDiv">
                 {capture assign=currentStageName}{translate key=$currentStage}{/capture}
@@ -65,7 +65,7 @@
     {/if}
 </div>
 
-{if not $userIsAuthor}
+{if not $userIsAuthor and $canUpdateStageData}
     <script>
         function updatedStageDatesSuccess(){ldelim}
             alert("{translate key="form.saved"}");
