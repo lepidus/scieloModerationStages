@@ -4,30 +4,89 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 
 import('classes.handler.Handler');
 import('classes.workflow.EditorDecisionActionsManager');
+import('lib.pkp.classes.core.JSONMessage');
+import('lib.pkp.classes.security.authorization.ContextAccessPolicy');
+import('lib.pkp.classes.security.authorization.SubmissionAccessPolicy');
 import('plugins.generic.scieloModerationStages.classes.ModerationStageDAO');
 import('plugins.generic.scieloModerationStages.classes.ModerationReminderEmailBuilder');
+import('plugins.generic.scieloModerationStages.classes.ModerationReminderHelper');
 
 class ScieloModerationStagesHandler extends Handler
 {
     private const SUBMISSION_STAGE_ID = 5;
     private const THRESHOLD_TIME_EXHIBITORS = 2;
+    private const SUBMISSION_SCOPED_OPERATIONS = ['updateSubmissionStageData', 'getSubmissionExhibitData'];
+
+    public const EXHIBITOR_EDITORIAL_ROLES = [ROLE_ID_SITE_ADMIN, ROLE_ID_SUB_EDITOR];
+    public const STAGE_DATA_UPDATE_ROLES = [ROLE_ID_SITE_ADMIN, ROLE_ID_MANAGER, ROLE_ID_SUB_EDITOR];
+    public const REMINDER_ROLES = [ROLE_ID_SITE_ADMIN, ROLE_ID_MANAGER];
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->addRoleAssignment(
+            [ROLE_ID_SITE_ADMIN, ROLE_ID_MANAGER, ROLE_ID_SUB_EDITOR, ROLE_ID_ASSISTANT, ROLE_ID_AUTHOR],
+            ['getSubmissionExhibitData']
+        );
+        $this->addRoleAssignment(
+            [ROLE_ID_SITE_ADMIN, ROLE_ID_MANAGER, ROLE_ID_SUB_EDITOR, ROLE_ID_ASSISTANT, ROLE_ID_AUTHOR, ROLE_ID_REVIEWER],
+            ['getUserIsAuthor']
+        );
+        $this->addRoleAssignment(self::STAGE_DATA_UPDATE_ROLES, ['updateSubmissionStageData']);
+        $this->addRoleAssignment(self::REMINDER_ROLES, ['getReminderBody']);
+    }
+
+    public function authorize($request, &$args, $roleAssignments)
+    {
+        $operation = $request->getRouter()->getRequestedOp($request);
+
+        if (in_array($operation, self::SUBMISSION_SCOPED_OPERATIONS)) {
+            $this->addPolicy(new SubmissionAccessPolicy($request, $args, $roleAssignments));
+        } else {
+            $this->addPolicy(new ContextAccessPolicy($request, $roleAssignments));
+        }
+
+        return parent::authorize($request, $args, $roleAssignments);
+    }
+
+    public function getSubmission()
+    {
+        return $this->getAuthorizedContextObject(ASSOC_TYPE_SUBMISSION);
+    }
 
     public function getReminderBody($args, $request)
     {
-        $userGroupId = (int) $args['userGroup'];
-        $role = $args['role'];
-        $userToRemind = DAORegistry::getDAO('UserDAO')->getById((int) $args['user']);
-
         $context = $request->getContext();
+        if (is_null($context)) {
+            return new JSONMessage(false);
+        }
+
+        $role = $args['role'] ?? null;
         $locale = AppLocale::getLocale();
         $plugin = PluginRegistry::getPlugin('generic', 'scielomoderationstagesplugin');
+        $moderationReminderHelper = new ModerationReminderHelper();
 
         if ($role == REMINDER_TYPE_PRE_MODERATION) {
             $moderationStage = SCIELO_MODERATION_STAGE_CONTENT;
+            $expectedUserGroup = $moderationReminderHelper->getResponsiblesUserGroup($context->getId());
             $moderationTimeLimit = $plugin->getSetting($context->getId(), 'preModerationTimeLimit');
         } elseif ($role == REMINDER_TYPE_AREA_MODERATION) {
             $moderationStage = SCIELO_MODERATION_STAGE_AREA;
+            $expectedUserGroup = $moderationReminderHelper->getAreaModeratorsUserGroup($context->getId());
             $moderationTimeLimit = $plugin->getSetting($context->getId(), 'areaModerationTimeLimit');
+        } else {
+            return new JSONMessage(false);
+        }
+
+        $userGroupId = (int) ($args['userGroup'] ?? 0);
+        if (is_null($expectedUserGroup) || (int) $expectedUserGroup->getId() !== $userGroupId) {
+            return new JSONMessage(false);
+        }
+
+        $userToRemind = DAORegistry::getDAO('UserDAO')->getById((int) ($args['user'] ?? 0));
+        if (is_null($userToRemind)) {
+            return new JSONMessage(false);
         }
 
         $moderationStageDao = new ModerationStageDAO();
@@ -62,8 +121,12 @@ class ScieloModerationStagesHandler extends Handler
 
     public function updateSubmissionStageData($args, $request)
     {
+        if (!$request->isPost() || !$request->checkCSRF()) {
+            return new JSONMessage(false);
+        }
+
         $submissionDao = DAORegistry::getDAO('SubmissionDAO');
-        $submission = $submissionDao->getById($args['submissionId']);
+        $submission = $this->getSubmission();
         $moderationStage = new ModerationStage($submission);
 
         if (isset($args['formatStageEntryDate'])) {
@@ -78,7 +141,7 @@ class ScieloModerationStagesHandler extends Handler
             $submission->setData('areaStageEntryDate', $args['areaStageEntryDate']);
         }
 
-        $userSelectedAdvanceStage = ($args['sendNextStage'] == 1);
+        $userSelectedAdvanceStage = (($args['sendNextStage'] ?? null) == 1);
         if ($userSelectedAdvanceStage and $moderationStage->canAdvanceStage()) {
             $moderationStage->sendNextStage();
             $moderationStageRegister = new ModerationStageRegister();
@@ -87,41 +150,44 @@ class ScieloModerationStagesHandler extends Handler
         }
 
         $submissionDao->updateObject($submission);
-        return http_response_code(200);
+        return new JSONMessage(true);
     }
 
     public function getSubmissionExhibitData($args, $request)
     {
-        $submissionId = $args['submissionId'];
+        $submissionId = $this->getSubmission()->getId();
         $exhibitData = $this->getSubmissionModerationStage($submissionId);
 
-        if ($args['userIsAuthor'] == 0) {
-            $exhibitData = array_merge(
-                $exhibitData,
-                $this->getResponsibles($submissionId),
-                $this->getAreaModerators($submissionId),
-                $this->getTimeSubmitted($submissionId),
-                $this->getTimeResponsible($submissionId),
-                $this->getTimeAreaModerator($submissionId)
-            );
+        if ($this->currentUserIsEditorial()) {
+            $exhibitData = array_merge($exhibitData, $this->getEditorialExhibitData($submissionId));
         }
 
         return json_encode($exhibitData);
     }
 
-    public function getUserIsAuthor($args, $request)
+    protected function getEditorialExhibitData($submissionId): array
     {
-        $userRoles = $this->getAuthorizedContextObject(ASSOC_TYPE_USER_ROLES);
-        $adminRoles = [ROLE_ID_SITE_ADMIN, ROLE_ID_SUB_EDITOR];
-
-        if (count(array_intersect($userRoles, $adminRoles)) > 0) {
-            return json_encode(0);
-        }
-
-        return json_encode(1);
+        return array_merge(
+            $this->getResponsibles($submissionId),
+            $this->getAreaModerators($submissionId),
+            $this->getTimeSubmitted($submissionId),
+            $this->getTimeResponsible($submissionId),
+            $this->getTimeAreaModerator($submissionId)
+        );
     }
 
-    private function getSubmissionModerationStage($submissionId)
+    public function getUserIsAuthor($args, $request)
+    {
+        return json_encode($this->currentUserIsEditorial() ? 0 : 1);
+    }
+
+    protected function currentUserIsEditorial(): bool
+    {
+        $userRoles = (array) $this->getAuthorizedContextObject(ASSOC_TYPE_USER_ROLES);
+        return count(array_intersect($userRoles, self::EXHIBITOR_EDITORIAL_ROLES)) > 0;
+    }
+
+    protected function getSubmissionModerationStage($submissionId)
     {
         $moderationStageDAO = new ModerationStageDAO();
 

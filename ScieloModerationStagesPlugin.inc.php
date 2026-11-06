@@ -242,6 +242,10 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             $templateMgr->assign($stageDates);
             $templateMgr->assign('submissionId', $submission->getId());
             $templateMgr->assign('userIsAuthor', $this->userIsAuthor($submission));
+            $templateMgr->assign(
+                'stageDataReadOnly',
+                $this->userIsAuthor($submission) || !$this->userCanUpdateStageData($submission)
+            );
             $templateMgr->assign('canAdvanceStage', $moderationStage->canAdvanceStage());
 
             if ($moderationStage->canAdvanceStage()) {
@@ -308,6 +312,17 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         }
 
         return $currentUserAssignedRoles[0] == ROLE_ID_AUTHOR;
+    }
+
+    private function userCanUpdateStageData($submission): bool
+    {
+        $currentUser = \Application::get()->getRequest()->getUser();
+        if (!$currentUser) {
+            return false;
+        }
+
+        return $currentUser->hasRole([ROLE_ID_MANAGER, ROLE_ID_SUB_EDITOR], $submission->getData('contextId'))
+            || $currentUser->hasRole([ROLE_ID_SITE_ADMIN], CONTEXT_SITE);
     }
 
     public function sendSubmissionToNextModerationStage($hookName, $params)
