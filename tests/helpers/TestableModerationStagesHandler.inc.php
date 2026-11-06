@@ -5,6 +5,7 @@ import('plugins.generic.scieloModerationStages.controllers.ScieloModerationStage
 class TestableModerationStagesHandler extends ScieloModerationStagesHandler
 {
     public $userIsEditorial = false;
+    public $accessibleWorkflowStages = [];
     public $scopedSubmissionId = 1;
     public $submissionWasLoaded = false;
 
@@ -19,6 +20,11 @@ class TestableModerationStagesHandler extends ScieloModerationStagesHandler
     protected function currentUserIsEditorial(): bool
     {
         return $this->userIsEditorial;
+    }
+
+    protected function getAccessibleWorkflowStages($submission): array
+    {
+        return $this->accessibleWorkflowStages;
     }
 
     protected function getSubmissionModerationStage($submissionId)

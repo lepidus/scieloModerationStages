@@ -75,7 +75,7 @@ class ScieloModerationStagesHandlerTest extends TestCase
     public function testExhibitDataIgnoresClientSuppliedAuthorFlag(): void
     {
         $handler = new TestableModerationStagesHandler();
-        $handler->userIsEditorial = false;
+        $handler->accessibleWorkflowStages = [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_AUTHOR]];
         $handler->scopedSubmissionId = 7;
 
         $response = json_decode($handler->getSubmissionExhibitData(['submissionId' => 99, 'userIsAuthor' => 0], null), true);
@@ -84,12 +84,33 @@ class ScieloModerationStagesHandlerTest extends TestCase
         $this->assertArrayNotHasKey('Responsibles', $response);
     }
 
-    public function testExhibitDataIncludesEditorialDataForEditorialUsers(): void
+    public function testExhibitDataIsHiddenFromServerEditorWhoIsOnlyAuthorOfSubmission(): void
     {
         $handler = new TestableModerationStagesHandler();
         $handler->userIsEditorial = true;
+        $handler->accessibleWorkflowStages = [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_AUTHOR]];
+
+        $response = json_decode($handler->getSubmissionExhibitData(['submissionId' => 1, 'userIsAuthor' => 0], null), true);
+
+        $this->assertArrayNotHasKey('Responsibles', $response);
+    }
+
+    public function testExhibitDataIncludesEditorialDataForAssignedEditor(): void
+    {
+        $handler = new TestableModerationStagesHandler();
+        $handler->accessibleWorkflowStages = [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_SUB_EDITOR]];
 
         $response = json_decode($handler->getSubmissionExhibitData(['submissionId' => 1, 'userIsAuthor' => 1], null), true);
+
+        $this->assertSame('Responsible: Jane Doe', $response['Responsibles']);
+    }
+
+    public function testExhibitDataIncludesEditorialDataForSiteAdmin(): void
+    {
+        $handler = new TestableModerationStagesHandler();
+        $handler->accessibleWorkflowStages = [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_SITE_ADMIN]];
+
+        $response = json_decode($handler->getSubmissionExhibitData(['submissionId' => 1], null), true);
 
         $this->assertSame('Responsible: Jane Doe', $response['Responsibles']);
     }

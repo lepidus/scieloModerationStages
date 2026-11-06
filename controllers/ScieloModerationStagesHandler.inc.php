@@ -155,10 +155,11 @@ class ScieloModerationStagesHandler extends Handler
 
     public function getSubmissionExhibitData($args, $request)
     {
-        $submissionId = $this->getSubmission()->getId();
+        $submission = $this->getSubmission();
+        $submissionId = $submission->getId();
         $exhibitData = $this->getSubmissionModerationStage($submissionId);
 
-        if ($this->currentUserIsEditorial()) {
+        if ($this->currentUserHasEditorialAccessToSubmission($submission)) {
             $exhibitData = array_merge($exhibitData, $this->getEditorialExhibitData($submissionId));
         }
 
@@ -185,6 +186,29 @@ class ScieloModerationStagesHandler extends Handler
     {
         $userRoles = (array) $this->getAuthorizedContextObject(ASSOC_TYPE_USER_ROLES);
         return count(array_intersect($userRoles, self::EXHIBITOR_EDITORIAL_ROLES)) > 0;
+    }
+
+    protected function currentUserHasEditorialAccessToSubmission($submission): bool
+    {
+        foreach ($this->getAccessibleWorkflowStages($submission) as $stageRoles) {
+            if (count(array_intersect((array) $stageRoles, self::EXHIBITOR_EDITORIAL_ROLES)) > 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected function getAccessibleWorkflowStages($submission): array
+    {
+        $request = Application::get()->getRequest();
+
+        return (array) Services::get('user')->getAccessibleWorkflowStages(
+            $request->getUser()->getId(),
+            $request->getContext()->getId(),
+            $submission,
+            $this->getAuthorizedContextObject(ASSOC_TYPE_USER_ROLES)
+        );
     }
 
     protected function getSubmissionModerationStage($submissionId)
