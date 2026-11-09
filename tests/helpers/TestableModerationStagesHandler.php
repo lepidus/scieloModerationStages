@@ -9,6 +9,7 @@ class TestableModerationStagesHandler extends \ScieloModerationStagesHandler
     public bool $isAuthor = true;
     public int $scopedSubmissionId = 1;
     public array $accessibleWorkflowStages = [];
+    public array $userRoles = [];
 
     protected function currentUserIsAuthor(): bool
     {
@@ -33,6 +34,11 @@ class TestableModerationStagesHandler extends \ScieloModerationStagesHandler
     protected function getAccessibleWorkflowStages($submission): array
     {
         return $this->accessibleWorkflowStages;
+    }
+
+    protected function currentUserRoles(): array
+    {
+        return $this->userRoles;
     }
 
     protected function getSubmissionModerationStage($submissionId): array

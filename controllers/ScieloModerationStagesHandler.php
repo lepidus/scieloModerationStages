@@ -43,6 +43,11 @@ class ScieloModerationStagesHandler extends Handler
         Role::ROLE_ID_MANAGER,
     ];
 
+    public const MANAGEMENT_ROLES = [
+        Role::ROLE_ID_SITE_ADMIN,
+        Role::ROLE_ID_MANAGER,
+    ];
+
     public function __construct()
     {
         parent::__construct();
@@ -148,7 +153,7 @@ class ScieloModerationStagesHandler extends Handler
         }
 
         $submission = $this->getSubmission();
-        if (!self::stagesGrantAnyRole($this->getAccessibleWorkflowStages($submission), self::STAGE_DATA_UPDATE_ROLES)) {
+        if (!$this->currentUserCanUpdateStageData($submission)) {
             return new JSONMessage(false);
         }
 
@@ -239,22 +244,51 @@ class ScieloModerationStagesHandler extends Handler
         $userId = $request->getUser()->getId();
         $contextId = $request->getContext()->getId();
 
-        $accessibleWorkflowStages = $this->getAccessibleWorkflowStages($submission);
-
         $exhibitorsHelper = new DashboardExhibitorsHelper();
         $exhibitData = $exhibitorsHelper->getExhibitorsData(
             $submission,
             $userId,
             $contextId,
-            self::stagesGrantEditorialAccess($accessibleWorkflowStages)
+            $this->currentUserHasEditorialAccessToSubmission($submission)
         );
 
         return json_encode($exhibitData);
     }
 
-    public static function stagesGrantEditorialAccess(array $accessibleWorkflowStages): bool
+    protected function currentUserHasEditorialAccessToSubmission($submission): bool
     {
-        return self::stagesGrantAnyRole($accessibleWorkflowStages, self::EDITORIAL_ROLES);
+        return self::rolesGrantSubmissionAccess(
+            $this->currentUserRoles(),
+            $this->getAccessibleWorkflowStages($submission),
+            self::EDITORIAL_ROLES
+        );
+    }
+
+    protected function currentUserCanUpdateStageData($submission): bool
+    {
+        return self::rolesGrantSubmissionAccess(
+            $this->currentUserRoles(),
+            $this->getAccessibleWorkflowStages($submission),
+            self::STAGE_DATA_UPDATE_ROLES
+        );
+    }
+
+    /**
+     * Managers and site administrators keep access to every submission of the context,
+     * as in the core SubmissionAccessPolicy, even when they are also assigned to it in
+     * another role, such as author. Other users need one of the given roles in an
+     * accessible workflow stage of the submission.
+     */
+    public static function rolesGrantSubmissionAccess(
+        array $userRoles,
+        array $accessibleWorkflowStages,
+        array $stageRoleIds
+    ): bool {
+        if (!empty(array_intersect($userRoles, self::MANAGEMENT_ROLES))) {
+            return true;
+        }
+
+        return self::stagesGrantAnyRole($accessibleWorkflowStages, $stageRoleIds);
     }
 
     public static function stagesGrantAnyRole(array $accessibleWorkflowStages, array $roleIds): bool
@@ -276,7 +310,12 @@ class ScieloModerationStagesHandler extends Handler
             $request->getUser()->getId(),
             $request->getContext()->getId(),
             $submission,
-            $this->getAuthorizedContextObject(Application::ASSOC_TYPE_USER_ROLES)
+            $this->currentUserRoles()
         );
+    }
+
+    protected function currentUserRoles(): array
+    {
+        return (array) $this->getAuthorizedContextObject(Application::ASSOC_TYPE_USER_ROLES);
     }
 }

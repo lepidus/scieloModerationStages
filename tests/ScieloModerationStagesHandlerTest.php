@@ -67,15 +67,57 @@ class ScieloModerationStagesHandlerTest extends TestCase
 
     public function testEditorialAccessIsDecidedByRolesOnTheSubmission(): void
     {
-        $this->assertFalse(TestableModerationStagesHandler::stagesGrantEditorialAccess([5 => [Role::ROLE_ID_AUTHOR]]));
-        $this->assertFalse(TestableModerationStagesHandler::stagesGrantEditorialAccess([]));
-        $this->assertTrue(TestableModerationStagesHandler::stagesGrantEditorialAccess([5 => [Role::ROLE_ID_SUB_EDITOR]]));
-        $this->assertTrue(TestableModerationStagesHandler::stagesGrantEditorialAccess([5 => [Role::ROLE_ID_MANAGER]]));
+        $roles = TestableModerationStagesHandler::EDITORIAL_ROLES;
+
+        $this->assertFalse(TestableModerationStagesHandler::rolesGrantSubmissionAccess(
+            [Role::ROLE_ID_SUB_EDITOR],
+            [5 => [Role::ROLE_ID_AUTHOR]],
+            $roles
+        ));
+        $this->assertFalse(TestableModerationStagesHandler::rolesGrantSubmissionAccess([Role::ROLE_ID_SUB_EDITOR], [], $roles));
+        $this->assertTrue(TestableModerationStagesHandler::rolesGrantSubmissionAccess(
+            [Role::ROLE_ID_SUB_EDITOR],
+            [5 => [Role::ROLE_ID_SUB_EDITOR]],
+            $roles
+        ));
+        $this->assertTrue(TestableModerationStagesHandler::rolesGrantSubmissionAccess(
+            [Role::ROLE_ID_ASSISTANT],
+            [5 => [Role::ROLE_ID_ASSISTANT]],
+            $roles
+        ));
+    }
+
+    public function testManagerWhoIsAlsoAuthorOfSubmissionKeepsEditorialAccess(): void
+    {
+        $handler = TestableModerationStagesHandler::class;
+
+        foreach ([$handler::EDITORIAL_ROLES, $handler::STAGE_DATA_UPDATE_ROLES] as $roles) {
+            $this->assertTrue($handler::rolesGrantSubmissionAccess(
+                [Role::ROLE_ID_MANAGER, Role::ROLE_ID_AUTHOR],
+                [5 => [Role::ROLE_ID_AUTHOR]],
+                $roles
+            ));
+        }
+    }
+
+    public function testSiteAdminKeepsEditorialAccess(): void
+    {
+        $handler = TestableModerationStagesHandler::class;
+
+        foreach ([$handler::EDITORIAL_ROLES, $handler::STAGE_DATA_UPDATE_ROLES] as $roles) {
+            $this->assertTrue($handler::rolesGrantSubmissionAccess([Role::ROLE_ID_SITE_ADMIN], [], $roles));
+            $this->assertTrue($handler::rolesGrantSubmissionAccess(
+                [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_AUTHOR],
+                [5 => [Role::ROLE_ID_AUTHOR]],
+                $roles
+            ));
+        }
     }
 
     public function testUpdateSubmissionStageDataRejectsServerEditorWhoIsOnlyAuthorOfSubmission(): void
     {
         $handler = new TestableModerationStagesHandler();
+        $handler->userRoles = [Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_AUTHOR];
         $handler->accessibleWorkflowStages = [5 => [Role::ROLE_ID_AUTHOR]];
 
         $response = $handler->updateSubmissionStageData(
@@ -95,5 +137,10 @@ class ScieloModerationStagesHandlerTest extends TestCase
         $this->assertFalse(TestableModerationStagesHandler::stagesGrantAnyRole([5 => [Role::ROLE_ID_ASSISTANT]], $roles));
         $this->assertTrue(TestableModerationStagesHandler::stagesGrantAnyRole([5 => [Role::ROLE_ID_SUB_EDITOR]], $roles));
         $this->assertTrue(TestableModerationStagesHandler::stagesGrantAnyRole([5 => [Role::ROLE_ID_MANAGER]], $roles));
+        $this->assertFalse(TestableModerationStagesHandler::rolesGrantSubmissionAccess(
+            [Role::ROLE_ID_ASSISTANT],
+            [5 => [Role::ROLE_ID_ASSISTANT]],
+            $roles
+        ));
     }
 }
