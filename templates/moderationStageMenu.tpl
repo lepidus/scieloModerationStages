@@ -51,8 +51,12 @@
 
 {if not $stageDataReadOnly}
     <script>
-        function updatedStageDatesSuccess(){ldelim}
-            alert("{translate key="form.saved"}");
+        function showStageDataSaveResult(response){ldelim}
+            if (response && response.status === true) {ldelim}
+                alert({translate|json_encode key="form.saved"});
+            {rdelim} else {ldelim}
+                alert({translate|json_encode key="plugins.generic.scieloModerationStages.stageChange.saveError"});
+            {rdelim}
         {rdelim}
 
         async function requestUpdateStageEntryDates(e){ldelim}
@@ -66,8 +70,11 @@
                     {if $contentStageEntryDate} contentStageEntryDate: $('#contentStageEntryDate').val(), {/if}
                     {if $areaStageEntryDate} areaStageEntryDate: $('#areaStageEntryDate').val(), {/if}
                 {rdelim},
-                updatedStageDatesSuccess()
-            );
+                showStageDataSaveResult,
+                'json'
+            ).fail(function(){ldelim}
+                showStageDataSaveResult(null);
+            {rdelim});
         {rdelim}
 
         $(function(){ldelim}
