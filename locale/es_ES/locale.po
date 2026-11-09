@@ -41,6 +41,9 @@ msgstr "Este envío se encuentra en la etapa de {$currentStage}, ¿le gustaría 
 msgid "plugins.generic.scieloModerationStages.sendNextStageField"
 msgstr "Enviar a la siguiente etapa de moderación"
 
+msgid "plugins.generic.scieloModerationStages.stageChange.saveError"
+msgstr "Se produjo un error al guardar. Por favor, inténtelo de nuevo."
+
 msgid "plugins.generic.scieloModerationStages.menuDates.fieldDescription"
 msgstr "Lo envío entró en esta etapa de moderación en la siguiente fecha"
 

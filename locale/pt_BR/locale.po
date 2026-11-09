@@ -41,6 +41,9 @@ msgstr "Esta submissão está no estágio de {$currentStage}, deseja a enviar pa
 msgid "plugins.generic.scieloModerationStages.sendNextStageField"
 msgstr "Enviar para o próximo estágio de moderação"
 
+msgid "plugins.generic.scieloModerationStages.stageChange.saveError"
+msgstr "Ocorreu um erro ao salvar. Por favor, tente novamente."
+
 msgid "plugins.generic.scieloModerationStages.menuDates.fieldDescription"
 msgstr "A submissão entrou nesse estágio de moderação na seguinte data"
 

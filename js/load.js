@@ -33,7 +33,7 @@ function addTextToLabeledExhibitor(exhibitorNode, text) {
 
     exhibitorNode.appendChild(labelStrong);
     labelStrong.textContent = labelText+':';
-    exhibitorNode.innerHTML += contentText;
+    exhibitorNode.appendChild(document.createTextNode(contentText));
 }
 
 function updateExhibitorNode(exhibitorNodeName, text, submissionId) {
@@ -97,9 +97,13 @@ function getSubmissionIdFromDiv(parentDiv) {
 }
 
 async function addSubmissionExhibitors() {
-    userIsAuthor = await $.get(
-        app.moderationStagesHandlerUrl + 'get-user-is-author'
-    );
+    try {
+        userIsAuthor = await $.get(
+            app.moderationStagesHandlerUrl + 'get-user-is-author'
+        );
+    } catch (error) {
+        return;
+    }
 
     var submissionSubtitle = document.getElementsByClassName('listPanel__itemSubtitle');
     for (let subtitle of submissionSubtitle) {

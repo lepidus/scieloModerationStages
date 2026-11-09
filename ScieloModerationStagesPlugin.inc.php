@@ -21,6 +21,14 @@ define('SCIELO_BRASIL_EMAIL', 'scielo.submission@scielo.org');
 
 class ScieloModerationStagesPlugin extends GenericPlugin
 {
+    public const API_WRITE_DISABLED_SUBMISSION_PROPS = [
+        'currentModerationStage',
+        'lastModerationStageChange',
+        'formatStageEntryDate',
+        'contentStageEntryDate',
+        'areaStageEntryDate',
+    ];
+
     public function register($category, $path, $mainContextId = null)
     {
         $success = parent::register($category, $path, $mainContextId);
@@ -31,6 +39,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
 
         if ($success && $this->getEnabled($mainContextId)) {
             HookRegistry::register('Schema::get::submission', array($this, 'addOurFieldsToSubmissionSchema'));
+            HookRegistry::register('Submission::validate', array($this, 'rejectApiWritesToModerationProps'));
             HookRegistry::register('submissionsubmitstep4form::execute', array($this, 'setSubmissionFirstModerationStage'));
             HookRegistry::register('addparticipantform::display', array($this, 'addFieldsAssignForm'));
             HookRegistry::register('addparticipantform::execute', array($this, 'sendSubmissionToNextModerationStage'));
@@ -186,6 +195,25 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         return false;
     }
 
+    /**
+     * OPS 3.3 has no writeDisabledInApi, so the moderation properties are rejected
+     * when the REST API validates a submission (the only caller of Submission::validate).
+     * The plugin writes them through the SubmissionDAO, which does not validate.
+     */
+    public function rejectApiWritesToModerationProps($hookName, $params)
+    {
+        $errors = &$params[0];
+        $props = (array) $params[2];
+
+        foreach (self::API_WRITE_DISABLED_SUBMISSION_PROPS as $propName) {
+            if (array_key_exists($propName, $props)) {
+                $errors[$propName] = [__('api.400.paramNotSupported', ['param' => $propName])];
+            }
+        }
+
+        return false;
+    }
+
     public function setSubmissionFirstModerationStage($hookName, $params)
     {
         $submission = $params[0]->submission;
@@ -242,6 +270,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             $templateMgr->assign($stageDates);
             $templateMgr->assign('submissionId', $submission->getId());
             $templateMgr->assign('userIsAuthor', $this->userIsAuthor($submission));
+            $templateMgr->assign('stageDataReadOnly', !$this->userCanUpdateStageData($submission));
             $templateMgr->assign('canAdvanceStage', $moderationStage->canAdvanceStage());
 
             if ($moderationStage->canAdvanceStage()) {
@@ -308,6 +337,55 @@ class ScieloModerationStagesPlugin extends GenericPlugin
         }
 
         return $currentUserAssignedRoles[0] == ROLE_ID_AUTHOR;
+    }
+
+    private function userCanUpdateStageData($submission): bool
+    {
+        $request = \Application::get()->getRequest();
+        $currentUser = $request->getUser();
+        if (!$currentUser) {
+            return false;
+        }
+
+        $userRoles = $this->getCurrentUserRoles($request);
+        $accessibleWorkflowStages = Services::get('user')->getAccessibleWorkflowStages(
+            $currentUser->getId(),
+            $submission->getData('contextId'),
+            $submission,
+            $userRoles
+        );
+
+        return self::stagesGrantStageDataUpdate((array) $accessibleWorkflowStages);
+    }
+
+    /**
+     * Roles of the user in the context and site, as authorized for the current page
+     * (including the site administrator role), so that the core does not rebuild them.
+     */
+    private function getCurrentUserRoles($request): array
+    {
+        $handler = $request->getRouter()->getHandler();
+        if (!$handler) {
+            return [];
+        }
+
+        return (array) $handler->getAuthorizedContextObject(ASSOC_TYPE_USER_ROLES);
+    }
+
+    /**
+     * Same rule as ScieloModerationStagesHandler::updateSubmissionStageData: an update role
+     * in the workflow stages accessible in the core (a manager assigned only as author is
+     * treated as an author; a manager without assignments gets every stage).
+     */
+    public static function stagesGrantStageDataUpdate(array $accessibleWorkflowStages): bool
+    {
+        foreach ($accessibleWorkflowStages as $stageRoles) {
+            if (count(array_intersect((array) $stageRoles, [ROLE_ID_SITE_ADMIN, ROLE_ID_MANAGER, ROLE_ID_SUB_EDITOR])) > 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function sendSubmissionToNextModerationStage($hookName, $params)
