@@ -6,6 +6,7 @@ class TestableModerationStagesHandler extends ScieloModerationStagesHandler
 {
     public $userIsEditorial = false;
     public $accessibleWorkflowStages = [];
+    public $userRoles = [];
     public $scopedSubmissionId = 1;
     public $submissionWasLoaded = false;
 
@@ -25,6 +26,11 @@ class TestableModerationStagesHandler extends ScieloModerationStagesHandler
     protected function getAccessibleWorkflowStages($submission): array
     {
         return $this->accessibleWorkflowStages;
+    }
+
+    protected function currentUserRoles(): array
+    {
+        return $this->userRoles;
     }
 
     protected function getSubmissionModerationStage($submissionId)

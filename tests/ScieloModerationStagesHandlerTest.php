@@ -88,6 +88,7 @@ class ScieloModerationStagesHandlerTest extends TestCase
     {
         $handler = new TestableModerationStagesHandler();
         $handler->userIsEditorial = true;
+        $handler->userRoles = [ROLE_ID_SUB_EDITOR, ROLE_ID_AUTHOR];
         $handler->accessibleWorkflowStages = [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_AUTHOR]];
 
         $response = json_decode($handler->getSubmissionExhibitData(['submissionId' => 1, 'userIsAuthor' => 0], null), true);
@@ -98,6 +99,7 @@ class ScieloModerationStagesHandlerTest extends TestCase
     public function testExhibitDataIncludesEditorialDataForAssignedEditor(): void
     {
         $handler = new TestableModerationStagesHandler();
+        $handler->userRoles = [ROLE_ID_SUB_EDITOR];
         $handler->accessibleWorkflowStages = [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_SUB_EDITOR]];
 
         $response = json_decode($handler->getSubmissionExhibitData(['submissionId' => 1, 'userIsAuthor' => 1], null), true);
@@ -108,6 +110,7 @@ class ScieloModerationStagesHandlerTest extends TestCase
     public function testExhibitDataIncludesEditorialDataForSiteAdmin(): void
     {
         $handler = new TestableModerationStagesHandler();
+        $handler->userRoles = [ROLE_ID_SITE_ADMIN];
         $handler->accessibleWorkflowStages = [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_SITE_ADMIN]];
 
         $response = json_decode($handler->getSubmissionExhibitData(['submissionId' => 1], null), true);
@@ -115,9 +118,47 @@ class ScieloModerationStagesHandlerTest extends TestCase
         $this->assertSame('Responsible: Jane Doe', $response['Responsibles']);
     }
 
+    public function testExhibitDataIncludesEditorialDataForSiteAdminWhoIsAlsoAuthorOfSubmission(): void
+    {
+        $handler = new TestableModerationStagesHandler();
+        $handler->userRoles = [ROLE_ID_SITE_ADMIN, ROLE_ID_AUTHOR];
+        $handler->accessibleWorkflowStages = [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_AUTHOR]];
+
+        $response = json_decode($handler->getSubmissionExhibitData(['submissionId' => 1], null), true);
+
+        $this->assertSame('Responsible: Jane Doe', $response['Responsibles']);
+    }
+
+    public function testExhibitDataIncludesEditorialDataForManagerWhoIsAlsoAuthorOfSubmission(): void
+    {
+        $handler = new TestableModerationStagesHandler();
+        $handler->userRoles = [ROLE_ID_MANAGER, ROLE_ID_AUTHOR];
+        $handler->accessibleWorkflowStages = [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_AUTHOR]];
+
+        $response = json_decode($handler->getSubmissionExhibitData(['submissionId' => 1], null), true);
+
+        $this->assertSame('Responsible: Jane Doe', $response['Responsibles']);
+    }
+
+    public function testStageDataUpdateIsAllowedToManagersAndAdminsWhoAreAlsoAuthors(): void
+    {
+        $roles = ScieloModerationStagesHandler::STAGE_DATA_UPDATE_ROLES;
+        $authorStages = [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_AUTHOR]];
+
+        $this->assertTrue(ScieloModerationStagesHandler::rolesGrantSubmissionAccess([ROLE_ID_MANAGER, ROLE_ID_AUTHOR], $authorStages, $roles));
+        $this->assertTrue(ScieloModerationStagesHandler::rolesGrantSubmissionAccess([ROLE_ID_SITE_ADMIN], [], $roles));
+        $this->assertFalse(ScieloModerationStagesHandler::rolesGrantSubmissionAccess([ROLE_ID_SUB_EDITOR, ROLE_ID_AUTHOR], $authorStages, $roles));
+        $this->assertTrue(ScieloModerationStagesHandler::rolesGrantSubmissionAccess(
+            [ROLE_ID_SUB_EDITOR],
+            [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_SUB_EDITOR]],
+            $roles
+        ));
+    }
+
     public function testUpdateSubmissionStageDataRejectsServerEditorWhoIsOnlyAuthorOfSubmission(): void
     {
         $handler = new TestableModerationStagesHandler();
+        $handler->userRoles = [ROLE_ID_SUB_EDITOR, ROLE_ID_AUTHOR];
         $handler->accessibleWorkflowStages = [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_AUTHOR]];
 
         $response = $handler->updateSubmissionStageData(
@@ -143,6 +184,7 @@ class ScieloModerationStagesHandlerTest extends TestCase
     public function testExhibitDataIncludesEditorialDataForUnassignedManager(): void
     {
         $handler = new TestableModerationStagesHandler();
+        $handler->userRoles = [ROLE_ID_MANAGER];
         $handler->accessibleWorkflowStages = [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_MANAGER]];
 
         $response = json_decode($handler->getSubmissionExhibitData(['submissionId' => 1], null), true);
