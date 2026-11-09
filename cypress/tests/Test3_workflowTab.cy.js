@@ -1,5 +1,12 @@
 import '../support/commands.js';
 
+function saveAndExpectAlert(message) {
+    const alertStub = cy.stub();
+    cy.on('window:alert', alertStub);
+    cy.get('#moderationStageSubmit').click();
+    cy.wrap(alertStub).should('have.been.calledWith', message);
+}
+
 describe("SciELO Moderation Stages - Workflow tab", function() {
     let submissionData;
     let today;
@@ -66,12 +73,22 @@ describe("SciELO Moderation Stages - Workflow tab", function() {
             cy.get('input[name="formatStageEntryDate"]').should('have.value', today);
             cy.get('input[name="formatStageEntryDate"]').type(yesterday);
         });
-        cy.get('#moderationStageSubmit').click();
+        saveAndExpectAlert('Saved');
 
         cy.reload();
         cy.get('#formatStageEntryDateDiv').within(() => {
             cy.get('input[name="formatStageEntryDate"]').should('have.value', yesterday);
         });
+    });
+    it("Editor sees an error when saving is rejected", function() {
+        cy.login('dbarnes', null, 'publicknowledge');
+        cy.findSubmission('active', submissionData.title);
+
+        cy.get('#publication-button').click();
+        cy.get('#scieloModerationStages-button').click();
+
+        cy.intercept('POST', '**/update-submission-stage-data*', {body: {status: false, content: null}});
+        saveAndExpectAlert('An error occurred while saving. Please try again.');
     });
     it("Editor advances moderation stage in workflow tab", function() {
         cy.login('dbarnes', null, 'publicknowledge');
@@ -81,7 +98,7 @@ describe("SciELO Moderation Stages - Workflow tab", function() {
         cy.get('#scieloModerationStages-button').click();
 
         cy.get('#stageChangeActionAdvance').check();
-        cy.get('#moderationStageSubmit').click();
+        saveAndExpectAlert('Saved');
 
         cy.reload();
         cy.get('#formatStageEntryDateDiv');
@@ -122,7 +139,7 @@ describe("SciELO Moderation Stages - Workflow tab", function() {
         cy.get('#scieloModerationStages-button').click();
 
         cy.get('#stageChangeActionRegress').check();
-        cy.get('#moderationStageSubmit').click();
+        saveAndExpectAlert('Saved');
 
         cy.reload();
         cy.get('#scieloModerationStages-button').click();

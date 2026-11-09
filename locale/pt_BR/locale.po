@@ -79,6 +79,9 @@ msgstr "Retornar para o estágio de {$previousStage}"
 msgid "plugins.generic.scieloModerationStages.stageChange.stay"
 msgstr "Permanecer no estágio atual"
 
+msgid "plugins.generic.scieloModerationStages.stageChange.saveError"
+msgstr "Ocorreu um erro ao salvar. Por favor, tente novamente."
+
 msgid "plugins.generic.scieloModerationStages.menuDates.fieldDescription"
 msgstr "A submissão entrou nesse estágio de moderação na seguinte data"
 

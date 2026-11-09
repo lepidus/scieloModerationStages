@@ -79,6 +79,9 @@ msgstr "Devolver a la etapa de {$previousStage}"
 msgid "plugins.generic.scieloModerationStages.stageChange.stay"
 msgstr "Permanecer en la etapa actual"
 
+msgid "plugins.generic.scieloModerationStages.stageChange.saveError"
+msgstr "Se produjo un error al guardar. Por favor, inténtelo de nuevo."
+
 msgid "plugins.generic.scieloModerationStages.menuDates.fieldDescription"
 msgstr "Lo envío entró en esta etapa de moderación en la siguiente fecha"
 
