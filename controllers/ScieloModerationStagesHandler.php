@@ -42,6 +42,11 @@ class ScieloModerationStagesHandler extends Handler
         Role::ROLE_ID_SUB_EDITOR,
     ];
 
+    public const MANAGEMENT_ROLES = [
+        Role::ROLE_ID_SITE_ADMIN,
+        Role::ROLE_ID_MANAGER,
+    ];
+
     private array $stageAssignments = [];
     private array $userGroupAbbrevs = [];
 
@@ -306,7 +311,11 @@ class ScieloModerationStagesHandler extends Handler
 
     private function currentUserHasEditorialAccessToSubmission($submission): bool
     {
-        return self::stagesGrantEditorialAccess($this->getAccessibleWorkflowStages($submission));
+        return self::rolesGrantSubmissionAccess(
+            $this->currentUserRoles(),
+            $this->getAccessibleWorkflowStages($submission),
+            self::EDITORIAL_ROLES
+        );
     }
 
     protected function getAccessibleWorkflowStages($submission): array
@@ -321,9 +330,22 @@ class ScieloModerationStagesHandler extends Handler
         );
     }
 
-    public static function stagesGrantEditorialAccess(array $accessibleWorkflowStages): bool
-    {
-        return self::stagesGrantAnyRole($accessibleWorkflowStages, self::EDITORIAL_ROLES);
+    /**
+     * Managers and site administrators keep access to every submission of the context,
+     * as in the core SubmissionAccessPolicy, even when they are also assigned to it in
+     * another role, such as author. Other users need one of the given roles in an
+     * accessible workflow stage of the submission.
+     */
+    public static function rolesGrantSubmissionAccess(
+        array $userRoles,
+        array $accessibleWorkflowStages,
+        array $stageRoleIds
+    ): bool {
+        if (!empty(array_intersect($userRoles, self::MANAGEMENT_ROLES))) {
+            return true;
+        }
+
+        return self::stagesGrantAnyRole($accessibleWorkflowStages, $stageRoleIds);
     }
 
     public static function stagesGrantAnyRole(array $accessibleWorkflowStages, array $roleIds): bool
@@ -339,10 +361,14 @@ class ScieloModerationStagesHandler extends Handler
 
     private function currentUserCanUpdateStageData($submission): bool
     {
-        return self::stagesGrantAnyRole($this->getAccessibleWorkflowStages($submission), self::STAGE_DATA_UPDATE_ROLES);
+        return self::rolesGrantSubmissionAccess(
+            $this->currentUserRoles(),
+            $this->getAccessibleWorkflowStages($submission),
+            self::STAGE_DATA_UPDATE_ROLES
+        );
     }
 
-    private function currentUserRoles(): array
+    protected function currentUserRoles(): array
     {
         return (array) $this->getAuthorizedContextObject(Application::ASSOC_TYPE_USER_ROLES);
     }
