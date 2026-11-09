@@ -94,7 +94,7 @@ class WorkflowDispatcher
             $userRoles
         );
 
-        return self::rolesGrantStageDataUpdate($userRoles, $accessibleWorkflowStages);
+        return self::stagesGrantStageDataUpdate($accessibleWorkflowStages);
     }
 
     /**
@@ -112,15 +112,12 @@ class WorkflowDispatcher
     }
 
     /**
-     * Same rule as ScieloModerationStagesHandler::updateSubmissionStageData: managers and
-     * site administrators by their roles, sub editors by a role in the submission.
+     * Same rule as ScieloModerationStagesHandler::updateSubmissionStageData: an update role
+     * in the workflow stages accessible in the core (a manager assigned only as author is
+     * treated as an author; a manager without assignments gets every stage).
      */
-    public static function rolesGrantStageDataUpdate(array $userRoles, array $accessibleWorkflowStages): bool
+    public static function stagesGrantStageDataUpdate(array $accessibleWorkflowStages): bool
     {
-        if (!empty(array_intersect($userRoles, [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER]))) {
-            return true;
-        }
-
         $updateRoles = [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR];
 
         foreach ($accessibleWorkflowStages as $stageRoles) {

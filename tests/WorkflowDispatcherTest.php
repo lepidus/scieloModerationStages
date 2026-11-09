@@ -4,47 +4,33 @@ use PHPUnit\Framework\TestCase;
 use PKP\security\Role;
 use APP\plugins\generic\scieloModerationStages\classes\dispatchers\WorkflowDispatcher;
 
+/**
+ * Accessible workflow stages as returned by the core getAccessibleWorkflowStages.
+ */
 class WorkflowDispatcherTest extends TestCase
 {
-    public function testManagerWhoIsAlsoAuthorOfSubmissionCanUpdateStageData(): void
+    public function testTabControlsAreHiddenFromManagerAssignedOnlyAsAuthor(): void
     {
-        $this->assertTrue(WorkflowDispatcher::rolesGrantStageDataUpdate(
-            [Role::ROLE_ID_MANAGER, Role::ROLE_ID_AUTHOR],
-            [5 => [Role::ROLE_ID_AUTHOR]]
-        ));
+        $this->assertFalse(WorkflowDispatcher::stagesGrantStageDataUpdate([5 => [Role::ROLE_ID_AUTHOR]]));
     }
 
-    public function testSiteAdminCanUpdateStageData(): void
+    public function testTabControlsAreShownToManagerAlsoAssignedAsManagerOrModerator(): void
     {
-        $this->assertTrue(WorkflowDispatcher::rolesGrantStageDataUpdate([Role::ROLE_ID_SITE_ADMIN], []));
-        $this->assertTrue(WorkflowDispatcher::rolesGrantStageDataUpdate(
-            [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_AUTHOR],
-            [5 => [Role::ROLE_ID_AUTHOR]]
-        ));
+        $this->assertTrue(WorkflowDispatcher::stagesGrantStageDataUpdate([5 => [Role::ROLE_ID_AUTHOR, Role::ROLE_ID_MANAGER]]));
+        $this->assertTrue(WorkflowDispatcher::stagesGrantStageDataUpdate([5 => [Role::ROLE_ID_AUTHOR, Role::ROLE_ID_SUB_EDITOR]]));
     }
 
-    public function testSubEditorWhoIsOnlyAuthorOfSubmissionCannotUpdateStageData(): void
+    public function testTabControlsAreShownToUnassignedManagerAndAdmin(): void
     {
-        $this->assertFalse(WorkflowDispatcher::rolesGrantStageDataUpdate(
-            [Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_AUTHOR],
-            [5 => [Role::ROLE_ID_AUTHOR]]
-        ));
-        $this->assertFalse(WorkflowDispatcher::rolesGrantStageDataUpdate([Role::ROLE_ID_SUB_EDITOR], []));
+        $this->assertTrue(WorkflowDispatcher::stagesGrantStageDataUpdate([1 => [Role::ROLE_ID_MANAGER], 5 => [Role::ROLE_ID_MANAGER]]));
+        $this->assertTrue(WorkflowDispatcher::stagesGrantStageDataUpdate([1 => [Role::ROLE_ID_SITE_ADMIN], 5 => [Role::ROLE_ID_SITE_ADMIN]]));
     }
 
-    public function testAssignedSubEditorCanUpdateStageData(): void
+    public function testTabControlsFollowSubEditorAssignment(): void
     {
-        $this->assertTrue(WorkflowDispatcher::rolesGrantStageDataUpdate(
-            [Role::ROLE_ID_SUB_EDITOR],
-            [5 => [Role::ROLE_ID_SUB_EDITOR]]
-        ));
-    }
-
-    public function testAssistantCannotUpdateStageData(): void
-    {
-        $this->assertFalse(WorkflowDispatcher::rolesGrantStageDataUpdate(
-            [Role::ROLE_ID_ASSISTANT],
-            [5 => [Role::ROLE_ID_ASSISTANT]]
-        ));
+        $this->assertFalse(WorkflowDispatcher::stagesGrantStageDataUpdate([5 => [Role::ROLE_ID_AUTHOR]]));
+        $this->assertTrue(WorkflowDispatcher::stagesGrantStageDataUpdate([5 => [Role::ROLE_ID_SUB_EDITOR]]));
+        $this->assertFalse(WorkflowDispatcher::stagesGrantStageDataUpdate([5 => [Role::ROLE_ID_ASSISTANT]]));
+        $this->assertFalse(WorkflowDispatcher::stagesGrantStageDataUpdate([]));
     }
 }

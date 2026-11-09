@@ -43,11 +43,6 @@ class ScieloModerationStagesHandler extends Handler
         Role::ROLE_ID_MANAGER,
     ];
 
-    public const MANAGEMENT_ROLES = [
-        Role::ROLE_ID_SITE_ADMIN,
-        Role::ROLE_ID_MANAGER,
-    ];
-
     public function __construct()
     {
         parent::__construct();
@@ -257,38 +252,23 @@ class ScieloModerationStagesHandler extends Handler
 
     protected function currentUserHasEditorialAccessToSubmission($submission): bool
     {
-        return self::rolesGrantSubmissionAccess(
-            $this->currentUserRoles(),
-            $this->getAccessibleWorkflowStages($submission),
-            self::EDITORIAL_ROLES
-        );
+        return self::stagesGrantEditorialAccess($this->getAccessibleWorkflowStages($submission));
     }
 
     protected function currentUserCanUpdateStageData($submission): bool
     {
-        return self::rolesGrantSubmissionAccess(
-            $this->currentUserRoles(),
-            $this->getAccessibleWorkflowStages($submission),
-            self::STAGE_DATA_UPDATE_ROLES
-        );
+        return self::stagesGrantAnyRole($this->getAccessibleWorkflowStages($submission), self::STAGE_DATA_UPDATE_ROLES);
     }
 
     /**
-     * Managers and site administrators keep access to every submission of the context,
-     * as in the core SubmissionAccessPolicy, even when they are also assigned to it in
-     * another role, such as author. Other users need one of the given roles in an
-     * accessible workflow stage of the submission.
+     * Editorial access follows the workflow stages accessible in the core: a manager or
+     * site administrator without assignments gets every stage, while a user assigned to
+     * the submission only gets the roles of those assignments (a manager assigned only as
+     * author is treated as an author).
      */
-    public static function rolesGrantSubmissionAccess(
-        array $userRoles,
-        array $accessibleWorkflowStages,
-        array $stageRoleIds
-    ): bool {
-        if (!empty(array_intersect($userRoles, self::MANAGEMENT_ROLES))) {
-            return true;
-        }
-
-        return self::stagesGrantAnyRole($accessibleWorkflowStages, $stageRoleIds);
+    public static function stagesGrantEditorialAccess(array $accessibleWorkflowStages): bool
+    {
+        return self::stagesGrantAnyRole($accessibleWorkflowStages, self::EDITORIAL_ROLES);
     }
 
     public static function stagesGrantAnyRole(array $accessibleWorkflowStages, array $roleIds): bool
