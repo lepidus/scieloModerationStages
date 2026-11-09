@@ -6,6 +6,7 @@ use PKP\plugins\Hook;
 use APP\core\Application;
 use APP\template\TemplateManager;
 use APP\facades\Repo;
+use PKP\security\Role;
 use Illuminate\Support\Facades\Mail;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStage;
 use APP\plugins\generic\scieloModerationStages\classes\ModerationStageRegister;
@@ -55,6 +56,7 @@ class WorkflowDispatcher
                 'csrfToken' => $request->getSession()->getCSRFToken(),
                 'submissionId' => $submission->getId(),
                 'userIsAuthor' => $this->plugin->userIsAuthor($submission),
+                'canUpdateStageData' => $this->userCanUpdateStageData($request, $submission),
                 'currentStage' => $currentStageName,
                 'canAdvanceStage' => $canAdvanceStage,
                 'canRegressStage' => $canRegressStage,
@@ -75,6 +77,56 @@ class WorkflowDispatcher
                 $templateMgr->fetch($this->plugin->getTemplateResource('moderationStageMenu.tpl'))
             );
         }
+    }
+
+    private function userCanUpdateStageData($request, $submission): bool
+    {
+        $user = $request->getUser();
+        if (!$user) {
+            return false;
+        }
+
+        $userRoles = $this->getCurrentUserRoles($request);
+        $accessibleWorkflowStages = Repo::user()->getAccessibleWorkflowStages(
+            $user->getId(),
+            $request->getContext()->getId(),
+            $submission,
+            $userRoles
+        );
+
+        return self::stagesGrantStageDataUpdate($accessibleWorkflowStages);
+    }
+
+    /**
+     * Roles of the user in the context and site, as authorized for the current page
+     * (including the site administrator role), so that the core does not rebuild them.
+     */
+    private function getCurrentUserRoles($request): array
+    {
+        $handler = $request->getRouter()->getHandler();
+        if (!$handler) {
+            return [];
+        }
+
+        return (array) $handler->getAuthorizedContextObject(Application::ASSOC_TYPE_USER_ROLES);
+    }
+
+    /**
+     * Same rule as ScieloModerationStagesHandler::updateSubmissionStageData: an update role
+     * in the workflow stages accessible in the core (a manager assigned only as author is
+     * treated as an author; a manager without assignments gets every stage).
+     */
+    public static function stagesGrantStageDataUpdate(array $accessibleWorkflowStages): bool
+    {
+        $updateRoles = [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR];
+
+        foreach ($accessibleWorkflowStages as $stageRoles) {
+            if (!empty(array_intersect((array) $stageRoles, $updateRoles))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function addCurrentStageStatusToWorkflow($hookName, $params)

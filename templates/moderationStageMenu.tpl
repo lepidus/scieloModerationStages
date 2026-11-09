@@ -20,25 +20,25 @@
         <div id="formatStageEntryDateDiv" class="stageDateField">
             <label class="label">{translate key="plugins.generic.scieloModerationStages.stages.formatStage"}</label>
             <label class="description">{translate key="plugins.generic.scieloModerationStages.menuDates.fieldDescription"}</label>
-            <input type="date" id='formatStageEntryDate' name='formatStageEntryDate' value="{$formatStageEntryDate}" {if $userIsAuthor}disabled{/if}/>
+            <input type="date" id='formatStageEntryDate' name='formatStageEntryDate' value="{$formatStageEntryDate|escape}" {if not $canUpdateStageData}disabled{/if}/>
         </div>
     {/if}
     {if $contentStageEntryDate}
         <div id="contentStageEntryDateDiv" class="stageDateField">
             <label class="label">{translate key="plugins.generic.scieloModerationStages.stages.contentStage"}</label>
             <label class="description">{translate key="plugins.generic.scieloModerationStages.menuDates.fieldDescription"}</label>
-            <input type="date" id='contentStageEntryDate' name='contentStageEntryDate' value="{$contentStageEntryDate}"{if $userIsAuthor}disabled{/if}/>
+            <input type="date" id='contentStageEntryDate' name='contentStageEntryDate' value="{$contentStageEntryDate|escape}"{if not $canUpdateStageData}disabled{/if}/>
         </div>
     {/if}
     {if $areaStageEntryDate}
         <div id="areaStageEntryDateDiv" class="stageDateField">
             <label class="label">{translate key="plugins.generic.scieloModerationStages.stages.areaStage"}</label>
             <label class="description">{translate key="plugins.generic.scieloModerationStages.menuDates.fieldDescription"}</label>
-            <input type="date" id='areaStageEntryDate' name='areaStageEntryDate' value="{$areaStageEntryDate}"{if $userIsAuthor}disabled{/if}/>
+            <input type="date" id='areaStageEntryDate' name='areaStageEntryDate' value="{$areaStageEntryDate|escape}"{if not $canUpdateStageData}disabled{/if}/>
         </div>
     {/if}
 
-    {if not $userIsAuthor}
+    {if $canUpdateStageData}
         {if $canAdvanceStage or $canRegressStage}
             <div id="stageChangeDiv">
                 {capture assign=currentStageName}{translate key=$currentStage}{/capture}
@@ -65,10 +65,14 @@
     {/if}
 </div>
 
-{if not $userIsAuthor}
+{if $canUpdateStageData}
     <script>
-        function updatedStageDatesSuccess(){ldelim}
-            alert("{translate key="form.saved"}");
+        function showStageDataSaveResult(response){ldelim}
+            if (response && response.status === true) {ldelim}
+                alert({translate|json_encode key="form.saved"});
+            {rdelim} else {ldelim}
+                alert({translate|json_encode key="plugins.generic.scieloModerationStages.stageChange.saveError"});
+            {rdelim}
         {rdelim}
 
         async function requestUpdateStageEntryDates(e){ldelim}
@@ -84,8 +88,11 @@
                     {if $contentStageEntryDate} contentStageEntryDate: $('#contentStageEntryDate').val(), {/if}
                     {if $areaStageEntryDate} areaStageEntryDate: $('#areaStageEntryDate').val(), {/if}
                 {rdelim},
-                updatedStageDatesSuccess()
-            );
+                showStageDataSaveResult,
+                'json'
+            ).fail(function(){ldelim}
+                showStageDataSaveResult(null);
+            {rdelim});
         {rdelim}
 
         $(function(){ldelim}

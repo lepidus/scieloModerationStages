@@ -324,7 +324,7 @@ class DashboardExhibitorsHelperTest extends TestCase
             'PdfViewLink' => 'https://dummy/pdf/link',
             'LocaleKeyViewPdf' => __('plugins.generic.scieloModerationStages.viewPdf')
         ];
-        $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId);
+        $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId, true);
         $this->assertEquals($expectedExhibitorsData, $exhibitorsData);
     }
 
@@ -347,8 +347,33 @@ class DashboardExhibitorsHelperTest extends TestCase
             'PdfViewLink' => 'https://dummy/pdf/link',
             'LocaleKeyViewPdf' => __('plugins.generic.scieloModerationStages.viewPdf')
         ];
-        $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId);
+        $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId, true);
         $this->assertEquals($expectedExhibitorsData, $exhibitorsData);
+    }
+
+    public function testHidesEditorialExhibitorsFromResponsibleWhoIsOnlyAuthorOfSubmission(): void
+    {
+        $this->setBaseDataForExhibitorsTests();
+        $this->helper->userUserGroups = [
+            Role::ROLE_ID_SUB_EDITOR => [
+                1 => 'resp',
+            ]
+        ];
+
+        $expectedExhibitorsData = [
+            'submissionId' => $this->submissionId,
+            'ModerationStage' => 'Moderation stage: Format Pre-Moderation',
+        ];
+        $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId, false);
+        $this->assertEquals($expectedExhibitorsData, $exhibitorsData);
+    }
+
+    public function testEditorialAccessMustBeInformedExplicitly(): void
+    {
+        $this->setBaseDataForExhibitorsTests();
+
+        $this->expectException(\ArgumentCountError::class);
+        $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId);
     }
 
     public function testGetsExhibitorsDataForAreaModerators(): void
@@ -364,7 +389,7 @@ class DashboardExhibitorsHelperTest extends TestCase
             'submissionId' => $this->submissionId,
             'ModerationStage' => 'Moderation stage: Format Pre-Moderation'
         ];
-        $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId);
+        $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId, true);
         $this->assertEquals($expectedExhibitorsData, $exhibitorsData);
     }
 
@@ -381,7 +406,7 @@ class DashboardExhibitorsHelperTest extends TestCase
             'submissionId' => $this->submissionId,
             'ModerationStage' => 'Moderation stage: Format Pre-Moderation'
         ];
-        $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId);
+        $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId, true);
         $this->assertEquals($expectedExhibitorsData, $exhibitorsData);
     }
 
@@ -394,11 +419,11 @@ class DashboardExhibitorsHelperTest extends TestCase
             ]
         ];
 
-        $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId);
+        $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId, true);
         $this->assertEmpty($exhibitorsData);
 
         $this->helper->userUserGroups = [];
-        $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId);
+        $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId, true);
         $this->assertEmpty($exhibitorsData);
     }
 
@@ -452,7 +477,7 @@ class DashboardExhibitorsHelperTest extends TestCase
             'PdfViewLink' => 'https://dummy/pdf/link',
             'LocaleKeyViewPdf' => __('plugins.generic.scieloModerationStages.viewPdf')
         ];
-        $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId);
+        $exhibitorsData = $this->helper->getExhibitorsData($this->submission, $this->userId, $this->contextId, true);
         $this->assertEquals($expectedExhibitorsData, $exhibitorsData);
     }
 }

@@ -26,8 +26,12 @@ class DashboardExhibitorsHelper
         $this->moderationStageDao = new ModerationStageDAO();
     }
 
-    public function getExhibitorsData(Submission $submission, int $userId, int $contextId): array
-    {
+    public function getExhibitorsData(
+        Submission $submission,
+        int $userId,
+        int $contextId,
+        bool $hasEditorialAccessToSubmission
+    ): array {
         $userMainUserGroup = $this->getUserMainUserGroup($userId, $contextId);
 
         if (empty($userMainUserGroup) || $userMainUserGroup['role'] == Role::ROLE_ID_READER) {
@@ -40,9 +44,10 @@ class DashboardExhibitorsHelper
         ];
 
         $i = 0;
-        if ($userMainUserGroup['role'] == Role::ROLE_ID_MANAGER
-            || ($userMainUserGroup['role'] == Role::ROLE_ID_SUB_EDITOR
-                && $userMainUserGroup['abbrev'] == self::RESPONSIBLES_GROUP_ABBREV)
+        if ($hasEditorialAccessToSubmission
+            && ($userMainUserGroup['role'] == Role::ROLE_ID_MANAGER
+                || ($userMainUserGroup['role'] == Role::ROLE_ID_SUB_EDITOR
+                    && $userMainUserGroup['abbrev'] == self::RESPONSIBLES_GROUP_ABBREV))
         ) {
             if ($userMainUserGroup['role'] == Role::ROLE_ID_MANAGER) {
                 $exhibitorsData = array_merge(

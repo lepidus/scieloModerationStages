@@ -79,6 +79,9 @@ msgstr "Return to the {$previousStage} stage"
 msgid "plugins.generic.scieloModerationStages.stageChange.stay"
 msgstr "Remain in the current stage"
 
+msgid "plugins.generic.scieloModerationStages.stageChange.saveError"
+msgstr "An error occurred while saving. Please try again."
+
 msgid "plugins.generic.scieloModerationStages.menuDates.fieldDescription"
 msgstr "The submission has entered in this moderation stage in the following data"
 
