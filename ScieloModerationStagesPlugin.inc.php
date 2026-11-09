@@ -21,6 +21,14 @@ define('SCIELO_BRASIL_EMAIL', 'scielo.submission@scielo.org');
 
 class ScieloModerationStagesPlugin extends GenericPlugin
 {
+    public const API_WRITE_DISABLED_SUBMISSION_PROPS = [
+        'currentModerationStage',
+        'lastModerationStageChange',
+        'formatStageEntryDate',
+        'contentStageEntryDate',
+        'areaStageEntryDate',
+    ];
+
     public function register($category, $path, $mainContextId = null)
     {
         $success = parent::register($category, $path, $mainContextId);
@@ -31,6 +39,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
 
         if ($success && $this->getEnabled($mainContextId)) {
             HookRegistry::register('Schema::get::submission', array($this, 'addOurFieldsToSubmissionSchema'));
+            HookRegistry::register('Submission::validate', array($this, 'rejectApiWritesToModerationProps'));
             HookRegistry::register('submissionsubmitstep4form::execute', array($this, 'setSubmissionFirstModerationStage'));
             HookRegistry::register('addparticipantform::display', array($this, 'addFieldsAssignForm'));
             HookRegistry::register('addparticipantform::execute', array($this, 'sendSubmissionToNextModerationStage'));
@@ -182,6 +191,25 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             'apiSummary' => true,
             'validation' => ['nullable'],
         ];
+
+        return false;
+    }
+
+    /**
+     * OPS 3.3 has no writeDisabledInApi, so the moderation properties are rejected
+     * when the REST API validates a submission (the only caller of Submission::validate).
+     * The plugin writes them through the SubmissionDAO, which does not validate.
+     */
+    public function rejectApiWritesToModerationProps($hookName, $params)
+    {
+        $errors = &$params[0];
+        $props = (array) $params[2];
+
+        foreach (self::API_WRITE_DISABLED_SUBMISSION_PROPS as $propName) {
+            if (array_key_exists($propName, $props)) {
+                $errors[$propName] = [__('api.400.paramNotSupported', ['param' => $propName])];
+            }
+        }
 
         return false;
     }
