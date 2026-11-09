@@ -54,40 +54,44 @@ class ScieloModerationStagesPluginTest extends TestCase
         $this->assertArrayHasKey('areaStageEntryDate', $errors);
     }
 
-    public function testWorkflowTabAllowsStageDataUpdateToManagerWhoIsAlsoAuthor(): void
+    public function testWorkflowTabIsReadOnlyForManagerAssignedOnlyAsAuthor(): void
     {
-        $this->assertTrue(ScieloModerationStagesPlugin::rolesGrantStageDataUpdate(
-            [ROLE_ID_MANAGER, ROLE_ID_AUTHOR],
+        $this->assertFalse(ScieloModerationStagesPlugin::stagesGrantStageDataUpdate(
             [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_AUTHOR]]
         ));
     }
 
-    public function testWorkflowTabAllowsStageDataUpdateToSiteAdmin(): void
+    public function testWorkflowTabAllowsStageDataUpdateToManagerAlsoAssignedAsManagerOrModerator(): void
     {
-        $this->assertTrue(ScieloModerationStagesPlugin::rolesGrantStageDataUpdate([ROLE_ID_SITE_ADMIN], []));
-        $this->assertTrue(ScieloModerationStagesPlugin::rolesGrantStageDataUpdate(
-            [ROLE_ID_SITE_ADMIN, ROLE_ID_AUTHOR],
-            [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_AUTHOR]]
+        $this->assertTrue(ScieloModerationStagesPlugin::stagesGrantStageDataUpdate(
+            [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_AUTHOR, ROLE_ID_MANAGER]]
+        ));
+        $this->assertTrue(ScieloModerationStagesPlugin::stagesGrantStageDataUpdate(
+            [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_AUTHOR, ROLE_ID_SUB_EDITOR]]
         ));
     }
 
-    public function testWorkflowTabDeniesStageDataUpdateToSubEditorWhoIsOnlyAuthor(): void
+    public function testWorkflowTabAllowsStageDataUpdateToUnassignedManagerAndAdmin(): void
     {
-        $this->assertFalse(ScieloModerationStagesPlugin::rolesGrantStageDataUpdate(
-            [ROLE_ID_SUB_EDITOR, ROLE_ID_AUTHOR],
-            [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_AUTHOR]]
+        $this->assertTrue(ScieloModerationStagesPlugin::stagesGrantStageDataUpdate(
+            [WORKFLOW_STAGE_ID_SUBMISSION => [ROLE_ID_MANAGER], WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_MANAGER]]
         ));
-        $this->assertFalse(ScieloModerationStagesPlugin::rolesGrantStageDataUpdate(
-            [ROLE_ID_ASSISTANT],
-            [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_ASSISTANT]]
+        $this->assertTrue(ScieloModerationStagesPlugin::stagesGrantStageDataUpdate(
+            [WORKFLOW_STAGE_ID_SUBMISSION => [ROLE_ID_SITE_ADMIN], WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_SITE_ADMIN]]
         ));
     }
 
-    public function testWorkflowTabAllowsStageDataUpdateToAssignedSubEditor(): void
+    public function testWorkflowTabFollowsSubEditorAssignment(): void
     {
-        $this->assertTrue(ScieloModerationStagesPlugin::rolesGrantStageDataUpdate(
-            [ROLE_ID_SUB_EDITOR],
+        $this->assertFalse(ScieloModerationStagesPlugin::stagesGrantStageDataUpdate(
+            [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_AUTHOR]]
+        ));
+        $this->assertTrue(ScieloModerationStagesPlugin::stagesGrantStageDataUpdate(
             [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_SUB_EDITOR]]
         ));
+        $this->assertFalse(ScieloModerationStagesPlugin::stagesGrantStageDataUpdate(
+            [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_ASSISTANT]]
+        ));
+        $this->assertFalse(ScieloModerationStagesPlugin::stagesGrantStageDataUpdate([]));
     }
 }

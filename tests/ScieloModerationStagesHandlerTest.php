@@ -118,18 +118,7 @@ class ScieloModerationStagesHandlerTest extends TestCase
         $this->assertSame('Responsible: Jane Doe', $response['Responsibles']);
     }
 
-    public function testExhibitDataIncludesEditorialDataForSiteAdminWhoIsAlsoAuthorOfSubmission(): void
-    {
-        $handler = new TestableModerationStagesHandler();
-        $handler->userRoles = [ROLE_ID_SITE_ADMIN, ROLE_ID_AUTHOR];
-        $handler->accessibleWorkflowStages = [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_AUTHOR]];
-
-        $response = json_decode($handler->getSubmissionExhibitData(['submissionId' => 1], null), true);
-
-        $this->assertSame('Responsible: Jane Doe', $response['Responsibles']);
-    }
-
-    public function testExhibitDataIncludesEditorialDataForManagerWhoIsAlsoAuthorOfSubmission(): void
+    public function testExhibitDataIsHiddenFromManagerAssignedOnlyAsAuthor(): void
     {
         $handler = new TestableModerationStagesHandler();
         $handler->userRoles = [ROLE_ID_MANAGER, ROLE_ID_AUTHOR];
@@ -137,22 +126,55 @@ class ScieloModerationStagesHandlerTest extends TestCase
 
         $response = json_decode($handler->getSubmissionExhibitData(['submissionId' => 1], null), true);
 
-        $this->assertSame('Responsible: Jane Doe', $response['Responsibles']);
+        $this->assertArrayNotHasKey('Responsibles', $response);
     }
 
-    public function testStageDataUpdateIsAllowedToManagersAndAdminsWhoAreAlsoAuthors(): void
+    public function testExhibitDataIncludesEditorialDataForManagerAlsoAssignedAsManagerOrModerator(): void
+    {
+        foreach ([ROLE_ID_MANAGER, ROLE_ID_SUB_EDITOR] as $editorialRole) {
+            $handler = new TestableModerationStagesHandler();
+            $handler->userRoles = [ROLE_ID_MANAGER, ROLE_ID_SUB_EDITOR, ROLE_ID_AUTHOR];
+            $handler->accessibleWorkflowStages = [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_AUTHOR, $editorialRole]];
+
+            $response = json_decode($handler->getSubmissionExhibitData(['submissionId' => 1], null), true);
+
+            $this->assertSame('Responsible: Jane Doe', $response['Responsibles']);
+        }
+    }
+
+    public function testStageDataUpdateFollowsAccessibleWorkflowStages(): void
     {
         $roles = ScieloModerationStagesHandler::STAGE_DATA_UPDATE_ROLES;
-        $authorStages = [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_AUTHOR]];
+        $authorOnly = [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_AUTHOR]];
 
-        $this->assertTrue(ScieloModerationStagesHandler::rolesGrantSubmissionAccess([ROLE_ID_MANAGER, ROLE_ID_AUTHOR], $authorStages, $roles));
-        $this->assertTrue(ScieloModerationStagesHandler::rolesGrantSubmissionAccess([ROLE_ID_SITE_ADMIN], [], $roles));
-        $this->assertFalse(ScieloModerationStagesHandler::rolesGrantSubmissionAccess([ROLE_ID_SUB_EDITOR, ROLE_ID_AUTHOR], $authorStages, $roles));
-        $this->assertTrue(ScieloModerationStagesHandler::rolesGrantSubmissionAccess(
-            [ROLE_ID_SUB_EDITOR],
-            [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_SUB_EDITOR]],
+        $this->assertFalse(ScieloModerationStagesHandler::stagesGrantAnyRole($authorOnly, $roles));
+        $this->assertTrue(ScieloModerationStagesHandler::stagesGrantAnyRole(
+            [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_AUTHOR, ROLE_ID_MANAGER]],
             $roles
         ));
+        $this->assertTrue(ScieloModerationStagesHandler::stagesGrantAnyRole(
+            [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_AUTHOR, ROLE_ID_SUB_EDITOR]],
+            $roles
+        ));
+        $this->assertTrue(ScieloModerationStagesHandler::stagesGrantAnyRole(
+            [WORKFLOW_STAGE_ID_SUBMISSION => [ROLE_ID_SITE_ADMIN], WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_SITE_ADMIN]],
+            $roles
+        ));
+    }
+
+    public function testUpdateSubmissionStageDataRejectsManagerAssignedOnlyAsAuthor(): void
+    {
+        $handler = new TestableModerationStagesHandler();
+        $handler->userRoles = [ROLE_ID_MANAGER, ROLE_ID_AUTHOR];
+        $handler->accessibleWorkflowStages = [WORKFLOW_STAGE_ID_PRODUCTION => [ROLE_ID_AUTHOR]];
+
+        $response = $handler->updateSubmissionStageData(
+            ['submissionId' => 1, 'sendNextStage' => 1, 'formatStageEntryDate' => '2020-01-01'],
+            new FakeModerationStagesRequest(true, true)
+        );
+
+        $this->assertInstanceOf(JSONMessage::class, $response);
+        $this->assertFalse($response->getStatus());
     }
 
     public function testUpdateSubmissionStageDataRejectsServerEditorWhoIsOnlyAuthorOfSubmission(): void

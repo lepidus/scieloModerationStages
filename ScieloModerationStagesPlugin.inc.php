@@ -355,7 +355,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             $userRoles
         );
 
-        return self::rolesGrantStageDataUpdate($userRoles, (array) $accessibleWorkflowStages);
+        return self::stagesGrantStageDataUpdate((array) $accessibleWorkflowStages);
     }
 
     /**
@@ -373,15 +373,12 @@ class ScieloModerationStagesPlugin extends GenericPlugin
     }
 
     /**
-     * Same rule as ScieloModerationStagesHandler::updateSubmissionStageData: managers and
-     * site administrators by their roles, sub editors by a role in the submission.
+     * Same rule as ScieloModerationStagesHandler::updateSubmissionStageData: an update role
+     * in the workflow stages accessible in the core (a manager assigned only as author is
+     * treated as an author; a manager without assignments gets every stage).
      */
-    public static function rolesGrantStageDataUpdate(array $userRoles, array $accessibleWorkflowStages): bool
+    public static function stagesGrantStageDataUpdate(array $accessibleWorkflowStages): bool
     {
-        if (count(array_intersect($userRoles, [ROLE_ID_SITE_ADMIN, ROLE_ID_MANAGER])) > 0) {
-            return true;
-        }
-
         foreach ($accessibleWorkflowStages as $stageRoles) {
             if (count(array_intersect((array) $stageRoles, [ROLE_ID_SITE_ADMIN, ROLE_ID_MANAGER, ROLE_ID_SUB_EDITOR])) > 0) {
                 return true;
