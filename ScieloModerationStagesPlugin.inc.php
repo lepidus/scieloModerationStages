@@ -270,10 +270,7 @@ class ScieloModerationStagesPlugin extends GenericPlugin
             $templateMgr->assign($stageDates);
             $templateMgr->assign('submissionId', $submission->getId());
             $templateMgr->assign('userIsAuthor', $this->userIsAuthor($submission));
-            $templateMgr->assign(
-                'stageDataReadOnly',
-                $this->userIsAuthor($submission) || !$this->userCanUpdateStageData($submission)
-            );
+            $templateMgr->assign('stageDataReadOnly', !$this->userCanUpdateStageData($submission));
             $templateMgr->assign('canAdvanceStage', $moderationStage->canAdvanceStage());
 
             if ($moderationStage->canAdvanceStage()) {
