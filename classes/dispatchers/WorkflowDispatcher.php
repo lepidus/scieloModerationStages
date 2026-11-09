@@ -56,7 +56,7 @@ class WorkflowDispatcher
                 'csrfToken' => $request->getSession()->getCSRFToken(),
                 'submissionId' => $submission->getId(),
                 'userIsAuthor' => $this->plugin->userIsAuthor($submission),
-                'canUpdateStageData' => $this->userCanUpdateStageData($request->getUser(), $context->getId(), $submission),
+                'canUpdateStageData' => $this->userCanUpdateStageData($request, $submission),
                 'currentStage' => $currentStageName,
                 'canAdvanceStage' => $canAdvanceStage,
                 'canRegressStage' => $canRegressStage,
@@ -79,13 +79,48 @@ class WorkflowDispatcher
         }
     }
 
-    private function userCanUpdateStageData($user, int $contextId, $submission): bool
+    private function userCanUpdateStageData($request, $submission): bool
     {
+        $user = $request->getUser();
         if (!$user) {
             return false;
         }
 
-        $accessibleWorkflowStages = Repo::user()->getAccessibleWorkflowStages($user->getId(), $contextId, $submission);
+        $userRoles = $this->getCurrentUserRoles($request);
+        $accessibleWorkflowStages = Repo::user()->getAccessibleWorkflowStages(
+            $user->getId(),
+            $request->getContext()->getId(),
+            $submission,
+            $userRoles
+        );
+
+        return self::rolesGrantStageDataUpdate($userRoles, $accessibleWorkflowStages);
+    }
+
+    /**
+     * Roles of the user in the context and site, as authorized for the current page
+     * (including the site administrator role), so that the core does not rebuild them.
+     */
+    private function getCurrentUserRoles($request): array
+    {
+        $handler = $request->getRouter()->getHandler();
+        if (!$handler) {
+            return [];
+        }
+
+        return (array) $handler->getAuthorizedContextObject(Application::ASSOC_TYPE_USER_ROLES);
+    }
+
+    /**
+     * Same rule as ScieloModerationStagesHandler::updateSubmissionStageData: managers and
+     * site administrators by their roles, sub editors by a role in the submission.
+     */
+    public static function rolesGrantStageDataUpdate(array $userRoles, array $accessibleWorkflowStages): bool
+    {
+        if (!empty(array_intersect($userRoles, [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER]))) {
+            return true;
+        }
+
         $updateRoles = [Role::ROLE_ID_SITE_ADMIN, Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR];
 
         foreach ($accessibleWorkflowStages as $stageRoles) {
