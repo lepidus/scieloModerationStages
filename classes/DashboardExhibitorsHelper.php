@@ -30,7 +30,7 @@ class DashboardExhibitorsHelper
         Submission $submission,
         int $userId,
         int $contextId,
-        bool $hasEditorialAccessToSubmission = true
+        bool $hasEditorialAccessToSubmission
     ): array {
         $userMainUserGroup = $this->getUserMainUserGroup($userId, $contextId);
 
