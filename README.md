@@ -10,6 +10,10 @@ The latest release of this plugin is compatible with the following PKP applicati
 
 For OPS 3.4.0, use the previous releases of this plugin (`2.x`).
 
+## Deprecated versions
+
+This plugin is maintained for use in the SciELO Preprints server. Therefore, support for OPS 3.3.0 has been interrupted.
+
 ## Plugin Download
 
 To download the plugin, go to the [Releases page](https://github.com/lepidus/scieloModerationStages/releases) and download the tar.gz package of the latest release compatible with your website.
